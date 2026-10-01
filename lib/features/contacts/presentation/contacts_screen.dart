@@ -1,731 +1,575 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nkount/core/constants/app_constants.dart';
+import 'package:nkount/core/database/hive_service.dart';
 import 'package:nkount/core/models/contact_model.dart';
-import 'package:nkount/core/providers/storage_providers.dart';
-import 'package:nkount/core/utils/theme/app_theme.dart';
+import 'package:nkount/packages/design-system/design_system.dart';
 
-/// Contacts Screen for managing customers and suppliers
-class ContactsScreen extends ConsumerStatefulWidget {
+/// Contacts Screen with Claymorphism Design
+class ContactsScreen extends ConsumerWidget {
   const ContactsScreen({super.key});
 
   @override
-  ConsumerState<ContactsScreen> createState() => _ContactsScreenState();
-}
-
-class _ContactsScreenState extends ConsumerState<ContactsScreen> {
-  String _searchQuery = '';
-  String _selectedType = 'all';
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final contacts = ref.watch(contactsProvider);
-    final contactRepo = ref.watch(contactRepositoryProvider);
     
-    final filteredContacts = _filterContacts(contacts);
-
-    return Scaffold(
-      appBar: AppBar(
+    return ClayScaffold(
+      appBar: ClayAppBar(
         title: const Text('Contacts'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: _showFilterDialog,
+          ClayIconButton(
+            icon: Icons.search,
+            onPressed: () => _showSearchDialog(context),
+            tooltip: 'Search Contacts',
+          ),
+          ClayIconButton(
+            icon: Icons.filter_list,
+            onPressed: () => _showFilterDialog(context),
+            tooltip: 'Filter',
+          ),
+          ClayButton(
+            onPressed: () => _showAddContactDialog(context),
+            child: const Text('Add Contact'),
           ),
         ],
       ),
-      body: Column(
+      body: contacts.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(child: Text('Error: $error')),
+        data: (contactList) {
+          if (contactList.isEmpty) {
+            return const _EmptyContactsState();
+          }
+          return _ContactsList(contacts: contactList);
+        },
+      ),
+      bottomNavigationBar: ClayBottomNavigation(
+        currentIndex: 1,
+        items: const [
+          ClayBottomNavItem(icon: Icons.dashboard, label: 'Dashboard', route: '/'),
+          ClayBottomNavItem(icon: Icons.people, label: 'Contacts', route: '/contacts'),
+          ClayBottomNavItem(icon: Icons.inventory, label: 'Products', route: '/products'),
+          ClayBottomNavItem(icon: Icons.receipt, label: 'Transactions', route: '/transactions'),
+          ClayBottomNavItem(icon: Icons.payment, label: 'Payments', route: '/payments'),
+        ],
+        onTap: (index) {
+          final routes = ['/', '/contacts', '/products', '/transactions', '/payments'];
+          if (index < routes.length) {
+            context.go(routes[index]);
+          }
+        },
+      ),
+    );
+  }
+
+  void _showSearchDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => ClayDialog(
+        title: const Text('Search Contacts'),
+        content: const ClaySearchInput(hintText: 'Search by name, phone, or email'),
+        actions: [
+          ClayButton.text(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFilterDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => ClayDialog(
+        title: const Text('Filter Contacts'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClayRadioListTile<String>(
+              title: const Text('All'),
+              value: 'all',
+              groupValue: 'all',
+              onChanged: (value) {},
+            ),
+            ClayRadioListTile<String>(
+              title: const Text('Customers'),
+              value: AppConstants.CONTACT_CUSTOMER,
+              groupValue: 'all',
+              onChanged: (value) {},
+            ),
+            ClayRadioListTile<String>(
+              title: const Text('Suppliers'),
+              value: AppConstants.CONTACT_SUPPLIER,
+              groupValue: 'all',
+              onChanged: (value) {},
+            ),
+          ],
+        ),
+        actions: [
+          ClayButton.text(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ClayButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Apply'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddContactDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => ClayFormDialog(
+        title: const Text('Add New Contact'),
+        child: const _AddContactForm(),
+      ),
+    );
+  }
+}
+
+/// Empty Contacts State
+class _EmptyContactsState extends StatelessWidget {
+  const _EmptyContactsState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search contacts...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchQuery.isNotEmpty 
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () => setState(() => _searchQuery = ''),
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onChanged: (value) => setState(() => _searchQuery = value),
+          Icon(
+            Icons.people_alt_outlined,
+            size: 80,
+            color: Colors.grey.shade400,
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'No Contacts Found',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
             ),
           ),
-          
-          // Summary
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
+          const SizedBox(height: 8),
+          const Text(
+            'Add your first contact to get started',
+            style: TextStyle(color: Colors.grey),
+          ),
+          const SizedBox(height: 24),
+          ClayButton(
+            onPressed: () => context.push('/contacts'),
+            child: const Text('Add Contact'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Contacts List
+class _ContactsList extends ConsumerWidget {
+  final List<ContactModel> contacts;
+
+  const _ContactsList({required this.contacts});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ListView.builder(
+      itemCount: contacts.length,
+      itemBuilder: (context, index) {
+        final contact = contacts[index];
+        return _ContactItem(contact: contact);
+      },
+    );
+  }
+}
+
+/// Contact Item
+class _ContactItem extends StatelessWidget {
+  final ContactModel contact;
+
+  const _ContactItem({required this.contact});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClayCard(
+      onTap: () => _showContactDetailDialog(context, contact),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: _getContactTypeColor(contact.type).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              _getContactTypeIcon(contact.type),
+              color: _getContactTypeColor(contact.type),
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: _buildSummaryCard(
-                    'Total Contacts',
-                    contacts.length.toString(),
-                    Colors.blue,
+                Text(
+                  contact.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildSummaryCard(
-                    'Customers',
-                    contactRepo.getContactsByType(AppConstants.CONTACT_CUSTOMER).length.toString(),
-                    Colors.green,
+                const SizedBox(height: 4),
+                Text(
+                  contact.primaryPhone ?? 'No phone',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildSummaryCard(
-                    'Suppliers',
-                    contactRepo.getContactsByType(AppConstants.CONTACT_SUPPLIER).length.toString(),
-                    Colors.orange,
+                const SizedBox(height: 4),
+                Text(
+                  contact.typeDisplayName,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: _getContactTypeColor(contact.type),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          
-          // Contacts List
-          Expanded(
-            child: filteredContacts.isEmpty
-                ? const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.contacts, size: 64, color: Colors.grey),
-                          SizedBox(height: 16),
-                          Text(
-                            'No contacts found',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Add your first contact to get started',
-                            style: TextStyle(color: Colors.grey, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: filteredContacts.length,
-                    separatorBuilder: (context, index) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final contact = filteredContacts[index];
-                      return _buildContactItem(contact);
-                    },
-                  ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () => _showAddContactDialog(),
-      ),
-    );
-  }
-
-  /// Filter contacts based on search and type
-  List<ContactModel> _filterContacts(List<ContactModel> contacts) {
-    var filtered = contacts;
-    
-    if (_selectedType != 'all') {
-      filtered = filtered.where((c) => c.type == _selectedType).toList();
-    }
-    
-    if (_searchQuery.isNotEmpty) {
-      filtered = filtered
-          .where((c) => 
-            c.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            (c.phone?.contains(_searchQuery) ?? false) ||
-            (c.mobile?.contains(_searchQuery) ?? false) ||
-            (c.email?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)
-          )
-          .toList();
-    }
-    
-    return filtered;
-  }
-
-  /// Build summary card
-  Widget _buildSummaryCard(String title, String value, Color color) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Colors.grey,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Build contact item
-  Widget _buildContactItem(ContactModel contact) {
-    final color = contact.type == AppConstants.CONTACT_CUSTOMER 
-        ? Colors.green 
-        : Colors.orange;
-
-    return Card(
-      elevation: 2,
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: color.withOpacity(0.2),
-          child: Text(
-            contact.name.isNotEmpty ? contact.name[0].toUpperCase() : '?',
-            style: TextStyle(color: color, fontWeight: FontWeight.bold),
-          ),
-        ),
-        title: Text(
-          contact.name,
-          style: const TextStyle(fontWeight: FontWeight.w500),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              contact.primaryPhone ?? 'No phone',
-              style: const TextStyle(fontSize: 12),
-            ),
-            if (contact.balance != 0)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
               Text(
-                'Balance: ${AppTheme.formatCurrency(contact.balance)}',
+                'NPR ${contact.balance.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: contact.balance >= 0 ? ClayColors.success : ClayColors.error,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                contact.isActive ? 'Active' : 'Inactive',
                 style: TextStyle(
                   fontSize: 11,
-                  color: contact.balance > 0 ? Colors.green : Colors.red,
-                ),
-              ),
-          ],
-        ),
-        trailing: IconButton(
-          icon: const Icon(Icons.more_vert),
-          onPressed: () => _showContactActions(contact),
-        ),
-        onTap: () => _showContactDetails(contact),
-      ),
-    );
-  }
-
-  /// Show filter dialog
-  void _showFilterDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Filter Contacts'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RadioListTile<String>(
-              title: const Text('All Contacts'),
-              value: 'all',
-              groupValue: _selectedType,
-              onChanged: (value) {
-                setState(() => _selectedType = value!);
-                Navigator.pop(context);
-              },
-            ),
-            RadioListTile<String>(
-              title: const Text('Customers'),
-              value: AppConstants.CONTACT_CUSTOMER,
-              groupValue: _selectedType,
-              onChanged: (value) {
-                setState(() => _selectedType = value!);
-                Navigator.pop(context);
-              },
-            ),
-            RadioListTile<String>(
-              title: const Text('Suppliers'),
-              value: AppConstants.CONTACT_SUPPLIER,
-              groupValue: _selectedType,
-              onChanged: (value) {
-                setState(() => _selectedType = value!);
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Show add contact dialog
-  void _showAddContactDialog() {
-    final nameController = TextEditingController();
-    final phoneController = TextEditingController();
-    final mobileController = TextEditingController();
-    final emailController = TextEditingController();
-    final addressController = TextEditingController();
-    
-    String selectedType = AppConstants.CONTACT_CUSTOMER;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add New Contact'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Name *',
-                  hintText: 'Enter contact name',
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: phoneController,
-                decoration: const InputDecoration(
-                  labelText: 'Phone',
-                  hintText: 'Office phone number',
-                ),
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: mobileController,
-                decoration: const InputDecoration(
-                  labelText: 'Mobile',
-                  hintText: 'Mobile phone number',
-                ),
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  hintText: 'Email address',
-                ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Address',
-                  hintText: 'Street address',
-                ),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: selectedType,
-                items: [
-                  DropdownMenuItem(
-                    value: AppConstants.CONTACT_CUSTOMER,
-                    child: const Text('Customer'),
-                  ),
-                  DropdownMenuItem(
-                    value: AppConstants.CONTACT_SUPPLIER,
-                    child: const Text('Supplier'),
-                  ),
-                  DropdownMenuItem(
-                    value: AppConstants.CONTACT_BOTH,
-                    child: const Text('Both'),
-                  ),
-                ],
-                onChanged: (value) => selectedType = value!,
-                decoration: const InputDecoration(
-                  labelText: 'Contact Type',
+                  color: contact.isActive ? ClayColors.success : Colors.grey,
                 ),
               ),
             ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (nameController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please enter a name')),
-                );
-                return;
-              }
-              
-              final contact = ContactModel.create(
-                name: nameController.text.trim(),
-                phone: phoneController.text.trim().isEmpty ? null : phoneController.text.trim(),
-                mobile: mobileController.text.trim().isEmpty ? null : mobileController.text.trim(),
-                email: emailController.text.trim().isEmpty ? null : emailController.text.trim(),
-                address: addressController.text.trim().isEmpty ? null : addressController.text.trim(),
-                type: selectedType,
-              );
-              
-              await ref.read(contactRepositoryProvider).saveContact(contact);
-              await ref.read(contactsProvider.notifier).refresh();
-              
-              Navigator.pop(context);
-              
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Contact added successfully')),
-              );
-            },
-            child: const Text('Save'),
-          ),
         ],
       ),
     );
   }
 
-  /// Show contact details
-  void _showContactDetails(ContactModel contact) {
+  Color _getContactTypeColor(String type) {
+    switch (type) {
+      case AppConstants.CONTACT_CUSTOMER:
+        return ClayColors.primary;
+      case AppConstants.CONTACT_SUPPLIER:
+        return ClayColors.secondary;
+      case AppConstants.CONTACT_BOTH:
+        return ClayColors.tertiary;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getContactTypeIcon(String type) {
+    switch (type) {
+      case AppConstants.CONTACT_CUSTOMER:
+        return Icons.person;
+      case AppConstants.CONTACT_SUPPLIER:
+        return Icons.business;
+      case AppConstants.CONTACT_BOTH:
+        return Icons.group;
+      default:
+        return Icons.people;
+    }
+  }
+
+  void _showContactDetailDialog(BuildContext context, ContactModel contact) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => ClayDialog(
         title: Text(contact.name),
         content: SingleChildScrollView(
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildDetailRow('Type', contact.typeDisplayName),
-              _buildDetailRow('Phone', contact.phone ?? 'N/A'),
-              _buildDetailRow('Mobile', contact.mobile ?? 'N/A'),
-              _buildDetailRow('Email', contact.email ?? 'N/A'),
-              _buildDetailRow('Address', contact.fullAddress),
-              _buildDetailRow('VAT Number', contact.vatNumber ?? 'N/A'),
-              _buildDetailRow('PAN Number', contact.panNumber ?? 'N/A'),
-              _buildDetailRow('Total Purchases', AppTheme.formatCurrency(contact.totalPurchases)),
-              _buildDetailRow('Total Sales', AppTheme.formatCurrency(contact.totalSales)),
-              _buildDetailRow('Balance', AppTheme.formatCurrency(contact.balance)),
-              _buildDetailRow('Status', contact.isActive ? 'Active' : 'Inactive'),
-              if (contact.remarks != null && contact.remarks!.isNotEmpty)
-                _buildDetailRow('Remarks', contact.remarks!),
+              _ContactDetailRow(
+                icon: Icons.phone,
+                label: 'Phone',
+                value: contact.primaryPhone ?? 'N/A',
+              ),
+              const Divider(),
+              _ContactDetailRow(
+                icon: Icons.email,
+                label: 'Email',
+                value: contact.email ?? 'N/A',
+              ),
+              const Divider(),
+              _ContactDetailRow(
+                icon: Icons.location_on,
+                label: 'Address',
+                value: contact.fullAddress,
+              ),
+              const Divider(),
+              _ContactDetailRow(
+                icon: Icons.money,
+                label: 'Balance',
+                value: 'NPR ${contact.balance.toStringAsFixed(2)}',
+              ),
+              const Divider(),
+              _ContactDetailRow(
+                icon: Icons.category,
+                label: 'Type',
+                value: contact.typeDisplayName,
+              ),
+              const Divider(),
+              _ContactDetailRow(
+                icon: Icons.info,
+                label: 'VAT Number',
+                value: contact.vatNumber ?? 'N/A',
+              ),
+              const Divider(),
+              _ContactDetailRow(
+                icon: Icons.numbers,
+                label: 'PAN Number',
+                value: contact.panNumber ?? 'N/A',
+              ),
             ],
           ),
         ),
         actions: [
-          TextButton(
+          ClayButton.text(
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _showEditContactDialog(contact);
-            },
+          ClayButton(
+            onPressed: () {},
             child: const Text('Edit'),
           ),
         ],
       ),
     );
   }
+}
 
-  /// Build detail row
-  Widget _buildDetailRow(String label, String value) {
+/// Contact Detail Row
+class _ContactDetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _ContactDetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-                color: Colors.grey,
-              ),
+          Icon(icon, size: 20, color: Colors.grey),
+          const SizedBox(width: 16),
+          Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+              color: Colors.grey,
             ),
           ),
+          const SizedBox(width: 8),
           const Text(': '),
           Expanded(
-            child: Text(value),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Show contact actions
-  void _showContactActions(ContactModel contact) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text('Edit'),
-              onTap: () {
-                Navigator.pop(context);
-                _showEditContactDialog(contact);
-              },
+            child: Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.w500),
             ),
-            ListTile(
-              leading: const Icon(Icons.copy),
-              title: const Text('Duplicate'),
-              onTap: () {
-                Navigator.pop(context);
-                _duplicateContact(contact);
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                contact.isActive ? Icons.block : Icons.check_circle,
-                color: contact.isActive ? Colors.red : Colors.green,
-              ),
-              title: Text(contact.isActive ? 'Deactivate' : 'Activate'),
-              onTap: () {
-                Navigator.pop(context);
-                _toggleContactStatus(contact);
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('Delete', style: TextStyle(color: Colors.red)),
-              onTap: () {
-                Navigator.pop(context);
-                _showDeleteConfirmation(contact);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Show edit contact dialog
-  void _showEditContactDialog(ContactModel contact) {
-    final nameController = TextEditingController(text: contact.name);
-    final phoneController = TextEditingController(text: contact.phone ?? '');
-    final mobileController = TextEditingController(text: contact.mobile ?? '');
-    final emailController = TextEditingController(text: contact.email ?? '');
-    final addressController = TextEditingController(text: contact.address ?? '');
-    final remarksController = TextEditingController(text: contact.remarks ?? '');
-    
-    String selectedType = contact.type;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Edit ${contact.name}'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Name *',
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: phoneController,
-                decoration: const InputDecoration(
-                  labelText: 'Phone',
-                ),
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: mobileController,
-                decoration: const InputDecoration(
-                  labelText: 'Mobile',
-                ),
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Address',
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: remarksController,
-                decoration: const InputDecoration(
-                  labelText: 'Remarks',
-                ),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: selectedType,
-                items: [
-                  DropdownMenuItem(
-                    value: AppConstants.CONTACT_CUSTOMER,
-                    child: const Text('Customer'),
-                  ),
-                  DropdownMenuItem(
-                    value: AppConstants.CONTACT_SUPPLIER,
-                    child: const Text('Supplier'),
-                  ),
-                  DropdownMenuItem(
-                    value: AppConstants.CONTACT_BOTH,
-                    child: const Text('Both'),
-                  ),
-                ],
-                onChanged: (value) => selectedType = value!,
-                decoration: const InputDecoration(
-                  labelText: 'Contact Type',
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (nameController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please enter a name')),
-                );
-                return;
-              }
-              
-              final updatedContact = contact.copyWith(
-                name: nameController.text.trim(),
-                phone: phoneController.text.trim().isEmpty ? null : phoneController.text.trim(),
-                mobile: mobileController.text.trim().isEmpty ? null : mobileController.text.trim(),
-                email: emailController.text.trim().isEmpty ? null : emailController.text.trim(),
-                address: addressController.text.trim().isEmpty ? null : addressController.text.trim(),
-                remarks: remarksController.text.trim().isEmpty ? null : remarksController.text.trim(),
-                type: selectedType,
-                updatedAt: DateTime.now(),
-              );
-              
-              await ref.read(contactRepositoryProvider).updateContact(updatedContact);
-              await ref.read(contactsProvider.notifier).refresh();
-              
-              Navigator.pop(context);
-              
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Contact updated successfully')),
-              );
-            },
-            child: const Text('Update'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Duplicate contact
-  void _duplicateContact(ContactModel contact) {
-    final duplicated = contact.copyWith(
-      id: '',
-      name: '${contact.name} (Copy)',
-      phone: contact.phone,
-      mobile: contact.mobile,
-      email: contact.email,
-      address: contact.address,
-      openingBalance: 0,
-      totalPurchases: 0,
-      totalSales: 0,
-      totalPayments: 0,
-      totalReceipts: 0,
-      balance: 0,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-    
-    ref.read(contactRepositoryProvider).saveContact(duplicated);
-    ref.read(contactsProvider.notifier).refresh();
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Contact duplicated successfully')),
-    );
-  }
-
-  /// Toggle contact status
-  void _toggleContactStatus(ContactModel contact) {
-    final updatedContact = contact.copyWith(
-      isActive: !contact.isActive,
-      updatedAt: DateTime.now(),
-    );
-    
-    ref.read(contactRepositoryProvider).updateContact(updatedContact);
-    ref.read(contactsProvider.notifier).refresh();
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Contact ${updatedContact.isActive ? 'activated' : 'deactivated'} successfully'),
-      ),
-    );
-  }
-
-  /// Show delete confirmation
-  void _showDeleteConfirmation(ContactModel contact) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Contact'),
-        content: Text('Are you sure you want to delete "${contact.name}"? This action cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await ref.read(contactRepositoryProvider).deleteContact(contact.id);
-              await ref.read(contactsProvider.notifier).refresh();
-              
-              Navigator.pop(context);
-              
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Contact deleted successfully')),
-              );
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
   }
 }
+
+/// Add Contact Form
+class _AddContactForm extends ConsumerStatefulWidget {
+  const _AddContactForm();
+
+  @override
+  ConsumerState<_AddContactForm> createState() => _AddContactFormState();
+}
+
+class _AddContactFormState extends ConsumerState<_AddContactForm> {
+  final _formKey = GlobalKey<FormState>();
+  String _name = '';
+  String _phone = '';
+  String _mobile = '';
+  String _email = '';
+  String _address = '';
+  String _city = '';
+  String _district = '';
+  String _vatNumber = '';
+  String _panNumber = '';
+  String _type = AppConstants.CONTACT_CUSTOMER;
+  double? _openingBalance;
+  bool _isActive = true;
+  String _remarks = '';
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            ClayInputWithLabel(
+              label: 'Full Name *',
+              hintText: 'Enter contact name',
+              value: _name,
+              onChanged: (value) => _name = value,
+              validator: (value) => value?.isEmpty == true ? 'Name is required' : null,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ClayInputWithLabel(
+                    label: 'Phone',
+                    hintText: 'Phone number',
+                    value: _phone,
+                    onChanged: (value) => _phone = value,
+                    keyboardType: TextInputType.phone,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ClayInputWithLabel(
+                    label: 'Mobile',
+                    hintText: 'Mobile number',
+                    value: _mobile,
+                    onChanged: (value) => _mobile = value,
+                    keyboardType: TextInputType.phone,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ClayInputWithLabel(
+              label: 'Email',
+              hintText: 'Email address',
+              value: _email,
+              onChanged: (value) => _email = value,
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 16),
+            ClayInputWithLabel(
+              label: 'Address',
+              hintText: 'Street address',
+              value: _address,
+              onChanged: (value) => _address = value,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ClayInputWithLabel(
+                    label: 'City',
+                    hintText: 'City',
+                    value: _city,
+                    onChanged: (value) => _city = value,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ClayInputWithLabel(
+                    label: 'District',
+                    hintText: 'District',
+                    value: _district,
+                    onChanged: (value) => _district = value,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ClayInputWithLabel(
+                    label: 'VAT Number',
+                    hintText: 'VAT registration number',
+                    value: _vatNumber,
+                    onChanged: (value) => _vatNumber = value,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ClayInputWithLabel(
+                    label: 'PAN Number',
+                    hintText: 'PAN number',
+                    value: _panNumber,
+                    onChanged: (value) => _panNumber = value,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ClayInputWithLabel(
+              label: 'Opening Balance',
+              hintText: 'Opening balance',
+              value: _openingBalance?.toString() ?? '',
+              onChanged: (value) => _openingBalance = double.tryParse(value),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+            ClayDropdownInput<String>(
+              label: 'Contact Type',
+              value: _type,
+              items: const [
+                DropdownMenuItem(value: AppConstants.CONTACT_CUSTOMER, child: Text('Customer')),
+                DropdownMenuItem(value: AppConstants.CONTACT_SUPPLIER, child: Text('Supplier')),
+                DropdownMenuItem(value: AppConstants.CONTACT_BOTH, child: Text('Both')),
+              ],
+              onChanged: (value) => setState(() => _type = value!),
+            ),
+            const SizedBox(height: 16),
+            ClaySwitchInput(
+              label: 'Active',
+              value: _isActive,
+              onChanged: (value) => setState(() => _isActive = value),
+            ),
+            const SizedBox(height: 16),
+            ClayInputWithLabel(
+              label: 'Remarks',
+              hintText: 'Additional notes',
+              value: _remarks,
+              onChanged: (value) => _remarks = value,
+              maxLines: 3,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Provider for contacts
+final contactsProvider = FutureProvider<List<ContactModel>>((ref) async {
+  final hiveService = ref.watch(hiveServiceProvider);
+  return hiveService.contactsBox.values.toList();
+});

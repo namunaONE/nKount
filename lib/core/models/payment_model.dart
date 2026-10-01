@@ -8,7 +8,7 @@ part 'payment_model.g.dart';
 
 /// Payment Model for tracking payments and receipts
 @freezed
-@HiveType(typeId: 4, adapterName: 'PaymentModelAdapter')
+@HiveType(typeId: 5, adapterName: 'PaymentModelAdapter')
 class PaymentModel with _$PaymentModel {
   const factory PaymentModel({
     @HiveField(0) @Default('') String id,
@@ -143,7 +143,7 @@ class PaymentModel with _$PaymentModel {
 
 /// Payment Summary Model for reporting
 @freezed
-@HiveType(typeId: 5, adapterName: 'PaymentSummaryAdapter')
+@HiveType(typeId: 6, adapterName: 'PaymentSummaryAdapter')
 class PaymentSummary with _$PaymentSummary {
   const factory PaymentSummary({
     @HiveField(0) String? contactId,

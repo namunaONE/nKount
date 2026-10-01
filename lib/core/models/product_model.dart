@@ -7,7 +7,7 @@ part 'product_model.g.dart';
 
 /// Product Model for Inventory
 @freezed
-@HiveType(typeId: 1, adapterName: 'ProductModelAdapter')
+@HiveType(typeId: 2, adapterName: 'ProductModelAdapter')
 class ProductModel with _$ProductModel {
   const factory ProductModel({
     @HiveField(0) @Default('') String id,

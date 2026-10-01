@@ -8,7 +8,7 @@ part 'company_model.g.dart';
 
 /// Company Model for business information
 @freezed
-@HiveType(typeId: 6, adapterName: 'CompanyModelAdapter')
+@HiveType(typeId: 0, adapterName: 'CompanyModelAdapter')
 class CompanyModel with _$CompanyModel {
   const factory CompanyModel({
     @HiveField(0) @Default('') String id,

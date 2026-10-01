@@ -1,278 +1,271 @@
 # nKount - Nepali Accounting Software
 
-A **production-ready**, **IRD-compliant** accounting software for Nepali businesses built with **Flutter** and **Riverpod**. Designed for small and medium enterprises (SMEs) in Nepal.
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://namunaone.github.io/nKount/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B.svg)](https://flutter.dev)
+[![Riverpod](https://img.shields.io/badge/Riverpod-2.x-764ABC.svg)](https://riverpod.dev)
+[![Hive](https://img.shields.io/badge/Hive-2.x-FF6B6B.svg)](https://docs.hivedb.dev)
 
-## 🚀 Features
+**nKount** is a **simple, modern, and IRD-compliant** accounting software designed specifically for **Nepali businesses**. Built with **Flutter for Web**, it works **offline-first** using IndexedDB and features a beautiful **Claymorphism design**.
 
-### ✅ Core Accounting
-- **Contacts Management** - Customers & Suppliers with balance tracking
-- **Product Inventory** - Track stock levels, prices, and categories
-- **Purchase Records** - Record purchases with VAT support
-- **Sales Records** - Create invoices with automatic calculations
-- **Payment Tracking** - Record payments and receipts (Cash, Bank, Cheque, Online)
+---
 
-### ✅ Compliance
-- **IRD Compliant** - Follows Nepal Financial Reporting Standards (NFRS)
-- **VAT Support** - 13% VAT calculation and reporting
-- **Nepali Localization** - NPR currency, Nepali date formats
-- **Tax Reporting** - Generate IRD-compliant reports
+## ✨ Features
 
-### ✅ Modern Web App
-- **Responsive Design** - Works on desktop, tablet, and mobile
-- **Persistent Storage** - Data saved locally using Hive (IndexedDB for web)
-- **Real-time Updates** - Instant UI updates with Riverpod state management
-- **Production Ready** - Optimized for GitHub Pages deployment
+### 📊 Accounting
+- ✅ **Contacts Management** - Customers, Suppliers, and Both
+- ✅ **Product Inventory** - Stock tracking, pricing, categories
+- ✅ **Transactions** - Sales, Purchases, Expenses, Income
+- ✅ **Payments & Receipts** - Cash, Bank, Cheque, Online
+- ✅ **Automatic Balances** - Contact and product balances
+- ✅ **Tax Calculation** - 13% VAT (default), custom tax rates
+- ✅ **Invoice Numbering** - Auto-generated invoice numbers
 
-## 📊 Screens
+### 🏛️ IRD Compliance (Nepal)
+- ✅ **13% VAT** as default tax rate
+- ✅ **VAT Number** tracking
+- ✅ **PAN Number** support
+- ✅ **IRD Version 2081/82** compliant
+- ✅ **Nepali Currency** (NPR, रू)
 
-| Screen | Description |
-|--------|-------------|
-| Dashboard | Financial overview, quick actions, recent activity |
-| Contacts | Manage customers and suppliers |
-| Products | Manage inventory items |
-| Sales | Create and track sales invoices |
-| Purchases | Record purchase transactions |
-| Payments | Track payments and receipts |
+### 💾 Data Management
+- ✅ **Offline-First** - Works without internet
+- ✅ **IndexedDB Storage** - Persistent data in browser
+- ✅ **Auto-Backup** - Export/import data
+- ✅ **Sync Ready** - Architecture ready for cloud sync
 
-## 🛠️ Tech Stack
+### 🎨 Design
+- ✅ **Claymorphism** - Modern 3D-like UI
+- ✅ **Responsive** - Works on desktop, tablet, mobile
+- ✅ **Nepali Font** - Noto Sans Devanagari
+- ✅ **Dark/Light Mode** - Coming soon
 
-| Component | Technology |
-|-----------|------------|
-| **Framework** | Flutter 3.19+ |
-| **State Management** | Riverpod 2.4+ |
-| **Persistence** | Hive (with IndexedDB for web) |
-| **Routing** | GoRouter |
-| **Forms** | Flutter Form Builder |
-| **Localization** | flutter_localizations + intl |
-| **Styling** | Material Design 3 |
-| **Deployment** | GitHub Pages + GitHub Actions |
+### 📈 Reports
+- ✅ **Dashboard** - Quick overview
+- ✅ **Sales Report** - Revenue tracking
+- ✅ **Purchase Report** - Expense tracking
+- ✅ **Payment Report** - Cash flow
+- ✅ **Balance Sheet** - Financial summary
 
-## 📦 Installation
+---
 
-### Prerequisites
-- Flutter SDK 3.0+
-- Dart 3.0+
-- Git
+## 🚀 Quick Start
 
-### Setup
+### Option 1: Use Online (Recommended)
+
+Visit the live demo:
+👉 **[https://namunaone.github.io/nKount/](https://namunaone.github.io/nKount/)**
+
+### Option 2: Run Locally
 
 ```bash
 # Clone the repository
 git clone https://github.com/namunaONE/nKount.git
 cd nKount
 
-# Install dependencies
+# Get dependencies
 flutter pub get
 
-# Run the app (web)
-flutter run -d chrome
+# Generate code (Freezed, JSON, Riverpod)
+flutter pub run build_runner build
 
-# Build for production
-flutter build web --base-href /nKount/ --release
+# Run web app
+flutter run -d chrome
 ```
 
-## 🚀 Deployment to GitHub Pages
-
-### Automatic Deployment
-The repository is configured with GitHub Actions for automatic deployment:
-
-1. Push to `main` branch
-2. GitHub Actions will automatically:
-   - Build the Flutter web app
-   - Deploy to GitHub Pages
-
-### Manual Deployment
+### Option 3: Build for Production
 
 ```bash
-# Build the web app
-flutter build web --base-href /nKount/ --release
+# Build for web
+flutter build web --release
 
-# Deploy to GitHub Pages
+# Serve locally
 cd build/web
-git init
-git add .
-git commit -m "Deploy to GitHub Pages"
-git remote add origin https://github.com/namunaONE/nKount.git
-git push -u origin main:gh-pages
+python -m http.server 8000
+
+# Or use any static server
+npx serve -s build/web
 ```
 
-### Access the App
-After deployment, the app will be available at:
-```
-https://namunaone.github.io/nKount/
-```
+---
 
 ## 📁 Project Structure
 
 ```
 nKount/
 ├── lib/
-│   ├── core/
-│   │   ├── constants/          # App constants and Nepali-specific config
-│   │   ├── models/             # Data models (Contact, Product, Transaction, Payment)
-│   │   ├── providers/          # Riverpod providers and state management
-│   │   ├── repositories/       # Data repositories
-│   │   ├── services/           # Services (storage, etc.)
-│   │   └── utils/              # Utilities (theme, helpers, etc.)
 │   ├── features/
-│   │   ├── contacts/           # Contacts feature
-│   │   ├── purchases/          # Purchases feature
-│   │   ├── sales/              # Sales feature
-│   │   ├── payments/           # Payments feature
-│   │   └── dashboard/          # Dashboard feature
-│   └── app.dart                # Main app entry point
+│   │   ├── app/               # Main app router & theme
+│   │   ├── dashboard/         # Dashboard screen
+│   │   ├── contacts/          # Contacts CRUD
+│   │   ├── products/          # Products CRUD
+│   │   ├── transactions/      # Sales & Purchases
+│   │   ├── payments/          # Payments tracking
+│   │   ├── reports/           # Financial reports
+│   │   └── settings/          # App settings
+│   ├── core/
+│   │   ├── models/            # Data models (14 models)
+│   │   ├── database/          # Hive/IndexedDB service
+│   │   ├── constants/         # App constants
+│   │   ├── services/          # Sync, storage services
+│   │   └── repositories/      # Data repositories
+│   └── main.dart             # App entry point
+├── packages/
+│   ├── design-system/        # Claymorphism components
+│   ├── shared/               # Shared utilities
+│   └── database/             # Database utilities
 ├── web/
-│   └── index.html             # Web entry point with GitHub Pages config
-├── .github/
-│   └── workflows/
-│       └── deploy.yml         # GitHub Actions workflow
-├── pubspec.yaml              # Dependencies
-└── README.md                 # Documentation
+│   ├── index.html            # GitHub Pages ready
+│   └── manifest.json         # PWA manifest
+├── .github/workflows/
+│   ├── deploy.yml            # Auto-deploy to GitHub Pages
+│   ├── test.yml              # Run tests
+│   └── codegen.yml           # Code generation
+└── pubspec.yaml              # Dependencies
 ```
 
-## 💰 Nepali Accounting Standards
+---
 
-This software follows:
+## 🛠️ Technologies Used
 
-### NFRS (Nepal Financial Reporting Standards)
-- Based on IFRS (International Financial Reporting Standards)
-- Mandatory for all public interest entities and medium/large enterprises
-- Principles-based framework
+| Technology | Purpose | Version |
+|------------|---------|---------|
+| **Flutter** | Cross-platform UI framework | 3.x |
+| **Riverpod** | State management | 2.x |
+| **GoRouter** | Navigation | 13.x |
+| **Hive** | Local database (IndexedDB) | 2.x |
+| **Freezed** | Immutable models | 2.x |
+| **JSON Serialization** | Model serialization | 6.x |
+| **Claymorphism** | Modern UI design | Custom |
 
-### IRD Compliance
-- **E-Billing** - Electronic billing system support
-- **VAT Reporting** - 13% VAT calculation and reporting
-- **Invoice Requirements** - IRD-compliant invoice format
-- **Record Keeping** - Maintains proper accounting records
+---
 
-### Key Features for Nepal
-- **Currency**: Nepali Rupees (NPR / रू)
-- **Date Format**: Gregorian (AD) with option for Nepali (BS)
-- **Tax Rates**: Configurable VAT rate (default 13%)
-- **Language**: English and Nepali support
+## 🎨 Claymorphism Design
 
-## 🎯 Usage
+nKount uses **Claymorphism** - a modern UI design trend that features:
 
-### First Time Setup
-1. **Create Company Profile**
-   - Set up your business information
-   - Configure VAT/PAN numbers
-   - Set default settings
+- **Soft, clay-like** elements with depth
+- **Subtle shadows** for 3D appearance
+- **Pastel colors** with gentle gradients
+- **Neumorphism evolution** with more realism
 
-2. **Add Contacts**
-   - Add customers and suppliers
-   - Set opening balances if any
+### Color Palette
 
-3. **Add Products**
-   - Create your product catalog
-   - Set purchase and sale prices
-   - Configure inventory tracking
-
-4. **Record Transactions**
-   - Create sales invoices
-   - Record purchases
-   - Track payments
-
-### Daily Workflow
-1. Create new sales invoices for customers
-2. Record purchases from suppliers
-3. Track payments received and made
-4. Monitor outstanding receivables and payables
-5. Generate reports for decision making
-
-## 📊 Data Models
-
-### Contact
-- Name, Phone, Mobile, Email, Address
-- Type (Customer/Supplier/Both)
-- VAT Number, PAN Number
-- Opening Balance, Current Balance
-- Total Purchases, Total Sales
-
-### Product
-- Name, Code, Barcode
-- Category, Brand, Unit
-- Purchase Price, Sale Price, Cost Price
-- Quantity, Minimum Quantity
-- Taxable, Tax Rate
-
-### Transaction (Purchase/Sale)
-- Type, Invoice Number
-- Contact ID
-- Items (Product, Quantity, Price)
-- Subtotal, Discount, Tax, Total
-- Payment Status (Pending/Partial/Paid)
-- Date, Due Date, Notes
-
-### Payment
-- Type (Payment/Receipt)
-- Transaction ID, Invoice Number
-- Contact ID
-- Amount, Method
-- Reference Number, Bank, Cheque Details
-- Date, Status (Cleared/Pending)
-
-## 🎨 UI/UX Features
-
-- **Material Design 3** - Modern, clean interface
-- **Responsive Layout** - Works on all screen sizes
-- **Dark Mode** - Optional dark theme
-- **Nepali Styling** - Custom colors and fonts for Nepali users
-- **Accessibility** - Follows Flutter accessibility guidelines
-
-## 🔧 Configuration
-
-### Environment Variables
-Create a `.env` file for local development:
-
-```env
-# App Configuration
-APP_NAME=nKount
-APP_VERSION=1.0.0
-
-# IRD Configuration
-IRD_VERSION=2081/82
-DEFAULT_VAT_RATE=13.0
-
-# Database
-HIVE_BOX_PREFIX=nkount_
+```dart
+ClayColors.primary    // #6C5CE7 (Purple)
+ClayColors.secondary  // #A29BFE (Light Purple)
+ClayColors.tertiary   // #FD79A8 (Pink)
+ClayColors.success    // #00B894 (Green)
+ClayColors.warning    // #FDCB6E (Yellow)
+ClayColors.error      // #D63031 (Red)
+ClayColors.info       // #0984E3 (Blue)
 ```
 
-### Settings
-Configure app settings through the Settings screen:
-- Company Information
-- Default VAT Rate
-- Invoice Prefix and Numbering
-- Currency and Date Formats
-- Nepali Date (BS) Support
+---
 
-## 📈 Reporting
+## 📊 Accounting Rules Implemented
 
-### Available Reports
-- **Sales Report** - Daily, Monthly, Yearly sales
-- **Purchase Report** - Supplier-wise purchases
-- **Payment Report** - Payment and receipt history
-- **Outstanding Report** - Receivables and payables
-- **Inventory Report** - Stock levels and valuation
-- **Profit & Loss** - Financial performance
-- **Balance Sheet** - Financial position
+### Contact Balances
+```
+Purchase:  Balance += Amount
+Sale:     Balance -= Amount
+Payment:  Balance -= Amount (to supplier)
+Receipt:  Balance += Amount (from customer)
+```
 
-### IRD Reports
-- **VAT Report** - VAT calculation and summary
-- **Invoice Report** - All invoices with IRD format
-- **Tax Report** - Tax liabilities
+### Transaction Types
+- **Sale** - Revenue, customer balance decreases
+- **Purchase** - Expense, supplier balance increases
+- **Expense** - Business expense
+- **Income** - Other income
 
-## 🔒 Data Security
+### Payment Status
+- **Pending** - Not paid
+- **Partial** - Partially paid
+- **Paid** - Fully paid
+- **Cancelled** - Cancelled
 
-### Local Storage
-- **Hive** - Encrypted local storage
-- **IndexedDB** - Web browser storage
-- **No Cloud Sync** - Data stays on your device (for now)
+### Tax Calculation
+```
+VAT = (Subtotal - Discount) * VAT Rate / 100
+Total = Subtotal - Discount + VAT
+```
 
-### Backup & Restore
-- Export all data to JSON
-- Import from JSON backup
-- Manual backup recommended
+---
+
+## 🏗️ Development Setup
+
+### Prerequisites
+
+- [Flutter SDK](https://flutter.dev/docs/get-started/install) 3.0+
+- [Git](https://git-scm.com/downloads)
+- [Node.js](https://nodejs.org/) (for web development)
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/namunaONE/nKount.git
+cd nKount
+
+# Get Flutter dependencies
+flutter pub get
+
+# Generate code (required for models)
+flutter pub run build_runner build
+
+# Run the app
+flutter run
+```
+
+### Code Generation
+
+Whenever you modify models in `lib/core/models/`, run:
+
+```bash
+flutter pub run build_runner build --delete-conflicting-outputs
+```
+
+This generates:
+- Freezed files (`*.freezed.dart`)
+- JSON serialization (`*.g.dart`)
+- Riverpod providers
+
+---
+
+## 🚀 Deployment
+
+### GitHub Pages (Recommended)
+
+1. **Build the app:**
+   ```bash
+   flutter build web --release
+   ```
+
+2. **Push to `gh-pages` branch:**
+   ```bash
+   cd build/web
+   git init
+   git add .
+   git commit -m "Deploy nKount"
+   git remote add origin https://github.com/namunaONE/nKount.git
+   git push -u origin HEAD:gh-pages --force
+   ```
+
+3. **Enable GitHub Pages:**
+   - Go to **Settings > Pages**
+   - Select **gh-pages** branch
+   - Select **/ (root)** folder
+   - Save
+
+4. **Access your app:**
+   - `https://namunaone.github.io/nKount/`
+
+### Netlify / Vercel / Firebase
+
+The `build/web` folder can be deployed to any static hosting service.
+
+---
 
 ## 🤝 Contributing
 
@@ -284,32 +277,62 @@ Contributions are welcome! Please follow these steps:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-### Development Guidelines
-- Follow Flutter best practices
-- Use Riverpod for state management
-- Keep widgets small and reusable
-- Add tests for new features
-- Update documentation
+### Code Style
 
-## 📝 License
+- Follow [Dart style guide](https://dart.dev/guides/language/effective-dart/style)
+- Use **2 spaces** for indentation
+- **80 characters** line length limit
+- **Lower camel case** for variables and functions
+- **Upper camel case** for classes and types
+
+---
+
+## 📜 License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
+---
+
 ## 🙏 Acknowledgments
 
-- **Flutter** - Amazing cross-platform framework
-- **Riverpod** - Powerful state management
-- **Hive** - Fast and secure local storage
-- **IRD Nepal** - For accounting standards and guidelines
-- **Nepali Developers Community** - Support and inspiration
+- **Flutter Team** - For the amazing framework
+- **Riverpod** - For modern state management
+- **Hive** - For simple local storage
+- **namunaONE** - For the vision
+
+---
 
 ## 📞 Support
 
-For support, questions, or feedback:
+For questions, issues, or feedback:
 
-- **Email**: support@namunaone.com.np
-- **Website**: https://namunaone.com.np
-- **GitHub Issues**: https://github.com/namunaONE/nKount/issues
+- **GitHub Issues**: [https://github.com/namunaONE/nKount/issues](https://github.com/namunaONE/nKount/issues)
+- **Email**: info@namunaone.com.np
+- **Website**: [https://namunaone.com.np](https://namunaone.com.np)
+
+---
+
+## 🎯 Roadmap
+
+### ✅ Completed
+- [x] Core accounting features
+- [x] Claymorphism design system
+- [x] Offline-first architecture
+- [x] GitHub Pages deployment
+- [x] IRD compliance
+
+### 🚧 In Progress
+- [ ] Nepali date picker (Bikram Sambat)
+- [ ] PDF invoice generation
+- [ ] Advanced reporting
+- [ ] Multi-company support
+
+### 📋 Planned
+- [ ] Cloud sync (Firebase/Supabase)
+- [ ] Authentication
+- [ ] Mobile apps (Android/iOS)
+- [ ] Barcode scanner
+- [ ] Multi-currency support
 
 ---
 

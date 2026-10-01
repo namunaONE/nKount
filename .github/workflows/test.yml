@@ -1,0 +1,68 @@
+name: Test and Validate
+
+# Run tests and validation on pull requests and pushes
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lib/**'
+      - 'test/**'
+      - 'pubspec.yaml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'lib/**'
+      - 'test/**'
+      - 'pubspec.yaml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      # Setup Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.5'
+          channel: 'stable'
+          cache: true
+      
+      # Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+      
+      # Generate code
+      - name: Generate code
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+      
+      # Run analyzer
+      - name: Run Dart analyzer
+        run: flutter analyze --fatal-infos --fatal-warnings
+      
+      # Run unit tests
+      - name: Run unit tests
+        run: flutter test --coverage
+      
+      # Upload coverage report
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: nkount-coverage
+      
+      # Check formatting
+      - name: Check code formatting
+        run: dart format --output=none --set-exit-if-changed .
+      
+      # Build web for validation
+      - name: Build web
+        run: flutter build web --release

@@ -8,7 +8,7 @@ part 'contact_model.g.dart';
 
 /// Contact Model for Customers and Suppliers
 @freezed
-@HiveType(typeId: 0, adapterName: 'ContactModelAdapter')
+@HiveType(typeId: 1, adapterName: 'ContactModelAdapter')
 class ContactModel with _$ContactModel {
   const factory ContactModel({
     @HiveField(0) @Default('') String id,

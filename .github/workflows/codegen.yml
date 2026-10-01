@@ -1,0 +1,58 @@
+name: Code Generation
+
+# Run code generation on changes
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lib/core/models/**'
+      - 'pubspec.yaml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'lib/core/models/**'
+      - 'pubspec.yaml'
+
+jobs:
+  codegen:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      # Setup Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.5'
+          channel: 'stable'
+          cache: true
+      
+      # Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
+      
+      # Run code generation
+      - name: Run build_runner
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+      
+      # Check for changes
+      - name: Check for generated changes
+        id: verify
+        run: |
+          git diff --stat -- lib/core/models/*.freezed.dart lib/core/models/*.g.dart
+          echo "::set-output name=changes::$(git diff --name-only -- lib/core/models/*.freezed.dart lib/core/models/*.g.dart | wc -l)"
+      
+      # Commit generated files if changed
+      - name: Commit generated files
+        if: steps.verify.outputs.changes != '0'
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add lib/core/models/*.freezed.dart lib/core/models/*.g.dart
+          git commit -m "chore: update generated code [skip ci]"
+          git push

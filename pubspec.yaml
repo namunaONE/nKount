@@ -10,6 +10,18 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Local package for design system
+  design_system:
+    path: packages/design-system
+
+  # Local package for shared utilities
+  shared:
+    path: packages/shared
+
+  # Local package for database utilities
+  nkount_database:
+    path: packages/database
+
   # State Management
   flutter_riverpod: ^2.4.9
   riverpod_annotation: ^2.3.3
@@ -21,6 +33,7 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   hive_generator: ^2.0.1
+  path_provider: ^2.1.1
   
   # Local Storage for Web
   shared_preferences: ^2.2.2
@@ -39,6 +52,7 @@ dependencies:
   form_builder_validators: ^9.0.0
   data_table_2: ^2.5.10
   syncfusion_flutter_datagrid: ^23.1.40
+  syncfusion_flutter_core: ^23.1.40
 
   # Date & Time
   intl: ^0.18.1
@@ -62,12 +76,20 @@ dependencies:
 
   # Network (for future API)
   dio: ^5.4.0
+  connectivity_plus: ^5.0.2
 
   # Error handling
   equatable: ^2.0.5
 
   # Logging
   logger: ^2.0.2+1
+
+  # Claymorphism dependencies
+  flutter_svg: ^2.0.9
+  vector_graphics: ^1.1.10
+
+  # Web-specific
+  universal_html: ^2.0.8
 
 dev_dependencies:
   flutter_test:
@@ -103,6 +125,7 @@ flutter:
     androidPackage: np.com.namunaone.nkount
     iosBundleIdentifier: np.com.namunaone.nkount
 
-# Flutter Web Configuration
+# Flutter Web Configuration for GitHub Pages
 flutter_web:
   canvas-kit: auto
+  url-strategy: path

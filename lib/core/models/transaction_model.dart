@@ -8,7 +8,7 @@ part 'transaction_model.g.dart';
 
 /// Transaction Model for Purchases, Sales, and other transactions
 @freezed
-@HiveType(typeId: 2, adapterName: 'TransactionModelAdapter')
+@HiveType(typeId: 3, adapterName: 'TransactionModelAdapter')
 class TransactionModel with _$TransactionModel {
   const factory TransactionModel({
     @HiveField(0) @Default('') String id,
@@ -169,7 +169,7 @@ class TransactionModel with _$TransactionModel {
 
 /// Transaction Item Model
 @freezed
-@HiveType(typeId: 3, adapterName: 'TransactionItemAdapter')
+@HiveType(typeId: 4, adapterName: 'TransactionItemAdapter')
 class TransactionItem with _$TransactionItem {
   const factory TransactionItem({
     @HiveField(0) @Default('') String id,
