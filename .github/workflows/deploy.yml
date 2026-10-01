@@ -1,27 +1,28 @@
 name: Deploy to GitHub Pages
 
-# Deploy nKount to GitHub Pages on push to main branch
+# Branchless deployment: Pages serves the build artifact directly.
+# No gh-pages branch is created. Requires Pages source = "GitHub Actions".
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
-# Cancel previous runs if new commit is pushed
 concurrency:
   group: deploy
   cancel-in-progress: true
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
+jobs:
+  build:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           lfs: true
 
       - name: Setup Flutter
@@ -39,31 +40,26 @@ jobs:
         run: flutter pub run build_runner build --delete-conflicting-outputs
 
       - name: Build web app
-        run: flutter build web --release --base-href /nKount/ --web-renderer canvaskit
+        run: flutter build web --release --base-href /nKount/
 
-      - name: Configure GitHub Pages
+      - name: Configure Pages artifact
         run: |
           cd build/web
-          # Prevent Jekyll processing
           touch .nojekyll
-          # SPA fallback: unknown routes load the app instead of 404
           cp index.html 404.html
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/web
-          publish_branch: gh-pages
-          force_orphan: true
-          enable_jekyll: false
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: nkount-web-build
           path: build/web
-          retention-days: 7
 
-      - name: Deployment status
-        run: echo "${{ job.status == 'success' && 'Deployed to GitHub Pages' || 'Deployment failed' }}"
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
