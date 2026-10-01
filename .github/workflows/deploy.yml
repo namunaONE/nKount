@@ -4,11 +4,6 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
-    paths:
-      - 'lib/**'
-      - 'web/**'
-      - 'pubspec.yaml'
-      - 'build.yaml'
   workflow_dispatch:
 
 # Cancel previous runs if new commit is pushed
@@ -19,16 +14,16 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+    permissions:
+      contents: write
+
     steps:
-      # Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           lfs: true
-      
-      # Setup Flutter
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -36,57 +31,39 @@ jobs:
           channel: 'stable'
           cache: true
           cache-key: 'flutter-3.19.5'
-      
-      # Install dependencies
+
       - name: Install dependencies
         run: flutter pub get
-      
-      # Generate code (Freezed, JSON serializable, Riverpod)
-      - name: Generate code
+
+      - name: Generate code (Freezed, JSON serializable, Riverpod)
         run: flutter pub run build_runner build --delete-conflicting-outputs
-      
-      # Build web app
-      - name: Build web
-        run: flutter build web --release --web-renderer canvaskit
-        env:
-          FLUTTER_WEB_CANVASKIT_URL: 'https://unpkg.com/canvaskit-wasm@0.39.0/bin/'
-      
-      # Configure GitHub Pages
+
+      - name: Build web app
+        run: flutter build web --release --base-href /nKount/ --web-renderer canvaskit
+
       - name: Configure GitHub Pages
         run: |
           cd build/web
-          # Create .nojekyll to prevent GitHub from ignoring files
+          # Prevent Jekyll processing
           touch .nojekyll
-          
-          # Create CNAME file if custom domain is used
-          # echo 'nkount.namunaone.com.np' > CNAME
-      
-      # Deploy to GitHub Pages
+          # SPA fallback: unknown routes load the app instead of 404
+          cp index.html 404.html
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build/web
           publish_branch: gh-pages
-          keep_files: false
           force_orphan: true
           enable_jekyll: false
-          exclude_assets: '.git,*.sh,*.yml,*.yaml,*.json,*.md,*.txt,CNAME'
-      
-      # Upload build artifacts
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: nkount-web-build
           path: build/web
           retention-days: 7
-      
-      # Notify on success
-      - name: Notify deployment success
-        if: success()
-        run: echo "✅ Successfully deployed to GitHub Pages"
-      
-      # Notify on failure
-      - name: Notify deployment failure
-        if: failure()
-        run: echo "❌ Deployment failed. Check logs for details"
+
+      - name: Deployment status
+        run: echo "${{ job.status == 'success' && 'Deployed to GitHub Pages' || 'Deployment failed' }}"
