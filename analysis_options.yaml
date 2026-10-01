@@ -1,0 +1,150 @@
+# This file configures the analyzer, which statically analyzes Dart code to
+# detect errors, warnings, and lints.
+#
+# The issues identified by the analyzer are surfaced in the UI of Dart tools
+# (like the IDE and the command-line compiler), and the warnings can be
+# configured by editing this file.
+
+# The following line activates a set of recommended lints for Flutter apps,
+# packages, and plugins designed to encourage good coding practices.
+include: package:flutter_lints/flutter.yaml
+
+# Additional lint rules for better code quality
+linter:
+  rules:
+    # Style
+    - camel_case_types
+    - constant_identifier_names
+    - non_constant_identifier_names
+    - prefer_final_fields
+    - prefer_final_locals
+    - prefer_final_in_for_each
+    - prefer_const_constructors
+    - prefer_const_constructors_in_immutables
+    - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
+    - unnecessary_const
+    - unnecessary_new
+    - avoid_print
+    - avoid_debugPrint
+    
+    # Error handling
+    - avoid_catches_without_on_clauses
+    - avoid_empty_catches
+    - avoid_returns_in_finally
+    
+    # Performance
+    - avoid_function_literals_in_foreach_calls
+    - prefer_for_elements_in_widget_lists
+    - prefer_iterable_whereType
+    
+    # Documentation
+    - always_declare_return_types
+    - always_put_required_named_parameters_first
+    - always_require_non_null_named_parameters
+    - avoid_annotating_with_dynamic
+    - avoid_null_checks_in_equality_operators
+    - avoid_positional_boolean_parameters
+    - avoid_shadowing
+    - avoid_types_on_closure_parameters
+    - avoid_web_libraries_in_flutter
+    - cancel_subscriptions
+    - close_sinks
+    - comment_references
+    - control_flow_in_finally
+    - empty_catches
+    - empty_constructor_bodies
+    - empty_statements
+    - hash_and_equals
+    - implementation_imports
+    - library_names
+    - library_prefixes
+    - list_remove_unrelated_type
+    - literal_only_boolean_expressions
+    - no_adjacent_strings_in_list
+    - no_duplicate_case_values
+    - no_logic_in_create_state
+    - null_closures
+    - omit_local_variable_types
+    - one_member_abstracts
+    - only_throw_errors
+    - overridden_fields
+    - package_names
+    - package_prefixed_library_names
+    - prefer_adjacent_string_concatenation
+    - prefer_conditional_assignment
+    - prefer_contains_over_indexOf
+    - prefer_equal_for_default_values
+    - prefer_expression_function_bodies
+    - prefer_final_in_for_each
+    - prefer_foreach
+    - prefer_generic_function_type_aliases
+    - prefer_if_elements_to_conditional_expressions
+    - prefer_initializing_formals
+    - prefer_inlined_adds
+    - prefer_interpolation_to_compose_strings
+    - prefer_is_empty
+    - prefer_is_not_empty
+    - prefer_iterable_whereType
+    - prefer_null_aware_operators
+    - prefer_relative_imports
+    - prefer_single_quotes
+    - prefer_typing_uninitialized_variables
+    - recursive_getters
+    - slash_for_doc_comments
+    - sort_child_properties_last
+    - sort_constructors_first
+    - sort_unnamed_constructors_first
+    - test_types_in_equals
+    - throw_in_finally
+    - type_annotate_public_apis
+    - type_init_formals
+    - unawaited_futures
+    - unnecessary_await_in_return
+    - unnecessary_brace_in_string_interps
+    - unnecessary_cast
+    - unnecessary_getters_setters
+    - unnecessary_lambdas
+    - unnecessary_null_aware_assignments
+    - unnecessary_null_checks
+    - unnecessary_null_in_if_null_operators
+    - unnecessary_overrides
+    - unnecessary_parenthesis
+    - unnecessary_raw_strings
+    - unnecessary_statements
+    - unnecessary_string_escapes
+    - unnecessary_string_interpolations
+    - unnecessary_this
+    - use_full_hex_values_for_flutter_colors
+    - use_function_type_syntax_for_parameters
+    - use_if_null_to_convert_nulls_to_bools
+    - use_is_even_rather_than_modulo
+    - use_raw_strings
+    - use_setters_to_change_properties
+    - use_string_buffers
+    - use_to_and_as_if_applicable
+    - valid_regexps
+    - void_checks
+
+# Analyzer options
+analyzer:
+  errors:
+    # Treat missing required parameters as errors
+    missing_required_param: error
+    # Treat missing return types as errors
+    missing_return: error
+    # Treat unused local variables as warnings
+    unused_local_variable: warning
+    # Treat dead code as warnings
+    dead_code: warning
+    
+  exclude:
+    - test/**
+    - lib/generated/**
+    - lib/core/models/*.freezed.dart
+    - lib/core/models/*.g.dart
+    - lib/core/providers/*.g.dart
+
+# Language options
+dart:
+  language_version: '3.0'

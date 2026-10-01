@@ -1,0 +1,29 @@
+targets:
+  $default:
+    builders:
+      # Generate freezed models
+      freezed:
+        generate_for:
+          include:
+            - lib/core/models/*.dart
+        options:
+          build_extensions:
+            '{{path}}': '{{path}}.freezed.dart'
+          
+      # Generate JSON serializable
+      json_serializable:
+        generate_for:
+          include:
+            - lib/core/models/*.dart
+        options:
+          build_extensions:
+            '{{path}}': '{{path}}.g.dart'
+          
+      # Generate Riverpod
+      riverpod_generator:
+        generate_for:
+          include:
+            - lib/core/providers/*.dart
+        options:
+          build_extensions:
+            '{{path}}': '{{path}}.g.dart'

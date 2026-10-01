@@ -1,0 +1,59 @@
+# Flutter
+.flutter-plugins-dependencies
+.flutter-plugins
+.dart_tool/
+
+# Android
+android/
+
+# iOS
+ios/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# Build
+build/
+
+# Hive
+.hive/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Git
+.git/
+*.orig
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Flutter web
+web/index.html
+web/main.dart.js
+web/flutter.js
+web/assets/
+
+# IDE
+*.swp
+*.swo
+*~
+
+# Testing
+coverage/
+
+# Local storage
+storage/
