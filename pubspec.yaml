@@ -22,7 +22,7 @@ dependencies:
   hive_flutter: ^1.1.0
   hive_generator: ^2.0.1
   path_provider: ^2.1.1
-
+  
   # Local Storage for Web
   shared_preferences: ^2.2.2
 
@@ -43,12 +43,13 @@ dependencies:
   syncfusion_flutter_core: ^23.1.40
 
   # Date & Time
+  intl: ^0.18.1
   nepali_date_picker: ^1.0.0
   nepali_utils: ^1.0.0
 
   # Icons
   cupertino_icons: ^1.0.6
-  flutter_iconpicker: ^3.0.0
+  flutter_iconpicker: ^2.1.1
 
   # PDF & Printing
   printing: ^5.11.1
@@ -81,13 +82,13 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
+  
   # Code generation
   build_runner: ^2.4.8
   freezed: ^2.4.6
   json_serializable: ^6.7.1
   riverpod_generator: ^2.3.9
-
+  
   # Testing
   mockito: ^5.4.4
   integration_test:
@@ -101,3 +102,19 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/fonts/
+
+  fonts:
+    - family: Nepali
+      fonts:
+        - asset: assets/fonts/Preeti.ttf
+
+  module:
+    androidPackage: np.com.namunaone.nkount
+    iosBundleIdentifier: np.com.namunaone.nkount
+
+# Flutter Web Configur
+ation for GitHub Pages
+flutter_web:
+  canvas-kit: auto
+  url-strategy: path
