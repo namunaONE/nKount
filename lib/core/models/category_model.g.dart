@@ -17,15 +17,15 @@ class CategoryModelAdapter extends TypeAdapter<CategoryModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return CategoryModel(
-      id: fields[0] as String,
       name: fields[1] as String,
+      id: fields[0] as String,
       description: fields[2] as String?,
       parentId: fields[3] as String?,
-      level: fields[4] as int,
+      level: (fields[4] as num).toInt(),
       path: fields[5] as String,
-      sortOrder: fields[6] as int,
+      sortOrder: (fields[6] as num).toInt(),
       isActive: fields[7] as bool,
-      productCount: fields[8] as int,
+      productCount: (fields[8] as num).toInt(),
       createdAt: fields[9] as DateTime?,
       updatedAt: fields[10] as DateTime?,
     );
@@ -35,10 +35,10 @@ class CategoryModelAdapter extends TypeAdapter<CategoryModel> {
   void write(BinaryWriter writer, CategoryModel obj) {
     writer
       ..writeByte(11)
-      ..writeByte(0)
-      ..write(obj.id)
       ..writeByte(1)
       ..write(obj.name)
+      ..writeByte(0)
+      ..write(obj.id)
       ..writeByte(2)
       ..write(obj.description)
       ..writeByte(3)
@@ -76,8 +76,8 @@ class CategoryModelAdapter extends TypeAdapter<CategoryModel> {
 
 _$CategoryModelImpl _$$CategoryModelImplFromJson(Map<String, dynamic> json) =>
     _$CategoryModelImpl(
-      id: json['id'] as String? ?? '',
       name: json['name'] as String,
+      id: json['id'] as String? ?? '',
       description: json['description'] as String?,
       parentId: json['parentId'] as String?,
       level: (json['level'] as num?)?.toInt() ?? 0,
@@ -95,8 +95,8 @@ _$CategoryModelImpl _$$CategoryModelImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$CategoryModelImplToJson(_$CategoryModelImpl instance) =>
     <String, dynamic>{
-      'id': instance.id,
       'name': instance.name,
+      'id': instance.id,
       'description': instance.description,
       'parentId': instance.parentId,
       'level': instance.level,

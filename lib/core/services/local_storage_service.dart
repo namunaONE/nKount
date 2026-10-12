@@ -1,5 +1,5 @@
 import 'package:logger/logger.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 import '../constants/app_constants.dart';
 import '../models/company_model.dart';
 import '../models/contact_model.dart';

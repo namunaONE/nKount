@@ -17,10 +17,10 @@ class TaxRateModelAdapter extends TypeAdapter<TaxRateModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return TaxRateModel(
-      id: fields[0] as String,
       name: fields[1] as String,
       code: fields[2] as String,
-      rate: fields[3] as double,
+      id: fields[0] as String,
+      rate: (fields[3] as num).toDouble(),
       description: fields[4] as String?,
       type: fields[5] as String,
       isActive: fields[6] as bool,
@@ -38,12 +38,12 @@ class TaxRateModelAdapter extends TypeAdapter<TaxRateModel> {
   void write(BinaryWriter writer, TaxRateModel obj) {
     writer
       ..writeByte(14)
-      ..writeByte(0)
-      ..write(obj.id)
       ..writeByte(1)
       ..write(obj.name)
       ..writeByte(2)
       ..write(obj.code)
+      ..writeByte(0)
+      ..write(obj.id)
       ..writeByte(3)
       ..write(obj.rate)
       ..writeByte(4)
@@ -85,9 +85,9 @@ class TaxRateModelAdapter extends TypeAdapter<TaxRateModel> {
 
 _$TaxRateModelImpl _$$TaxRateModelImplFromJson(Map<String, dynamic> json) =>
     _$TaxRateModelImpl(
-      id: json['id'] as String? ?? '',
       name: json['name'] as String,
       code: json['code'] as String,
+      id: json['id'] as String? ?? '',
       rate: (json['rate'] as num?)?.toDouble() ?? 0.0,
       description: json['description'] as String?,
       type: json['type'] as String? ?? 'percentage',
@@ -111,9 +111,9 @@ _$TaxRateModelImpl _$$TaxRateModelImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$TaxRateModelImplToJson(_$TaxRateModelImpl instance) =>
     <String, dynamic>{
-      'id': instance.id,
       'name': instance.name,
       'code': instance.code,
+      'id': instance.id,
       'rate': instance.rate,
       'description': instance.description,
       'type': instance.type,

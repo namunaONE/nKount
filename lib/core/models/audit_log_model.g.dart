@@ -17,10 +17,10 @@ class AuditLogModelAdapter extends TypeAdapter<AuditLogModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return AuditLogModel(
-      id: fields[0] as String,
       entityType: fields[1] as String,
       entityId: fields[2] as String,
       action: fields[3] as String,
+      id: fields[0] as String,
       oldValues: (fields[4] as Map?)?.cast<String, dynamic>(),
       newValues: (fields[5] as Map?)?.cast<String, dynamic>(),
       description: fields[6] as String?,
@@ -42,14 +42,14 @@ class AuditLogModelAdapter extends TypeAdapter<AuditLogModel> {
   void write(BinaryWriter writer, AuditLogModel obj) {
     writer
       ..writeByte(18)
-      ..writeByte(0)
-      ..write(obj.id)
       ..writeByte(1)
       ..write(obj.entityType)
       ..writeByte(2)
       ..write(obj.entityId)
       ..writeByte(3)
       ..write(obj.action)
+      ..writeByte(0)
+      ..write(obj.id)
       ..writeByte(4)
       ..write(obj.oldValues)
       ..writeByte(5)
@@ -97,10 +97,10 @@ class AuditLogModelAdapter extends TypeAdapter<AuditLogModel> {
 
 _$AuditLogModelImpl _$$AuditLogModelImplFromJson(Map<String, dynamic> json) =>
     _$AuditLogModelImpl(
-      id: json['id'] as String? ?? '',
       entityType: json['entityType'] as String,
       entityId: json['entityId'] as String,
       action: json['action'] as String,
+      id: json['id'] as String? ?? '',
       oldValues: json['oldValues'] as Map<String, dynamic>?,
       newValues: json['newValues'] as Map<String, dynamic>?,
       description: json['description'] as String?,
@@ -125,10 +125,10 @@ _$AuditLogModelImpl _$$AuditLogModelImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$AuditLogModelImplToJson(_$AuditLogModelImpl instance) =>
     <String, dynamic>{
-      'id': instance.id,
       'entityType': instance.entityType,
       'entityId': instance.entityId,
       'action': instance.action,
+      'id': instance.id,
       'oldValues': instance.oldValues,
       'newValues': instance.newValues,
       'description': instance.description,

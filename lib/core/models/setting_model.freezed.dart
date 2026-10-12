@@ -20,12 +20,13 @@ SettingModel _$SettingModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$SettingModel {
-  @HiveField(0)
-  String get id => throw _privateConstructorUsedError;
   @HiveField(1)
-  String get key => throw _privateConstructorUsedError;
+  String get key =>
+      throw _privateConstructorUsedError; // ignore: avoid_annotating_with_dynamic (settings hold any JSON value)
   @HiveField(2)
   dynamic get value => throw _privateConstructorUsedError;
+  @HiveField(0)
+  String get id => throw _privateConstructorUsedError;
   @HiveField(3)
   String? get description => throw _privateConstructorUsedError;
   @HiveField(4)
@@ -54,9 +55,9 @@ abstract class $SettingModelCopyWith<$Res> {
       _$SettingModelCopyWithImpl<$Res, SettingModel>;
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String key,
+      {@HiveField(1) String key,
       @HiveField(2) dynamic value,
+      @HiveField(0) String id,
       @HiveField(3) String? description,
       @HiveField(4) String category,
       @HiveField(5) bool isSystemSetting,
@@ -79,9 +80,9 @@ class _$SettingModelCopyWithImpl<$Res, $Val extends SettingModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? key = null,
     Object? value = freezed,
+    Object? id = null,
     Object? description = freezed,
     Object? category = null,
     Object? isSystemSetting = null,
@@ -91,10 +92,6 @@ class _$SettingModelCopyWithImpl<$Res, $Val extends SettingModel>
     Object? updatedAt = freezed,
   }) {
     return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       key: null == key
           ? _value.key
           : key // ignore: cast_nullable_to_non_nullable
@@ -103,6 +100,10 @@ class _$SettingModelCopyWithImpl<$Res, $Val extends SettingModel>
           ? _value.value
           : value // ignore: cast_nullable_to_non_nullable
               as dynamic,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
       description: freezed == description
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
@@ -144,9 +145,9 @@ abstract class _$$SettingModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String key,
+      {@HiveField(1) String key,
       @HiveField(2) dynamic value,
+      @HiveField(0) String id,
       @HiveField(3) String? description,
       @HiveField(4) String category,
       @HiveField(5) bool isSystemSetting,
@@ -167,9 +168,9 @@ class __$$SettingModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? key = null,
     Object? value = freezed,
+    Object? id = null,
     Object? description = freezed,
     Object? category = null,
     Object? isSystemSetting = null,
@@ -179,10 +180,6 @@ class __$$SettingModelImplCopyWithImpl<$Res>
     Object? updatedAt = freezed,
   }) {
     return _then(_$SettingModelImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       key: null == key
           ? _value.key
           : key // ignore: cast_nullable_to_non_nullable
@@ -191,6 +188,10 @@ class __$$SettingModelImplCopyWithImpl<$Res>
           ? _value.value
           : value // ignore: cast_nullable_to_non_nullable
               as dynamic,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
       description: freezed == description
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
@@ -227,9 +228,9 @@ class __$$SettingModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$SettingModelImpl extends _SettingModel {
   const _$SettingModelImpl(
-      {@HiveField(0) this.id = '',
-      @HiveField(1) required this.key,
+      {@HiveField(1) required this.key,
       @HiveField(2) required this.value,
+      @HiveField(0) this.id = '',
       @HiveField(3) this.description,
       @HiveField(4) this.category = 'app',
       @HiveField(5) this.isSystemSetting = false,
@@ -243,15 +244,16 @@ class _$SettingModelImpl extends _SettingModel {
       _$$SettingModelImplFromJson(json);
 
   @override
-  @JsonKey()
-  @HiveField(0)
-  final String id;
-  @override
   @HiveField(1)
   final String key;
+// ignore: avoid_annotating_with_dynamic (settings hold any JSON value)
   @override
   @HiveField(2)
   final dynamic value;
+  @override
+  @JsonKey()
+  @HiveField(0)
+  final String id;
   @override
   @HiveField(3)
   final String? description;
@@ -279,7 +281,7 @@ class _$SettingModelImpl extends _SettingModel {
 
   @override
   String toString() {
-    return 'SettingModel(id: $id, key: $key, value: $value, description: $description, category: $category, isSystemSetting: $isSystemSetting, isEditable: $isEditable, companyId: $companyId, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'SettingModel(key: $key, value: $value, id: $id, description: $description, category: $category, isSystemSetting: $isSystemSetting, isEditable: $isEditable, companyId: $companyId, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -287,9 +289,9 @@ class _$SettingModelImpl extends _SettingModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$SettingModelImpl &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.key, key) || other.key == key) &&
             const DeepCollectionEquality().equals(other.value, value) &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.description, description) ||
                 other.description == description) &&
             (identical(other.category, category) ||
@@ -310,9 +312,9 @@ class _$SettingModelImpl extends _SettingModel {
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      id,
       key,
       const DeepCollectionEquality().hash(value),
+      id,
       description,
       category,
       isSystemSetting,
@@ -337,9 +339,9 @@ class _$SettingModelImpl extends _SettingModel {
 
 abstract class _SettingModel extends SettingModel {
   const factory _SettingModel(
-      {@HiveField(0) final String id,
-      @HiveField(1) required final String key,
+      {@HiveField(1) required final String key,
       @HiveField(2) required final dynamic value,
+      @HiveField(0) final String id,
       @HiveField(3) final String? description,
       @HiveField(4) final String category,
       @HiveField(5) final bool isSystemSetting,
@@ -353,14 +355,14 @@ abstract class _SettingModel extends SettingModel {
       _$SettingModelImpl.fromJson;
 
   @override
-  @HiveField(0)
-  String get id;
-  @override
   @HiveField(1)
   String get key;
-  @override
+  @override // ignore: avoid_annotating_with_dynamic (settings hold any JSON value)
   @HiveField(2)
   dynamic get value;
+  @override
+  @HiveField(0)
+  String get id;
   @override
   @HiveField(3)
   String? get description;

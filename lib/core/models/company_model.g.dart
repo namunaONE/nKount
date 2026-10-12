@@ -17,8 +17,8 @@ class CompanyModelAdapter extends TypeAdapter<CompanyModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return CompanyModel(
-      id: fields[0] as String,
       name: fields[1] as String,
+      id: fields[0] as String,
       address: fields[2] as String?,
       city: fields[3] as String?,
       district: fields[4] as String?,
@@ -34,10 +34,10 @@ class CompanyModelAdapter extends TypeAdapter<CompanyModel> {
       locale: fields[14] as String,
       dateFormat: fields[15] as String,
       useNepaliDate: fields[16] as bool,
-      defaultVatRate: fields[17] as double,
+      defaultVatRate: (fields[17] as num).toDouble(),
       invoicePrefix: fields[18] as String,
-      invoiceStartNumber: fields[19] as int,
-      purchaseStartNumber: fields[20] as int,
+      invoiceStartNumber: (fields[19] as num).toInt(),
+      purchaseStartNumber: (fields[20] as num).toInt(),
       footerText: fields[21] as String?,
       showTaxOnInvoice: fields[22] as bool,
       showVatNumber: fields[23] as bool,
@@ -53,10 +53,10 @@ class CompanyModelAdapter extends TypeAdapter<CompanyModel> {
   void write(BinaryWriter writer, CompanyModel obj) {
     writer
       ..writeByte(29)
-      ..writeByte(0)
-      ..write(obj.id)
       ..writeByte(1)
       ..write(obj.name)
+      ..writeByte(0)
+      ..write(obj.id)
       ..writeByte(2)
       ..write(obj.address)
       ..writeByte(3)
@@ -130,8 +130,8 @@ class CompanyModelAdapter extends TypeAdapter<CompanyModel> {
 
 _$CompanyModelImpl _$$CompanyModelImplFromJson(Map<String, dynamic> json) =>
     _$CompanyModelImpl(
-      id: json['id'] as String? ?? '',
       name: json['name'] as String,
+      id: json['id'] as String? ?? '',
       address: json['address'] as String?,
       city: json['city'] as String?,
       district: json['district'] as String?,
@@ -171,8 +171,8 @@ _$CompanyModelImpl _$$CompanyModelImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$CompanyModelImplToJson(_$CompanyModelImpl instance) =>
     <String, dynamic>{
-      'id': instance.id,
       'name': instance.name,
+      'id': instance.id,
       'address': instance.address,
       'city': instance.city,
       'district': instance.district,

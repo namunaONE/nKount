@@ -20,14 +20,14 @@ AuditLogModel _$AuditLogModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$AuditLogModel {
-  @HiveField(0)
-  String get id => throw _privateConstructorUsedError;
   @HiveField(1)
   String get entityType => throw _privateConstructorUsedError;
   @HiveField(2)
   String get entityId => throw _privateConstructorUsedError;
   @HiveField(3)
   String get action => throw _privateConstructorUsedError;
+  @HiveField(0)
+  String get id => throw _privateConstructorUsedError;
   @HiveField(4)
   Map<String, dynamic>? get oldValues => throw _privateConstructorUsedError;
   @HiveField(5)
@@ -70,10 +70,10 @@ abstract class $AuditLogModelCopyWith<$Res> {
       _$AuditLogModelCopyWithImpl<$Res, AuditLogModel>;
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String entityType,
+      {@HiveField(1) String entityType,
       @HiveField(2) String entityId,
       @HiveField(3) String action,
+      @HiveField(0) String id,
       @HiveField(4) Map<String, dynamic>? oldValues,
       @HiveField(5) Map<String, dynamic>? newValues,
       @HiveField(6) String? description,
@@ -103,10 +103,10 @@ class _$AuditLogModelCopyWithImpl<$Res, $Val extends AuditLogModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? entityType = null,
     Object? entityId = null,
     Object? action = null,
+    Object? id = null,
     Object? oldValues = freezed,
     Object? newValues = freezed,
     Object? description = freezed,
@@ -123,10 +123,6 @@ class _$AuditLogModelCopyWithImpl<$Res, $Val extends AuditLogModel>
     Object? updatedAt = freezed,
   }) {
     return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       entityType: null == entityType
           ? _value.entityType
           : entityType // ignore: cast_nullable_to_non_nullable
@@ -138,6 +134,10 @@ class _$AuditLogModelCopyWithImpl<$Res, $Val extends AuditLogModel>
       action: null == action
           ? _value.action
           : action // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       oldValues: freezed == oldValues
           ? _value.oldValues
@@ -208,10 +208,10 @@ abstract class _$$AuditLogModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String entityType,
+      {@HiveField(1) String entityType,
       @HiveField(2) String entityId,
       @HiveField(3) String action,
+      @HiveField(0) String id,
       @HiveField(4) Map<String, dynamic>? oldValues,
       @HiveField(5) Map<String, dynamic>? newValues,
       @HiveField(6) String? description,
@@ -239,10 +239,10 @@ class __$$AuditLogModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? entityType = null,
     Object? entityId = null,
     Object? action = null,
+    Object? id = null,
     Object? oldValues = freezed,
     Object? newValues = freezed,
     Object? description = freezed,
@@ -259,10 +259,6 @@ class __$$AuditLogModelImplCopyWithImpl<$Res>
     Object? updatedAt = freezed,
   }) {
     return _then(_$AuditLogModelImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       entityType: null == entityType
           ? _value.entityType
           : entityType // ignore: cast_nullable_to_non_nullable
@@ -274,6 +270,10 @@ class __$$AuditLogModelImplCopyWithImpl<$Res>
       action: null == action
           ? _value.action
           : action // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       oldValues: freezed == oldValues
           ? _value._oldValues
@@ -339,10 +339,10 @@ class __$$AuditLogModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$AuditLogModelImpl extends _AuditLogModel {
   const _$AuditLogModelImpl(
-      {@HiveField(0) this.id = '',
-      @HiveField(1) required this.entityType,
+      {@HiveField(1) required this.entityType,
       @HiveField(2) required this.entityId,
       @HiveField(3) required this.action,
+      @HiveField(0) this.id = '',
       @HiveField(4) final Map<String, dynamic>? oldValues,
       @HiveField(5) final Map<String, dynamic>? newValues,
       @HiveField(6) this.description,
@@ -365,10 +365,6 @@ class _$AuditLogModelImpl extends _AuditLogModel {
       _$$AuditLogModelImplFromJson(json);
 
   @override
-  @JsonKey()
-  @HiveField(0)
-  final String id;
-  @override
   @HiveField(1)
   final String entityType;
   @override
@@ -377,6 +373,10 @@ class _$AuditLogModelImpl extends _AuditLogModel {
   @override
   @HiveField(3)
   final String action;
+  @override
+  @JsonKey()
+  @HiveField(0)
+  final String id;
   final Map<String, dynamic>? _oldValues;
   @override
   @HiveField(4)
@@ -440,7 +440,7 @@ class _$AuditLogModelImpl extends _AuditLogModel {
 
   @override
   String toString() {
-    return 'AuditLogModel(id: $id, entityType: $entityType, entityId: $entityId, action: $action, oldValues: $oldValues, newValues: $newValues, description: $description, companyId: $companyId, userId: $userId, userName: $userName, ipAddress: $ipAddress, userAgent: $userAgent, isSystemAction: $isSystemAction, isReversed: $isReversed, reversedBy: $reversedBy, reversedAt: $reversedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'AuditLogModel(entityType: $entityType, entityId: $entityId, action: $action, id: $id, oldValues: $oldValues, newValues: $newValues, description: $description, companyId: $companyId, userId: $userId, userName: $userName, ipAddress: $ipAddress, userAgent: $userAgent, isSystemAction: $isSystemAction, isReversed: $isReversed, reversedBy: $reversedBy, reversedAt: $reversedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -448,12 +448,12 @@ class _$AuditLogModelImpl extends _AuditLogModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$AuditLogModelImpl &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.entityType, entityType) ||
                 other.entityType == entityType) &&
             (identical(other.entityId, entityId) ||
                 other.entityId == entityId) &&
             (identical(other.action, action) || other.action == action) &&
+            (identical(other.id, id) || other.id == id) &&
             const DeepCollectionEquality()
                 .equals(other._oldValues, _oldValues) &&
             const DeepCollectionEquality()
@@ -487,10 +487,10 @@ class _$AuditLogModelImpl extends _AuditLogModel {
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      id,
       entityType,
       entityId,
       action,
+      id,
       const DeepCollectionEquality().hash(_oldValues),
       const DeepCollectionEquality().hash(_newValues),
       description,
@@ -522,10 +522,10 @@ class _$AuditLogModelImpl extends _AuditLogModel {
 
 abstract class _AuditLogModel extends AuditLogModel {
   const factory _AuditLogModel(
-      {@HiveField(0) final String id,
-      @HiveField(1) required final String entityType,
+      {@HiveField(1) required final String entityType,
       @HiveField(2) required final String entityId,
       @HiveField(3) required final String action,
+      @HiveField(0) final String id,
       @HiveField(4) final Map<String, dynamic>? oldValues,
       @HiveField(5) final Map<String, dynamic>? newValues,
       @HiveField(6) final String? description,
@@ -546,9 +546,6 @@ abstract class _AuditLogModel extends AuditLogModel {
       _$AuditLogModelImpl.fromJson;
 
   @override
-  @HiveField(0)
-  String get id;
-  @override
   @HiveField(1)
   String get entityType;
   @override
@@ -557,6 +554,9 @@ abstract class _AuditLogModel extends AuditLogModel {
   @override
   @HiveField(3)
   String get action;
+  @override
+  @HiveField(0)
+  String get id;
   @override
   @HiveField(4)
   Map<String, dynamic>? get oldValues;

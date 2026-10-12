@@ -17,13 +17,13 @@ class PaymentModelAdapter extends TypeAdapter<PaymentModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return PaymentModel(
-      id: fields[0] as String,
       type: fields[1] as String,
       transactionId: fields[2] as String,
-      invoiceNumber: fields[3] as String?,
       contactId: fields[4] as String,
-      amount: fields[5] as double,
       method: fields[6] as String,
+      id: fields[0] as String,
+      invoiceNumber: fields[3] as String?,
+      amount: (fields[5] as num).toDouble(),
       referenceNumber: fields[7] as String?,
       bankName: fields[8] as String?,
       chequeNumber: fields[9] as String?,
@@ -44,20 +44,20 @@ class PaymentModelAdapter extends TypeAdapter<PaymentModel> {
   void write(BinaryWriter writer, PaymentModel obj) {
     writer
       ..writeByte(20)
-      ..writeByte(0)
-      ..write(obj.id)
       ..writeByte(1)
       ..write(obj.type)
       ..writeByte(2)
       ..write(obj.transactionId)
-      ..writeByte(3)
-      ..write(obj.invoiceNumber)
       ..writeByte(4)
       ..write(obj.contactId)
-      ..writeByte(5)
-      ..write(obj.amount)
       ..writeByte(6)
       ..write(obj.method)
+      ..writeByte(0)
+      ..write(obj.id)
+      ..writeByte(3)
+      ..write(obj.invoiceNumber)
+      ..writeByte(5)
+      ..write(obj.amount)
       ..writeByte(7)
       ..write(obj.referenceNumber)
       ..writeByte(8)
@@ -110,11 +110,11 @@ class PaymentSummaryAdapter extends TypeAdapter<PaymentSummary> {
     return PaymentSummary(
       contactId: fields[0] as String?,
       contactName: fields[1] as String?,
-      totalPaid: fields[2] as double,
-      totalReceived: fields[3] as double,
-      balance: fields[4] as double,
-      paymentCount: fields[5] as int,
-      receiptCount: fields[6] as int,
+      totalPaid: (fields[2] as num).toDouble(),
+      totalReceived: (fields[3] as num).toDouble(),
+      balance: (fields[4] as num).toDouble(),
+      paymentCount: (fields[5] as num).toInt(),
+      receiptCount: (fields[6] as num).toInt(),
       lastTransactionDate: fields[7] as DateTime?,
     );
   }
@@ -158,13 +158,13 @@ class PaymentSummaryAdapter extends TypeAdapter<PaymentSummary> {
 
 _$PaymentModelImpl _$$PaymentModelImplFromJson(Map<String, dynamic> json) =>
     _$PaymentModelImpl(
-      id: json['id'] as String? ?? '',
       type: json['type'] as String,
       transactionId: json['transactionId'] as String,
-      invoiceNumber: json['invoiceNumber'] as String?,
       contactId: json['contactId'] as String,
-      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       method: json['method'] as String,
+      id: json['id'] as String? ?? '',
+      invoiceNumber: json['invoiceNumber'] as String?,
+      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       referenceNumber: json['referenceNumber'] as String?,
       bankName: json['bankName'] as String?,
       chequeNumber: json['chequeNumber'] as String?,
@@ -191,13 +191,13 @@ _$PaymentModelImpl _$$PaymentModelImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$PaymentModelImplToJson(_$PaymentModelImpl instance) =>
     <String, dynamic>{
-      'id': instance.id,
       'type': instance.type,
       'transactionId': instance.transactionId,
-      'invoiceNumber': instance.invoiceNumber,
       'contactId': instance.contactId,
-      'amount': instance.amount,
       'method': instance.method,
+      'id': instance.id,
+      'invoiceNumber': instance.invoiceNumber,
+      'amount': instance.amount,
       'referenceNumber': instance.referenceNumber,
       'bankName': instance.bankName,
       'chequeNumber': instance.chequeNumber,

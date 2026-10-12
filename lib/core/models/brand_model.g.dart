@@ -17,15 +17,15 @@ class BrandModelAdapter extends TypeAdapter<BrandModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return BrandModel(
-      id: fields[0] as String,
       name: fields[1] as String,
+      id: fields[0] as String,
       description: fields[2] as String?,
       logoPath: fields[3] as String?,
       website: fields[4] as String?,
       contactPhone: fields[5] as String?,
       contactEmail: fields[6] as String?,
       isActive: fields[7] as bool,
-      productCount: fields[8] as int,
+      productCount: (fields[8] as num).toInt(),
       createdAt: fields[9] as DateTime?,
       updatedAt: fields[10] as DateTime?,
     );
@@ -35,10 +35,10 @@ class BrandModelAdapter extends TypeAdapter<BrandModel> {
   void write(BinaryWriter writer, BrandModel obj) {
     writer
       ..writeByte(11)
-      ..writeByte(0)
-      ..write(obj.id)
       ..writeByte(1)
       ..write(obj.name)
+      ..writeByte(0)
+      ..write(obj.id)
       ..writeByte(2)
       ..write(obj.description)
       ..writeByte(3)
@@ -76,8 +76,8 @@ class BrandModelAdapter extends TypeAdapter<BrandModel> {
 
 _$BrandModelImpl _$$BrandModelImplFromJson(Map<String, dynamic> json) =>
     _$BrandModelImpl(
-      id: json['id'] as String? ?? '',
       name: json['name'] as String,
+      id: json['id'] as String? ?? '',
       description: json['description'] as String?,
       logoPath: json['logoPath'] as String?,
       website: json['website'] as String?,
@@ -95,8 +95,8 @@ _$BrandModelImpl _$$BrandModelImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$BrandModelImplToJson(_$BrandModelImpl instance) =>
     <String, dynamic>{
-      'id': instance.id,
       'name': instance.name,
+      'id': instance.id,
       'description': instance.description,
       'logoPath': instance.logoPath,
       'website': instance.website,

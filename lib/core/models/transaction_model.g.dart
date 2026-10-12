@@ -17,17 +17,17 @@ class TransactionModelAdapter extends TypeAdapter<TransactionModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return TransactionModel(
-      id: fields[0] as String,
       type: fields[1] as String,
-      invoiceNumber: fields[2] as String?,
       contactId: fields[3] as String,
+      id: fields[0] as String,
+      invoiceNumber: fields[2] as String?,
       items: (fields[4] as List?)?.cast<TransactionItem>(),
-      subtotal: fields[5] as double,
-      discount: fields[6] as double,
-      tax: fields[7] as double,
-      total: fields[8] as double,
-      paidAmount: fields[9] as double,
-      dueAmount: fields[10] as double,
+      subtotal: (fields[5] as num).toDouble(),
+      discount: (fields[6] as num).toDouble(),
+      tax: (fields[7] as num).toDouble(),
+      total: (fields[8] as num).toDouble(),
+      paidAmount: (fields[9] as num).toDouble(),
+      dueAmount: (fields[10] as num).toDouble(),
       paymentStatus: fields[11] as String,
       paymentMethod: fields[12] as String?,
       referenceNumber: fields[13] as String?,
@@ -35,7 +35,7 @@ class TransactionModelAdapter extends TypeAdapter<TransactionModel> {
       dueDate: fields[15] as DateTime?,
       notes: fields[16] as String?,
       isVatIncluded: fields[17] as bool,
-      vatRate: fields[18] as double,
+      vatRate: (fields[18] as num).toDouble(),
       createdBy: fields[19] as String?,
       createdAt: fields[20] as DateTime?,
       updatedAt: fields[21] as DateTime?,
@@ -50,14 +50,14 @@ class TransactionModelAdapter extends TypeAdapter<TransactionModel> {
   void write(BinaryWriter writer, TransactionModel obj) {
     writer
       ..writeByte(26)
-      ..writeByte(0)
-      ..write(obj.id)
       ..writeByte(1)
       ..write(obj.type)
-      ..writeByte(2)
-      ..write(obj.invoiceNumber)
       ..writeByte(3)
       ..write(obj.contactId)
+      ..writeByte(0)
+      ..write(obj.id)
+      ..writeByte(2)
+      ..write(obj.invoiceNumber)
       ..writeByte(4)
       ..write(obj.items)
       ..writeByte(5)
@@ -126,14 +126,14 @@ class TransactionItemAdapter extends TypeAdapter<TransactionItem> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return TransactionItem(
-      id: fields[0] as String,
       productId: fields[1] as String,
       productName: fields[2] as String,
-      quantity: fields[3] as double,
-      unitPrice: fields[4] as double,
-      discount: fields[5] as double,
-      tax: fields[6] as double,
-      amount: fields[7] as double,
+      id: fields[0] as String,
+      quantity: (fields[3] as num).toDouble(),
+      unitPrice: (fields[4] as num).toDouble(),
+      discount: (fields[5] as num).toDouble(),
+      tax: (fields[6] as num).toDouble(),
+      amount: (fields[7] as num).toDouble(),
       unit: fields[8] as String?,
       description: fields[9] as String?,
     );
@@ -143,12 +143,12 @@ class TransactionItemAdapter extends TypeAdapter<TransactionItem> {
   void write(BinaryWriter writer, TransactionItem obj) {
     writer
       ..writeByte(10)
-      ..writeByte(0)
-      ..write(obj.id)
       ..writeByte(1)
       ..write(obj.productId)
       ..writeByte(2)
       ..write(obj.productName)
+      ..writeByte(0)
+      ..write(obj.id)
       ..writeByte(3)
       ..write(obj.quantity)
       ..writeByte(4)
@@ -183,10 +183,10 @@ class TransactionItemAdapter extends TypeAdapter<TransactionItem> {
 _$TransactionModelImpl _$$TransactionModelImplFromJson(
         Map<String, dynamic> json) =>
     _$TransactionModelImpl(
-      id: json['id'] as String? ?? '',
       type: json['type'] as String,
-      invoiceNumber: json['invoiceNumber'] as String?,
       contactId: json['contactId'] as String,
+      id: json['id'] as String? ?? '',
+      invoiceNumber: json['invoiceNumber'] as String?,
       items: (json['items'] as List<dynamic>?)
           ?.map((e) => TransactionItem.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -224,10 +224,10 @@ _$TransactionModelImpl _$$TransactionModelImplFromJson(
 Map<String, dynamic> _$$TransactionModelImplToJson(
         _$TransactionModelImpl instance) =>
     <String, dynamic>{
-      'id': instance.id,
       'type': instance.type,
-      'invoiceNumber': instance.invoiceNumber,
       'contactId': instance.contactId,
+      'id': instance.id,
+      'invoiceNumber': instance.invoiceNumber,
       'items': instance.items,
       'subtotal': instance.subtotal,
       'discount': instance.discount,
@@ -255,9 +255,9 @@ Map<String, dynamic> _$$TransactionModelImplToJson(
 _$TransactionItemImpl _$$TransactionItemImplFromJson(
         Map<String, dynamic> json) =>
     _$TransactionItemImpl(
-      id: json['id'] as String? ?? '',
       productId: json['productId'] as String,
       productName: json['productName'] as String,
+      id: json['id'] as String? ?? '',
       quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,
       unitPrice: (json['unitPrice'] as num?)?.toDouble() ?? 0.0,
       discount: (json['discount'] as num?)?.toDouble() ?? 0.0,
@@ -270,9 +270,9 @@ _$TransactionItemImpl _$$TransactionItemImplFromJson(
 Map<String, dynamic> _$$TransactionItemImplToJson(
         _$TransactionItemImpl instance) =>
     <String, dynamic>{
-      'id': instance.id,
       'productId': instance.productId,
       'productName': instance.productName,
+      'id': instance.id,
       'quantity': instance.quantity,
       'unitPrice': instance.unitPrice,
       'discount': instance.discount,

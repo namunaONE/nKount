@@ -20,10 +20,10 @@ CategoryModel _$CategoryModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$CategoryModel {
-  @HiveField(0)
-  String get id => throw _privateConstructorUsedError;
   @HiveField(1)
   String get name => throw _privateConstructorUsedError;
+  @HiveField(0)
+  String get id => throw _privateConstructorUsedError;
   @HiveField(2)
   String? get description => throw _privateConstructorUsedError;
   @HiveField(3)
@@ -56,8 +56,8 @@ abstract class $CategoryModelCopyWith<$Res> {
       _$CategoryModelCopyWithImpl<$Res, CategoryModel>;
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String name,
+      {@HiveField(1) String name,
+      @HiveField(0) String id,
       @HiveField(2) String? description,
       @HiveField(3) String? parentId,
       @HiveField(4) int level,
@@ -82,8 +82,8 @@ class _$CategoryModelCopyWithImpl<$Res, $Val extends CategoryModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? name = null,
+    Object? id = null,
     Object? description = freezed,
     Object? parentId = freezed,
     Object? level = null,
@@ -95,13 +95,13 @@ class _$CategoryModelCopyWithImpl<$Res, $Val extends CategoryModel>
     Object? updatedAt = freezed,
   }) {
     return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       description: freezed == description
           ? _value.description
@@ -152,8 +152,8 @@ abstract class _$$CategoryModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String name,
+      {@HiveField(1) String name,
+      @HiveField(0) String id,
       @HiveField(2) String? description,
       @HiveField(3) String? parentId,
       @HiveField(4) int level,
@@ -176,8 +176,8 @@ class __$$CategoryModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? name = null,
+    Object? id = null,
     Object? description = freezed,
     Object? parentId = freezed,
     Object? level = null,
@@ -189,13 +189,13 @@ class __$$CategoryModelImplCopyWithImpl<$Res>
     Object? updatedAt = freezed,
   }) {
     return _then(_$CategoryModelImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       description: freezed == description
           ? _value.description
@@ -241,8 +241,8 @@ class __$$CategoryModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$CategoryModelImpl extends _CategoryModel {
   const _$CategoryModelImpl(
-      {@HiveField(0) this.id = '',
-      @HiveField(1) required this.name,
+      {@HiveField(1) required this.name,
+      @HiveField(0) this.id = '',
       @HiveField(2) this.description,
       @HiveField(3) this.parentId,
       @HiveField(4) this.level = 0,
@@ -258,12 +258,12 @@ class _$CategoryModelImpl extends _CategoryModel {
       _$$CategoryModelImplFromJson(json);
 
   @override
+  @HiveField(1)
+  final String name;
+  @override
   @JsonKey()
   @HiveField(0)
   final String id;
-  @override
-  @HiveField(1)
-  final String name;
   @override
   @HiveField(2)
   final String? description;
@@ -299,7 +299,7 @@ class _$CategoryModelImpl extends _CategoryModel {
 
   @override
   String toString() {
-    return 'CategoryModel(id: $id, name: $name, description: $description, parentId: $parentId, level: $level, path: $path, sortOrder: $sortOrder, isActive: $isActive, productCount: $productCount, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'CategoryModel(name: $name, id: $id, description: $description, parentId: $parentId, level: $level, path: $path, sortOrder: $sortOrder, isActive: $isActive, productCount: $productCount, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -307,8 +307,8 @@ class _$CategoryModelImpl extends _CategoryModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$CategoryModelImpl &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.description, description) ||
                 other.description == description) &&
             (identical(other.parentId, parentId) ||
@@ -329,7 +329,7 @@ class _$CategoryModelImpl extends _CategoryModel {
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, description, parentId,
+  int get hashCode => Object.hash(runtimeType, name, id, description, parentId,
       level, path, sortOrder, isActive, productCount, createdAt, updatedAt);
 
   @JsonKey(ignore: true)
@@ -348,8 +348,8 @@ class _$CategoryModelImpl extends _CategoryModel {
 
 abstract class _CategoryModel extends CategoryModel {
   const factory _CategoryModel(
-      {@HiveField(0) final String id,
-      @HiveField(1) required final String name,
+      {@HiveField(1) required final String name,
+      @HiveField(0) final String id,
       @HiveField(2) final String? description,
       @HiveField(3) final String? parentId,
       @HiveField(4) final int level,
@@ -365,11 +365,11 @@ abstract class _CategoryModel extends CategoryModel {
       _$CategoryModelImpl.fromJson;
 
   @override
-  @HiveField(0)
-  String get id;
-  @override
   @HiveField(1)
   String get name;
+  @override
+  @HiveField(0)
+  String get id;
   @override
   @HiveField(2)
   String? get description;

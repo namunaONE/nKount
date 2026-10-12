@@ -17,15 +17,15 @@ class SyncLogModelAdapter extends TypeAdapter<SyncLogModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return SyncLogModel(
-      id: fields[0] as String,
       entityType: fields[1] as String,
       entityId: fields[2] as String,
       action: fields[3] as String,
+      id: fields[0] as String,
       status: fields[4] as String,
       requestId: fields[5] as String?,
       responseId: fields[6] as String?,
-      retryCount: fields[7] as int,
-      maxRetries: fields[8] as int,
+      retryCount: (fields[7] as num).toInt(),
+      maxRetries: (fields[8] as num).toInt(),
       errorMessage: fields[9] as String?,
       requestData: (fields[10] as Map?)?.cast<String, dynamic>(),
       responseData: (fields[11] as Map?)?.cast<String, dynamic>(),
@@ -43,14 +43,14 @@ class SyncLogModelAdapter extends TypeAdapter<SyncLogModel> {
   void write(BinaryWriter writer, SyncLogModel obj) {
     writer
       ..writeByte(19)
-      ..writeByte(0)
-      ..write(obj.id)
       ..writeByte(1)
       ..write(obj.entityType)
       ..writeByte(2)
       ..write(obj.entityId)
       ..writeByte(3)
       ..write(obj.action)
+      ..writeByte(0)
+      ..write(obj.id)
       ..writeByte(4)
       ..write(obj.status)
       ..writeByte(5)
@@ -100,10 +100,10 @@ class SyncLogModelAdapter extends TypeAdapter<SyncLogModel> {
 
 _$SyncLogModelImpl _$$SyncLogModelImplFromJson(Map<String, dynamic> json) =>
     _$SyncLogModelImpl(
-      id: json['id'] as String? ?? '',
       entityType: json['entityType'] as String,
       entityId: json['entityId'] as String,
       action: json['action'] as String,
+      id: json['id'] as String? ?? '',
       status: json['status'] as String? ?? 'pending',
       requestId: json['requestId'] as String?,
       responseId: json['responseId'] as String?,
@@ -131,10 +131,10 @@ _$SyncLogModelImpl _$$SyncLogModelImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$SyncLogModelImplToJson(_$SyncLogModelImpl instance) =>
     <String, dynamic>{
-      'id': instance.id,
       'entityType': instance.entityType,
       'entityId': instance.entityId,
       'action': instance.action,
+      'id': instance.id,
       'status': instance.status,
       'requestId': instance.requestId,
       'responseId': instance.responseId,

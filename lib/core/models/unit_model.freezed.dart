@@ -20,12 +20,12 @@ UnitModel _$UnitModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$UnitModel {
-  @HiveField(0)
-  String get id => throw _privateConstructorUsedError;
   @HiveField(1)
   String get name => throw _privateConstructorUsedError;
   @HiveField(2)
   String get code => throw _privateConstructorUsedError;
+  @HiveField(0)
+  String get id => throw _privateConstructorUsedError;
   @HiveField(3)
   String? get description => throw _privateConstructorUsedError;
   @HiveField(4)
@@ -55,9 +55,9 @@ abstract class $UnitModelCopyWith<$Res> {
       _$UnitModelCopyWithImpl<$Res, UnitModel>;
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String name,
+      {@HiveField(1) String name,
       @HiveField(2) String code,
+      @HiveField(0) String id,
       @HiveField(3) String? description,
       @HiveField(4) double baseUnitMultiplier,
       @HiveField(5) String baseUnitId,
@@ -81,9 +81,9 @@ class _$UnitModelCopyWithImpl<$Res, $Val extends UnitModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? name = null,
     Object? code = null,
+    Object? id = null,
     Object? description = freezed,
     Object? baseUnitMultiplier = null,
     Object? baseUnitId = null,
@@ -94,10 +94,6 @@ class _$UnitModelCopyWithImpl<$Res, $Val extends UnitModel>
     Object? updatedAt = freezed,
   }) {
     return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -105,6 +101,10 @@ class _$UnitModelCopyWithImpl<$Res, $Val extends UnitModel>
       code: null == code
           ? _value.code
           : code // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       description: freezed == description
           ? _value.description
@@ -151,9 +151,9 @@ abstract class _$$UnitModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String name,
+      {@HiveField(1) String name,
       @HiveField(2) String code,
+      @HiveField(0) String id,
       @HiveField(3) String? description,
       @HiveField(4) double baseUnitMultiplier,
       @HiveField(5) String baseUnitId,
@@ -175,9 +175,9 @@ class __$$UnitModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? name = null,
     Object? code = null,
+    Object? id = null,
     Object? description = freezed,
     Object? baseUnitMultiplier = null,
     Object? baseUnitId = null,
@@ -188,10 +188,6 @@ class __$$UnitModelImplCopyWithImpl<$Res>
     Object? updatedAt = freezed,
   }) {
     return _then(_$UnitModelImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -199,6 +195,10 @@ class __$$UnitModelImplCopyWithImpl<$Res>
       code: null == code
           ? _value.code
           : code // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       description: freezed == description
           ? _value.description
@@ -240,9 +240,9 @@ class __$$UnitModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$UnitModelImpl extends _UnitModel {
   const _$UnitModelImpl(
-      {@HiveField(0) this.id = '',
-      @HiveField(1) required this.name,
+      {@HiveField(1) required this.name,
       @HiveField(2) required this.code,
+      @HiveField(0) this.id = '',
       @HiveField(3) this.description,
       @HiveField(4) this.baseUnitMultiplier = 1.0,
       @HiveField(5) this.baseUnitId = '',
@@ -257,15 +257,15 @@ class _$UnitModelImpl extends _UnitModel {
       _$$UnitModelImplFromJson(json);
 
   @override
-  @JsonKey()
-  @HiveField(0)
-  final String id;
-  @override
   @HiveField(1)
   final String name;
   @override
   @HiveField(2)
   final String code;
+  @override
+  @JsonKey()
+  @HiveField(0)
+  final String id;
   @override
   @HiveField(3)
   final String? description;
@@ -298,7 +298,7 @@ class _$UnitModelImpl extends _UnitModel {
 
   @override
   String toString() {
-    return 'UnitModel(id: $id, name: $name, code: $code, description: $description, baseUnitMultiplier: $baseUnitMultiplier, baseUnitId: $baseUnitId, isActive: $isActive, isBaseUnit: $isBaseUnit, sortOrder: $sortOrder, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'UnitModel(name: $name, code: $code, id: $id, description: $description, baseUnitMultiplier: $baseUnitMultiplier, baseUnitId: $baseUnitId, isActive: $isActive, isBaseUnit: $isBaseUnit, sortOrder: $sortOrder, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -306,9 +306,9 @@ class _$UnitModelImpl extends _UnitModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$UnitModelImpl &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.code, code) || other.code == code) &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.description, description) ||
                 other.description == description) &&
             (identical(other.baseUnitMultiplier, baseUnitMultiplier) ||
@@ -331,9 +331,9 @@ class _$UnitModelImpl extends _UnitModel {
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      id,
       name,
       code,
+      id,
       description,
       baseUnitMultiplier,
       baseUnitId,
@@ -359,9 +359,9 @@ class _$UnitModelImpl extends _UnitModel {
 
 abstract class _UnitModel extends UnitModel {
   const factory _UnitModel(
-      {@HiveField(0) final String id,
-      @HiveField(1) required final String name,
+      {@HiveField(1) required final String name,
       @HiveField(2) required final String code,
+      @HiveField(0) final String id,
       @HiveField(3) final String? description,
       @HiveField(4) final double baseUnitMultiplier,
       @HiveField(5) final String baseUnitId,
@@ -376,14 +376,14 @@ abstract class _UnitModel extends UnitModel {
       _$UnitModelImpl.fromJson;
 
   @override
-  @HiveField(0)
-  String get id;
-  @override
   @HiveField(1)
   String get name;
   @override
   @HiveField(2)
   String get code;
+  @override
+  @HiveField(0)
+  String get id;
   @override
   @HiveField(3)
   String? get description;

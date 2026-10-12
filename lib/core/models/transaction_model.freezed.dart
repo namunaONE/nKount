@@ -20,14 +20,14 @@ TransactionModel _$TransactionModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$TransactionModel {
-  @HiveField(0)
-  String get id => throw _privateConstructorUsedError;
   @HiveField(1)
   String get type => throw _privateConstructorUsedError;
-  @HiveField(2)
-  String? get invoiceNumber => throw _privateConstructorUsedError;
   @HiveField(3)
   String get contactId => throw _privateConstructorUsedError;
+  @HiveField(0)
+  String get id => throw _privateConstructorUsedError;
+  @HiveField(2)
+  String? get invoiceNumber => throw _privateConstructorUsedError;
   @HiveField(4)
   List<TransactionItem>? get items => throw _privateConstructorUsedError;
   @HiveField(5)
@@ -86,10 +86,10 @@ abstract class $TransactionModelCopyWith<$Res> {
       _$TransactionModelCopyWithImpl<$Res, TransactionModel>;
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String type,
-      @HiveField(2) String? invoiceNumber,
+      {@HiveField(1) String type,
       @HiveField(3) String contactId,
+      @HiveField(0) String id,
+      @HiveField(2) String? invoiceNumber,
       @HiveField(4) List<TransactionItem>? items,
       @HiveField(5) double subtotal,
       @HiveField(6) double discount,
@@ -127,10 +127,10 @@ class _$TransactionModelCopyWithImpl<$Res, $Val extends TransactionModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? type = null,
-    Object? invoiceNumber = freezed,
     Object? contactId = null,
+    Object? id = null,
+    Object? invoiceNumber = freezed,
     Object? items = freezed,
     Object? subtotal = null,
     Object? discount = null,
@@ -155,22 +155,22 @@ class _$TransactionModelCopyWithImpl<$Res, $Val extends TransactionModel>
     Object? syncId = freezed,
   }) {
     return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       type: null == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
+              as String,
+      contactId: null == contactId
+          ? _value.contactId
+          : contactId // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       invoiceNumber: freezed == invoiceNumber
           ? _value.invoiceNumber
           : invoiceNumber // ignore: cast_nullable_to_non_nullable
               as String?,
-      contactId: null == contactId
-          ? _value.contactId
-          : contactId // ignore: cast_nullable_to_non_nullable
-              as String,
       items: freezed == items
           ? _value.items
           : items // ignore: cast_nullable_to_non_nullable
@@ -272,10 +272,10 @@ abstract class _$$TransactionModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String type,
-      @HiveField(2) String? invoiceNumber,
+      {@HiveField(1) String type,
       @HiveField(3) String contactId,
+      @HiveField(0) String id,
+      @HiveField(2) String? invoiceNumber,
       @HiveField(4) List<TransactionItem>? items,
       @HiveField(5) double subtotal,
       @HiveField(6) double discount,
@@ -311,10 +311,10 @@ class __$$TransactionModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? type = null,
-    Object? invoiceNumber = freezed,
     Object? contactId = null,
+    Object? id = null,
+    Object? invoiceNumber = freezed,
     Object? items = freezed,
     Object? subtotal = null,
     Object? discount = null,
@@ -339,22 +339,22 @@ class __$$TransactionModelImplCopyWithImpl<$Res>
     Object? syncId = freezed,
   }) {
     return _then(_$TransactionModelImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       type: null == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
+              as String,
+      contactId: null == contactId
+          ? _value.contactId
+          : contactId // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       invoiceNumber: freezed == invoiceNumber
           ? _value.invoiceNumber
           : invoiceNumber // ignore: cast_nullable_to_non_nullable
               as String?,
-      contactId: null == contactId
-          ? _value.contactId
-          : contactId // ignore: cast_nullable_to_non_nullable
-              as String,
       items: freezed == items
           ? _value._items
           : items // ignore: cast_nullable_to_non_nullable
@@ -451,10 +451,10 @@ class __$$TransactionModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$TransactionModelImpl extends _TransactionModel {
   const _$TransactionModelImpl(
-      {@HiveField(0) this.id = '',
-      @HiveField(1) required this.type,
-      @HiveField(2) this.invoiceNumber,
+      {@HiveField(1) required this.type,
       @HiveField(3) required this.contactId,
+      @HiveField(0) this.id = '',
+      @HiveField(2) this.invoiceNumber,
       @HiveField(4) final List<TransactionItem>? items,
       @HiveField(5) this.subtotal = 0.0,
       @HiveField(6) this.discount = 0.0,
@@ -484,18 +484,18 @@ class _$TransactionModelImpl extends _TransactionModel {
       _$$TransactionModelImplFromJson(json);
 
   @override
+  @HiveField(1)
+  final String type;
+  @override
+  @HiveField(3)
+  final String contactId;
+  @override
   @JsonKey()
   @HiveField(0)
   final String id;
   @override
-  @HiveField(1)
-  final String type;
-  @override
   @HiveField(2)
   final String? invoiceNumber;
-  @override
-  @HiveField(3)
-  final String contactId;
   final List<TransactionItem>? _items;
   @override
   @HiveField(4)
@@ -584,7 +584,7 @@ class _$TransactionModelImpl extends _TransactionModel {
 
   @override
   String toString() {
-    return 'TransactionModel(id: $id, type: $type, invoiceNumber: $invoiceNumber, contactId: $contactId, items: $items, subtotal: $subtotal, discount: $discount, tax: $tax, total: $total, paidAmount: $paidAmount, dueAmount: $dueAmount, paymentStatus: $paymentStatus, paymentMethod: $paymentMethod, referenceNumber: $referenceNumber, date: $date, dueDate: $dueDate, notes: $notes, isVatIncluded: $isVatIncluded, vatRate: $vatRate, createdBy: $createdBy, createdAt: $createdAt, updatedAt: $updatedAt, isCancelled: $isCancelled, cancellationReason: $cancellationReason, isSynced: $isSynced, syncId: $syncId)';
+    return 'TransactionModel(type: $type, contactId: $contactId, id: $id, invoiceNumber: $invoiceNumber, items: $items, subtotal: $subtotal, discount: $discount, tax: $tax, total: $total, paidAmount: $paidAmount, dueAmount: $dueAmount, paymentStatus: $paymentStatus, paymentMethod: $paymentMethod, referenceNumber: $referenceNumber, date: $date, dueDate: $dueDate, notes: $notes, isVatIncluded: $isVatIncluded, vatRate: $vatRate, createdBy: $createdBy, createdAt: $createdAt, updatedAt: $updatedAt, isCancelled: $isCancelled, cancellationReason: $cancellationReason, isSynced: $isSynced, syncId: $syncId)';
   }
 
   @override
@@ -592,12 +592,12 @@ class _$TransactionModelImpl extends _TransactionModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$TransactionModelImpl &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.type, type) || other.type == type) &&
-            (identical(other.invoiceNumber, invoiceNumber) ||
-                other.invoiceNumber == invoiceNumber) &&
             (identical(other.contactId, contactId) ||
                 other.contactId == contactId) &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.invoiceNumber, invoiceNumber) ||
+                other.invoiceNumber == invoiceNumber) &&
             const DeepCollectionEquality().equals(other._items, _items) &&
             (identical(other.subtotal, subtotal) ||
                 other.subtotal == subtotal) &&
@@ -640,10 +640,10 @@ class _$TransactionModelImpl extends _TransactionModel {
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
-        id,
         type,
-        invoiceNumber,
         contactId,
+        id,
+        invoiceNumber,
         const DeepCollectionEquality().hash(_items),
         subtotal,
         discount,
@@ -685,10 +685,10 @@ class _$TransactionModelImpl extends _TransactionModel {
 
 abstract class _TransactionModel extends TransactionModel {
   const factory _TransactionModel(
-      {@HiveField(0) final String id,
-      @HiveField(1) required final String type,
-      @HiveField(2) final String? invoiceNumber,
+      {@HiveField(1) required final String type,
       @HiveField(3) required final String contactId,
+      @HiveField(0) final String id,
+      @HiveField(2) final String? invoiceNumber,
       @HiveField(4) final List<TransactionItem>? items,
       @HiveField(5) final double subtotal,
       @HiveField(6) final double discount,
@@ -717,17 +717,17 @@ abstract class _TransactionModel extends TransactionModel {
       _$TransactionModelImpl.fromJson;
 
   @override
-  @HiveField(0)
-  String get id;
-  @override
   @HiveField(1)
   String get type;
   @override
-  @HiveField(2)
-  String? get invoiceNumber;
-  @override
   @HiveField(3)
   String get contactId;
+  @override
+  @HiveField(0)
+  String get id;
+  @override
+  @HiveField(2)
+  String? get invoiceNumber;
   @override
   @HiveField(4)
   List<TransactionItem>? get items;
@@ -806,12 +806,12 @@ TransactionItem _$TransactionItemFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$TransactionItem {
-  @HiveField(0)
-  String get id => throw _privateConstructorUsedError;
   @HiveField(1)
   String get productId => throw _privateConstructorUsedError;
   @HiveField(2)
   String get productName => throw _privateConstructorUsedError;
+  @HiveField(0)
+  String get id => throw _privateConstructorUsedError;
   @HiveField(3)
   double get quantity => throw _privateConstructorUsedError;
   @HiveField(4)
@@ -840,9 +840,9 @@ abstract class $TransactionItemCopyWith<$Res> {
       _$TransactionItemCopyWithImpl<$Res, TransactionItem>;
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String productId,
+      {@HiveField(1) String productId,
       @HiveField(2) String productName,
+      @HiveField(0) String id,
       @HiveField(3) double quantity,
       @HiveField(4) double unitPrice,
       @HiveField(5) double discount,
@@ -865,9 +865,9 @@ class _$TransactionItemCopyWithImpl<$Res, $Val extends TransactionItem>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? productId = null,
     Object? productName = null,
+    Object? id = null,
     Object? quantity = null,
     Object? unitPrice = null,
     Object? discount = null,
@@ -877,10 +877,6 @@ class _$TransactionItemCopyWithImpl<$Res, $Val extends TransactionItem>
     Object? description = freezed,
   }) {
     return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       productId: null == productId
           ? _value.productId
           : productId // ignore: cast_nullable_to_non_nullable
@@ -888,6 +884,10 @@ class _$TransactionItemCopyWithImpl<$Res, $Val extends TransactionItem>
       productName: null == productName
           ? _value.productName
           : productName // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       quantity: null == quantity
           ? _value.quantity
@@ -930,9 +930,9 @@ abstract class _$$TransactionItemImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String productId,
+      {@HiveField(1) String productId,
       @HiveField(2) String productName,
+      @HiveField(0) String id,
       @HiveField(3) double quantity,
       @HiveField(4) double unitPrice,
       @HiveField(5) double discount,
@@ -953,9 +953,9 @@ class __$$TransactionItemImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? productId = null,
     Object? productName = null,
+    Object? id = null,
     Object? quantity = null,
     Object? unitPrice = null,
     Object? discount = null,
@@ -965,10 +965,6 @@ class __$$TransactionItemImplCopyWithImpl<$Res>
     Object? description = freezed,
   }) {
     return _then(_$TransactionItemImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       productId: null == productId
           ? _value.productId
           : productId // ignore: cast_nullable_to_non_nullable
@@ -976,6 +972,10 @@ class __$$TransactionItemImplCopyWithImpl<$Res>
       productName: null == productName
           ? _value.productName
           : productName // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       quantity: null == quantity
           ? _value.quantity
@@ -1013,9 +1013,9 @@ class __$$TransactionItemImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$TransactionItemImpl extends _TransactionItem {
   const _$TransactionItemImpl(
-      {@HiveField(0) this.id = '',
-      @HiveField(1) required this.productId,
+      {@HiveField(1) required this.productId,
       @HiveField(2) required this.productName,
+      @HiveField(0) this.id = '',
       @HiveField(3) this.quantity = 0.0,
       @HiveField(4) this.unitPrice = 0.0,
       @HiveField(5) this.discount = 0.0,
@@ -1029,15 +1029,15 @@ class _$TransactionItemImpl extends _TransactionItem {
       _$$TransactionItemImplFromJson(json);
 
   @override
-  @JsonKey()
-  @HiveField(0)
-  final String id;
-  @override
   @HiveField(1)
   final String productId;
   @override
   @HiveField(2)
   final String productName;
+  @override
+  @JsonKey()
+  @HiveField(0)
+  final String id;
   @override
   @JsonKey()
   @HiveField(3)
@@ -1067,7 +1067,7 @@ class _$TransactionItemImpl extends _TransactionItem {
 
   @override
   String toString() {
-    return 'TransactionItem(id: $id, productId: $productId, productName: $productName, quantity: $quantity, unitPrice: $unitPrice, discount: $discount, tax: $tax, amount: $amount, unit: $unit, description: $description)';
+    return 'TransactionItem(productId: $productId, productName: $productName, id: $id, quantity: $quantity, unitPrice: $unitPrice, discount: $discount, tax: $tax, amount: $amount, unit: $unit, description: $description)';
   }
 
   @override
@@ -1075,11 +1075,11 @@ class _$TransactionItemImpl extends _TransactionItem {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$TransactionItemImpl &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.productId, productId) ||
                 other.productId == productId) &&
             (identical(other.productName, productName) ||
                 other.productName == productName) &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.quantity, quantity) ||
                 other.quantity == quantity) &&
             (identical(other.unitPrice, unitPrice) ||
@@ -1095,7 +1095,7 @@ class _$TransactionItemImpl extends _TransactionItem {
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, productId, productName,
+  int get hashCode => Object.hash(runtimeType, productId, productName, id,
       quantity, unitPrice, discount, tax, amount, unit, description);
 
   @JsonKey(ignore: true)
@@ -1115,9 +1115,9 @@ class _$TransactionItemImpl extends _TransactionItem {
 
 abstract class _TransactionItem extends TransactionItem {
   const factory _TransactionItem(
-      {@HiveField(0) final String id,
-      @HiveField(1) required final String productId,
+      {@HiveField(1) required final String productId,
       @HiveField(2) required final String productName,
+      @HiveField(0) final String id,
       @HiveField(3) final double quantity,
       @HiveField(4) final double unitPrice,
       @HiveField(5) final double discount,
@@ -1131,14 +1131,14 @@ abstract class _TransactionItem extends TransactionItem {
       _$TransactionItemImpl.fromJson;
 
   @override
-  @HiveField(0)
-  String get id;
-  @override
   @HiveField(1)
   String get productId;
   @override
   @HiveField(2)
   String get productName;
+  @override
+  @HiveField(0)
+  String get id;
   @override
   @HiveField(3)
   double get quantity;

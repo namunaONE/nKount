@@ -19,8 +19,8 @@ targets:
           include:
             - lib/core/providers/*.dart
 
-      # Scope hive_generator to models only (default runs on all files)
-      hive_generator:
+      # Scope hive_ce_generator to models only (default runs on all files)
+      hive_ce_generator:
         generate_for:
           include:
             - lib/core/models/*.dart

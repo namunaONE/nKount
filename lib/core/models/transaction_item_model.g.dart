@@ -17,14 +17,14 @@ class TransactionItemModelAdapter extends TypeAdapter<TransactionItemModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return TransactionItemModel(
-      id: fields[0] as String,
       productId: fields[1] as String,
       productName: fields[2] as String,
-      quantity: fields[3] as double,
-      unitPrice: fields[4] as double,
-      discount: fields[5] as double,
-      tax: fields[6] as double,
-      amount: fields[7] as double,
+      id: fields[0] as String,
+      quantity: (fields[3] as num).toDouble(),
+      unitPrice: (fields[4] as num).toDouble(),
+      discount: (fields[5] as num).toDouble(),
+      tax: (fields[6] as num).toDouble(),
+      amount: (fields[7] as num).toDouble(),
       unit: fields[8] as String?,
       description: fields[9] as String?,
       createdAt: fields[10] as DateTime?,
@@ -36,12 +36,12 @@ class TransactionItemModelAdapter extends TypeAdapter<TransactionItemModel> {
   void write(BinaryWriter writer, TransactionItemModel obj) {
     writer
       ..writeByte(12)
-      ..writeByte(0)
-      ..write(obj.id)
       ..writeByte(1)
       ..write(obj.productId)
       ..writeByte(2)
       ..write(obj.productName)
+      ..writeByte(0)
+      ..write(obj.id)
       ..writeByte(3)
       ..write(obj.quantity)
       ..writeByte(4)
@@ -80,9 +80,9 @@ class TransactionItemModelAdapter extends TypeAdapter<TransactionItemModel> {
 _$TransactionItemModelImpl _$$TransactionItemModelImplFromJson(
         Map<String, dynamic> json) =>
     _$TransactionItemModelImpl(
-      id: json['id'] as String? ?? '',
       productId: json['productId'] as String,
       productName: json['productName'] as String,
+      id: json['id'] as String? ?? '',
       quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,
       unitPrice: (json['unitPrice'] as num?)?.toDouble() ?? 0.0,
       discount: (json['discount'] as num?)?.toDouble() ?? 0.0,
@@ -101,9 +101,9 @@ _$TransactionItemModelImpl _$$TransactionItemModelImplFromJson(
 Map<String, dynamic> _$$TransactionItemModelImplToJson(
         _$TransactionItemModelImpl instance) =>
     <String, dynamic>{
-      'id': instance.id,
       'productId': instance.productId,
       'productName': instance.productName,
+      'id': instance.id,
       'quantity': instance.quantity,
       'unitPrice': instance.unitPrice,
       'discount': instance.discount,

@@ -17,15 +17,15 @@ class UnitModelAdapter extends TypeAdapter<UnitModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return UnitModel(
-      id: fields[0] as String,
       name: fields[1] as String,
       code: fields[2] as String,
+      id: fields[0] as String,
       description: fields[3] as String?,
-      baseUnitMultiplier: fields[4] as double,
+      baseUnitMultiplier: (fields[4] as num).toDouble(),
       baseUnitId: fields[5] as String,
       isActive: fields[6] as bool,
       isBaseUnit: fields[7] as bool,
-      sortOrder: fields[8] as int,
+      sortOrder: (fields[8] as num).toInt(),
       createdAt: fields[9] as DateTime?,
       updatedAt: fields[10] as DateTime?,
     );
@@ -35,12 +35,12 @@ class UnitModelAdapter extends TypeAdapter<UnitModel> {
   void write(BinaryWriter writer, UnitModel obj) {
     writer
       ..writeByte(11)
-      ..writeByte(0)
-      ..write(obj.id)
       ..writeByte(1)
       ..write(obj.name)
       ..writeByte(2)
       ..write(obj.code)
+      ..writeByte(0)
+      ..write(obj.id)
       ..writeByte(3)
       ..write(obj.description)
       ..writeByte(4)
@@ -76,9 +76,9 @@ class UnitModelAdapter extends TypeAdapter<UnitModel> {
 
 _$UnitModelImpl _$$UnitModelImplFromJson(Map<String, dynamic> json) =>
     _$UnitModelImpl(
-      id: json['id'] as String? ?? '',
       name: json['name'] as String,
       code: json['code'] as String,
+      id: json['id'] as String? ?? '',
       description: json['description'] as String?,
       baseUnitMultiplier:
           (json['baseUnitMultiplier'] as num?)?.toDouble() ?? 1.0,
@@ -96,9 +96,9 @@ _$UnitModelImpl _$$UnitModelImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$UnitModelImplToJson(_$UnitModelImpl instance) =>
     <String, dynamic>{
-      'id': instance.id,
       'name': instance.name,
       'code': instance.code,
+      'id': instance.id,
       'description': instance.description,
       'baseUnitMultiplier': instance.baseUnitMultiplier,
       'baseUnitId': instance.baseUnitId,

@@ -17,8 +17,8 @@ class ContactModelAdapter extends TypeAdapter<ContactModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return ContactModel(
-      id: fields[0] as String,
       name: fields[1] as String,
+      id: fields[0] as String,
       phone: fields[2] as String?,
       mobile: fields[3] as String?,
       email: fields[4] as String?,
@@ -28,14 +28,14 @@ class ContactModelAdapter extends TypeAdapter<ContactModel> {
       vatNumber: fields[8] as String?,
       panNumber: fields[9] as String?,
       type: fields[10] as String,
-      openingBalance: fields[11] as double?,
+      openingBalance: (fields[11] as num?)?.toDouble(),
       isActive: fields[12] as bool,
       remarks: fields[13] as String?,
-      totalPurchases: fields[14] as double,
-      totalSales: fields[15] as double,
-      totalPayments: fields[16] as double,
-      totalReceipts: fields[17] as double,
-      balance: fields[18] as double,
+      totalPurchases: (fields[14] as num).toDouble(),
+      totalSales: (fields[15] as num).toDouble(),
+      totalPayments: (fields[16] as num).toDouble(),
+      totalReceipts: (fields[17] as num).toDouble(),
+      balance: (fields[18] as num).toDouble(),
       createdAt: fields[19] as DateTime?,
       updatedAt: fields[20] as DateTime?,
     );
@@ -45,10 +45,10 @@ class ContactModelAdapter extends TypeAdapter<ContactModel> {
   void write(BinaryWriter writer, ContactModel obj) {
     writer
       ..writeByte(21)
-      ..writeByte(0)
-      ..write(obj.id)
       ..writeByte(1)
       ..write(obj.name)
+      ..writeByte(0)
+      ..write(obj.id)
       ..writeByte(2)
       ..write(obj.phone)
       ..writeByte(3)
@@ -106,8 +106,8 @@ class ContactModelAdapter extends TypeAdapter<ContactModel> {
 
 _$ContactModelImpl _$$ContactModelImplFromJson(Map<String, dynamic> json) =>
     _$ContactModelImpl(
-      id: json['id'] as String? ?? '',
       name: json['name'] as String,
+      id: json['id'] as String? ?? '',
       phone: json['phone'] as String?,
       mobile: json['mobile'] as String?,
       email: json['email'] as String?,
@@ -135,8 +135,8 @@ _$ContactModelImpl _$$ContactModelImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$ContactModelImplToJson(_$ContactModelImpl instance) =>
     <String, dynamic>{
-      'id': instance.id,
       'name': instance.name,
+      'id': instance.id,
       'phone': instance.phone,
       'mobile': instance.mobile,
       'email': instance.email,

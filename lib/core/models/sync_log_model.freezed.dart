@@ -20,14 +20,14 @@ SyncLogModel _$SyncLogModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$SyncLogModel {
-  @HiveField(0)
-  String get id => throw _privateConstructorUsedError;
   @HiveField(1)
   String get entityType => throw _privateConstructorUsedError;
   @HiveField(2)
   String get entityId => throw _privateConstructorUsedError;
   @HiveField(3)
   String get action => throw _privateConstructorUsedError;
+  @HiveField(0)
+  String get id => throw _privateConstructorUsedError;
   @HiveField(4)
   String get status => throw _privateConstructorUsedError;
   @HiveField(5)
@@ -72,10 +72,10 @@ abstract class $SyncLogModelCopyWith<$Res> {
       _$SyncLogModelCopyWithImpl<$Res, SyncLogModel>;
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String entityType,
+      {@HiveField(1) String entityType,
       @HiveField(2) String entityId,
       @HiveField(3) String action,
+      @HiveField(0) String id,
       @HiveField(4) String status,
       @HiveField(5) String? requestId,
       @HiveField(6) String? responseId,
@@ -106,10 +106,10 @@ class _$SyncLogModelCopyWithImpl<$Res, $Val extends SyncLogModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? entityType = null,
     Object? entityId = null,
     Object? action = null,
+    Object? id = null,
     Object? status = null,
     Object? requestId = freezed,
     Object? responseId = freezed,
@@ -127,10 +127,6 @@ class _$SyncLogModelCopyWithImpl<$Res, $Val extends SyncLogModel>
     Object? createdBy = freezed,
   }) {
     return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       entityType: null == entityType
           ? _value.entityType
           : entityType // ignore: cast_nullable_to_non_nullable
@@ -142,6 +138,10 @@ class _$SyncLogModelCopyWithImpl<$Res, $Val extends SyncLogModel>
       action: null == action
           ? _value.action
           : action // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       status: null == status
           ? _value.status
@@ -216,10 +216,10 @@ abstract class _$$SyncLogModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String entityType,
+      {@HiveField(1) String entityType,
       @HiveField(2) String entityId,
       @HiveField(3) String action,
+      @HiveField(0) String id,
       @HiveField(4) String status,
       @HiveField(5) String? requestId,
       @HiveField(6) String? responseId,
@@ -248,10 +248,10 @@ class __$$SyncLogModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? entityType = null,
     Object? entityId = null,
     Object? action = null,
+    Object? id = null,
     Object? status = null,
     Object? requestId = freezed,
     Object? responseId = freezed,
@@ -269,10 +269,6 @@ class __$$SyncLogModelImplCopyWithImpl<$Res>
     Object? createdBy = freezed,
   }) {
     return _then(_$SyncLogModelImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       entityType: null == entityType
           ? _value.entityType
           : entityType // ignore: cast_nullable_to_non_nullable
@@ -284,6 +280,10 @@ class __$$SyncLogModelImplCopyWithImpl<$Res>
       action: null == action
           ? _value.action
           : action // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       status: null == status
           ? _value.status
@@ -353,10 +353,10 @@ class __$$SyncLogModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$SyncLogModelImpl extends _SyncLogModel {
   const _$SyncLogModelImpl(
-      {@HiveField(0) this.id = '',
-      @HiveField(1) required this.entityType,
+      {@HiveField(1) required this.entityType,
       @HiveField(2) required this.entityId,
       @HiveField(3) required this.action,
+      @HiveField(0) this.id = '',
       @HiveField(4) this.status = 'pending',
       @HiveField(5) this.requestId,
       @HiveField(6) this.responseId,
@@ -380,10 +380,6 @@ class _$SyncLogModelImpl extends _SyncLogModel {
       _$$SyncLogModelImplFromJson(json);
 
   @override
-  @JsonKey()
-  @HiveField(0)
-  final String id;
-  @override
   @HiveField(1)
   final String entityType;
   @override
@@ -392,6 +388,10 @@ class _$SyncLogModelImpl extends _SyncLogModel {
   @override
   @HiveField(3)
   final String action;
+  @override
+  @JsonKey()
+  @HiveField(0)
+  final String id;
   @override
   @JsonKey()
   @HiveField(4)
@@ -460,7 +460,7 @@ class _$SyncLogModelImpl extends _SyncLogModel {
 
   @override
   String toString() {
-    return 'SyncLogModel(id: $id, entityType: $entityType, entityId: $entityId, action: $action, status: $status, requestId: $requestId, responseId: $responseId, retryCount: $retryCount, maxRetries: $maxRetries, errorMessage: $errorMessage, requestData: $requestData, responseData: $responseData, isConflict: $isConflict, conflictResolution: $conflictResolution, conflictResolvedAt: $conflictResolvedAt, createdAt: $createdAt, updatedAt: $updatedAt, completedAt: $completedAt, createdBy: $createdBy)';
+    return 'SyncLogModel(entityType: $entityType, entityId: $entityId, action: $action, id: $id, status: $status, requestId: $requestId, responseId: $responseId, retryCount: $retryCount, maxRetries: $maxRetries, errorMessage: $errorMessage, requestData: $requestData, responseData: $responseData, isConflict: $isConflict, conflictResolution: $conflictResolution, conflictResolvedAt: $conflictResolvedAt, createdAt: $createdAt, updatedAt: $updatedAt, completedAt: $completedAt, createdBy: $createdBy)';
   }
 
   @override
@@ -468,12 +468,12 @@ class _$SyncLogModelImpl extends _SyncLogModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$SyncLogModelImpl &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.entityType, entityType) ||
                 other.entityType == entityType) &&
             (identical(other.entityId, entityId) ||
                 other.entityId == entityId) &&
             (identical(other.action, action) || other.action == action) &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.requestId, requestId) ||
                 other.requestId == requestId) &&
@@ -509,10 +509,10 @@ class _$SyncLogModelImpl extends _SyncLogModel {
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
-        id,
         entityType,
         entityId,
         action,
+        id,
         status,
         requestId,
         responseId,
@@ -546,10 +546,10 @@ class _$SyncLogModelImpl extends _SyncLogModel {
 
 abstract class _SyncLogModel extends SyncLogModel {
   const factory _SyncLogModel(
-      {@HiveField(0) final String id,
-      @HiveField(1) required final String entityType,
+      {@HiveField(1) required final String entityType,
       @HiveField(2) required final String entityId,
       @HiveField(3) required final String action,
+      @HiveField(0) final String id,
       @HiveField(4) final String status,
       @HiveField(5) final String? requestId,
       @HiveField(6) final String? responseId,
@@ -571,9 +571,6 @@ abstract class _SyncLogModel extends SyncLogModel {
       _$SyncLogModelImpl.fromJson;
 
   @override
-  @HiveField(0)
-  String get id;
-  @override
   @HiveField(1)
   String get entityType;
   @override
@@ -582,6 +579,9 @@ abstract class _SyncLogModel extends SyncLogModel {
   @override
   @HiveField(3)
   String get action;
+  @override
+  @HiveField(0)
+  String get id;
   @override
   @HiveField(4)
   String get status;

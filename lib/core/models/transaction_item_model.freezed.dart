@@ -20,12 +20,12 @@ TransactionItemModel _$TransactionItemModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$TransactionItemModel {
-  @HiveField(0)
-  String get id => throw _privateConstructorUsedError;
   @HiveField(1)
   String get productId => throw _privateConstructorUsedError;
   @HiveField(2)
   String get productName => throw _privateConstructorUsedError;
+  @HiveField(0)
+  String get id => throw _privateConstructorUsedError;
   @HiveField(3)
   double get quantity => throw _privateConstructorUsedError;
   @HiveField(4)
@@ -58,9 +58,9 @@ abstract class $TransactionItemModelCopyWith<$Res> {
       _$TransactionItemModelCopyWithImpl<$Res, TransactionItemModel>;
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String productId,
+      {@HiveField(1) String productId,
       @HiveField(2) String productName,
+      @HiveField(0) String id,
       @HiveField(3) double quantity,
       @HiveField(4) double unitPrice,
       @HiveField(5) double discount,
@@ -86,9 +86,9 @@ class _$TransactionItemModelCopyWithImpl<$Res,
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? productId = null,
     Object? productName = null,
+    Object? id = null,
     Object? quantity = null,
     Object? unitPrice = null,
     Object? discount = null,
@@ -100,10 +100,6 @@ class _$TransactionItemModelCopyWithImpl<$Res,
     Object? updatedAt = freezed,
   }) {
     return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       productId: null == productId
           ? _value.productId
           : productId // ignore: cast_nullable_to_non_nullable
@@ -111,6 +107,10 @@ class _$TransactionItemModelCopyWithImpl<$Res,
       productName: null == productName
           ? _value.productName
           : productName // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       quantity: null == quantity
           ? _value.quantity
@@ -161,9 +161,9 @@ abstract class _$$TransactionItemModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String productId,
+      {@HiveField(1) String productId,
       @HiveField(2) String productName,
+      @HiveField(0) String id,
       @HiveField(3) double quantity,
       @HiveField(4) double unitPrice,
       @HiveField(5) double discount,
@@ -186,9 +186,9 @@ class __$$TransactionItemModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? productId = null,
     Object? productName = null,
+    Object? id = null,
     Object? quantity = null,
     Object? unitPrice = null,
     Object? discount = null,
@@ -200,10 +200,6 @@ class __$$TransactionItemModelImplCopyWithImpl<$Res>
     Object? updatedAt = freezed,
   }) {
     return _then(_$TransactionItemModelImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       productId: null == productId
           ? _value.productId
           : productId // ignore: cast_nullable_to_non_nullable
@@ -211,6 +207,10 @@ class __$$TransactionItemModelImplCopyWithImpl<$Res>
       productName: null == productName
           ? _value.productName
           : productName // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       quantity: null == quantity
           ? _value.quantity
@@ -256,9 +256,9 @@ class __$$TransactionItemModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$TransactionItemModelImpl extends _TransactionItemModel {
   const _$TransactionItemModelImpl(
-      {@HiveField(0) this.id = '',
-      @HiveField(1) required this.productId,
+      {@HiveField(1) required this.productId,
       @HiveField(2) required this.productName,
+      @HiveField(0) this.id = '',
       @HiveField(3) this.quantity = 0.0,
       @HiveField(4) this.unitPrice = 0.0,
       @HiveField(5) this.discount = 0.0,
@@ -274,15 +274,15 @@ class _$TransactionItemModelImpl extends _TransactionItemModel {
       _$$TransactionItemModelImplFromJson(json);
 
   @override
-  @JsonKey()
-  @HiveField(0)
-  final String id;
-  @override
   @HiveField(1)
   final String productId;
   @override
   @HiveField(2)
   final String productName;
+  @override
+  @JsonKey()
+  @HiveField(0)
+  final String id;
   @override
   @JsonKey()
   @HiveField(3)
@@ -318,7 +318,7 @@ class _$TransactionItemModelImpl extends _TransactionItemModel {
 
   @override
   String toString() {
-    return 'TransactionItemModel(id: $id, productId: $productId, productName: $productName, quantity: $quantity, unitPrice: $unitPrice, discount: $discount, tax: $tax, amount: $amount, unit: $unit, description: $description, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'TransactionItemModel(productId: $productId, productName: $productName, id: $id, quantity: $quantity, unitPrice: $unitPrice, discount: $discount, tax: $tax, amount: $amount, unit: $unit, description: $description, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -326,11 +326,11 @@ class _$TransactionItemModelImpl extends _TransactionItemModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$TransactionItemModelImpl &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.productId, productId) ||
                 other.productId == productId) &&
             (identical(other.productName, productName) ||
                 other.productName == productName) &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.quantity, quantity) ||
                 other.quantity == quantity) &&
             (identical(other.unitPrice, unitPrice) ||
@@ -352,9 +352,9 @@ class _$TransactionItemModelImpl extends _TransactionItemModel {
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      id,
       productId,
       productName,
+      id,
       quantity,
       unitPrice,
       discount,
@@ -383,9 +383,9 @@ class _$TransactionItemModelImpl extends _TransactionItemModel {
 
 abstract class _TransactionItemModel extends TransactionItemModel {
   const factory _TransactionItemModel(
-      {@HiveField(0) final String id,
-      @HiveField(1) required final String productId,
+      {@HiveField(1) required final String productId,
       @HiveField(2) required final String productName,
+      @HiveField(0) final String id,
       @HiveField(3) final double quantity,
       @HiveField(4) final double unitPrice,
       @HiveField(5) final double discount,
@@ -401,14 +401,14 @@ abstract class _TransactionItemModel extends TransactionItemModel {
       _$TransactionItemModelImpl.fromJson;
 
   @override
-  @HiveField(0)
-  String get id;
-  @override
   @HiveField(1)
   String get productId;
   @override
   @HiveField(2)
   String get productName;
+  @override
+  @HiveField(0)
+  String get id;
   @override
   @HiveField(3)
   double get quantity;

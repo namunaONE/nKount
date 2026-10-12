@@ -20,10 +20,10 @@ ProductModel _$ProductModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$ProductModel {
-  @HiveField(0)
-  String get id => throw _privateConstructorUsedError;
   @HiveField(1)
   String get name => throw _privateConstructorUsedError;
+  @HiveField(0)
+  String get id => throw _privateConstructorUsedError;
   @HiveField(2)
   String? get code => throw _privateConstructorUsedError;
   @HiveField(3)
@@ -78,8 +78,8 @@ abstract class $ProductModelCopyWith<$Res> {
       _$ProductModelCopyWithImpl<$Res, ProductModel>;
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String name,
+      {@HiveField(1) String name,
+      @HiveField(0) String id,
       @HiveField(2) String? code,
       @HiveField(3) String? barcode,
       @HiveField(4) String? category,
@@ -115,8 +115,8 @@ class _$ProductModelCopyWithImpl<$Res, $Val extends ProductModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? name = null,
+    Object? id = null,
     Object? code = freezed,
     Object? barcode = freezed,
     Object? category = freezed,
@@ -139,13 +139,13 @@ class _$ProductModelCopyWithImpl<$Res, $Val extends ProductModel>
     Object? updatedAt = freezed,
   }) {
     return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       code: freezed == code
           ? _value.code
@@ -240,8 +240,8 @@ abstract class _$$ProductModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String name,
+      {@HiveField(1) String name,
+      @HiveField(0) String id,
       @HiveField(2) String? code,
       @HiveField(3) String? barcode,
       @HiveField(4) String? category,
@@ -275,8 +275,8 @@ class __$$ProductModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? name = null,
+    Object? id = null,
     Object? code = freezed,
     Object? barcode = freezed,
     Object? category = freezed,
@@ -299,13 +299,13 @@ class __$$ProductModelImplCopyWithImpl<$Res>
     Object? updatedAt = freezed,
   }) {
     return _then(_$ProductModelImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       code: freezed == code
           ? _value.code
@@ -395,8 +395,8 @@ class __$$ProductModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$ProductModelImpl extends _ProductModel {
   const _$ProductModelImpl(
-      {@HiveField(0) this.id = '',
-      @HiveField(1) required this.name,
+      {@HiveField(1) required this.name,
+      @HiveField(0) this.id = '',
       @HiveField(2) this.code,
       @HiveField(3) this.barcode,
       @HiveField(4) this.category,
@@ -423,12 +423,12 @@ class _$ProductModelImpl extends _ProductModel {
       _$$ProductModelImplFromJson(json);
 
   @override
+  @HiveField(1)
+  final String name;
+  @override
   @JsonKey()
   @HiveField(0)
   final String id;
-  @override
-  @HiveField(1)
-  final String name;
   @override
   @HiveField(2)
   final String? code;
@@ -502,7 +502,7 @@ class _$ProductModelImpl extends _ProductModel {
 
   @override
   String toString() {
-    return 'ProductModel(id: $id, name: $name, code: $code, barcode: $barcode, category: $category, brand: $brand, unit: $unit, purchasePrice: $purchasePrice, salePrice: $salePrice, costPrice: $costPrice, quantity: $quantity, minQuantity: $minQuantity, isTaxable: $isTaxable, taxRate: $taxRate, description: $description, supplierId: $supplierId, isActive: $isActive, imageUrl: $imageUrl, totalPurchased: $totalPurchased, totalSold: $totalSold, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'ProductModel(name: $name, id: $id, code: $code, barcode: $barcode, category: $category, brand: $brand, unit: $unit, purchasePrice: $purchasePrice, salePrice: $salePrice, costPrice: $costPrice, quantity: $quantity, minQuantity: $minQuantity, isTaxable: $isTaxable, taxRate: $taxRate, description: $description, supplierId: $supplierId, isActive: $isActive, imageUrl: $imageUrl, totalPurchased: $totalPurchased, totalSold: $totalSold, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -510,8 +510,8 @@ class _$ProductModelImpl extends _ProductModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$ProductModelImpl &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.code, code) || other.code == code) &&
             (identical(other.barcode, barcode) || other.barcode == barcode) &&
             (identical(other.category, category) ||
@@ -553,8 +553,8 @@ class _$ProductModelImpl extends _ProductModel {
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
-        id,
         name,
+        id,
         code,
         barcode,
         category,
@@ -593,8 +593,8 @@ class _$ProductModelImpl extends _ProductModel {
 
 abstract class _ProductModel extends ProductModel {
   const factory _ProductModel(
-      {@HiveField(0) final String id,
-      @HiveField(1) required final String name,
+      {@HiveField(1) required final String name,
+      @HiveField(0) final String id,
       @HiveField(2) final String? code,
       @HiveField(3) final String? barcode,
       @HiveField(4) final String? category,
@@ -621,11 +621,11 @@ abstract class _ProductModel extends ProductModel {
       _$ProductModelImpl.fromJson;
 
   @override
-  @HiveField(0)
-  String get id;
-  @override
   @HiveField(1)
   String get name;
+  @override
+  @HiveField(0)
+  String get id;
   @override
   @HiveField(2)
   String? get code;

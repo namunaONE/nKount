@@ -20,10 +20,10 @@ BrandModel _$BrandModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$BrandModel {
-  @HiveField(0)
-  String get id => throw _privateConstructorUsedError;
   @HiveField(1)
   String get name => throw _privateConstructorUsedError;
+  @HiveField(0)
+  String get id => throw _privateConstructorUsedError;
   @HiveField(2)
   String? get description => throw _privateConstructorUsedError;
   @HiveField(3)
@@ -56,8 +56,8 @@ abstract class $BrandModelCopyWith<$Res> {
       _$BrandModelCopyWithImpl<$Res, BrandModel>;
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String name,
+      {@HiveField(1) String name,
+      @HiveField(0) String id,
       @HiveField(2) String? description,
       @HiveField(3) String? logoPath,
       @HiveField(4) String? website,
@@ -82,8 +82,8 @@ class _$BrandModelCopyWithImpl<$Res, $Val extends BrandModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? name = null,
+    Object? id = null,
     Object? description = freezed,
     Object? logoPath = freezed,
     Object? website = freezed,
@@ -95,13 +95,13 @@ class _$BrandModelCopyWithImpl<$Res, $Val extends BrandModel>
     Object? updatedAt = freezed,
   }) {
     return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       description: freezed == description
           ? _value.description
@@ -152,8 +152,8 @@ abstract class _$$BrandModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String name,
+      {@HiveField(1) String name,
+      @HiveField(0) String id,
       @HiveField(2) String? description,
       @HiveField(3) String? logoPath,
       @HiveField(4) String? website,
@@ -176,8 +176,8 @@ class __$$BrandModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? name = null,
+    Object? id = null,
     Object? description = freezed,
     Object? logoPath = freezed,
     Object? website = freezed,
@@ -189,13 +189,13 @@ class __$$BrandModelImplCopyWithImpl<$Res>
     Object? updatedAt = freezed,
   }) {
     return _then(_$BrandModelImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       description: freezed == description
           ? _value.description
@@ -241,8 +241,8 @@ class __$$BrandModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$BrandModelImpl extends _BrandModel {
   const _$BrandModelImpl(
-      {@HiveField(0) this.id = '',
-      @HiveField(1) required this.name,
+      {@HiveField(1) required this.name,
+      @HiveField(0) this.id = '',
       @HiveField(2) this.description,
       @HiveField(3) this.logoPath,
       @HiveField(4) this.website,
@@ -258,12 +258,12 @@ class _$BrandModelImpl extends _BrandModel {
       _$$BrandModelImplFromJson(json);
 
   @override
+  @HiveField(1)
+  final String name;
+  @override
   @JsonKey()
   @HiveField(0)
   final String id;
-  @override
-  @HiveField(1)
-  final String name;
   @override
   @HiveField(2)
   final String? description;
@@ -296,7 +296,7 @@ class _$BrandModelImpl extends _BrandModel {
 
   @override
   String toString() {
-    return 'BrandModel(id: $id, name: $name, description: $description, logoPath: $logoPath, website: $website, contactPhone: $contactPhone, contactEmail: $contactEmail, isActive: $isActive, productCount: $productCount, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'BrandModel(name: $name, id: $id, description: $description, logoPath: $logoPath, website: $website, contactPhone: $contactPhone, contactEmail: $contactEmail, isActive: $isActive, productCount: $productCount, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -304,8 +304,8 @@ class _$BrandModelImpl extends _BrandModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$BrandModelImpl &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.description, description) ||
                 other.description == description) &&
             (identical(other.logoPath, logoPath) ||
@@ -329,8 +329,8 @@ class _$BrandModelImpl extends _BrandModel {
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      id,
       name,
+      id,
       description,
       logoPath,
       website,
@@ -357,8 +357,8 @@ class _$BrandModelImpl extends _BrandModel {
 
 abstract class _BrandModel extends BrandModel {
   const factory _BrandModel(
-      {@HiveField(0) final String id,
-      @HiveField(1) required final String name,
+      {@HiveField(1) required final String name,
+      @HiveField(0) final String id,
       @HiveField(2) final String? description,
       @HiveField(3) final String? logoPath,
       @HiveField(4) final String? website,
@@ -374,11 +374,11 @@ abstract class _BrandModel extends BrandModel {
       _$BrandModelImpl.fromJson;
 
   @override
-  @HiveField(0)
-  String get id;
-  @override
   @HiveField(1)
   String get name;
+  @override
+  @HiveField(0)
+  String get id;
   @override
   @HiveField(2)
   String? get description;

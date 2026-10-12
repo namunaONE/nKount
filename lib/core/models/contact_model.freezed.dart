@@ -20,10 +20,10 @@ ContactModel _$ContactModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$ContactModel {
-  @HiveField(0)
-  String get id => throw _privateConstructorUsedError;
   @HiveField(1)
   String get name => throw _privateConstructorUsedError;
+  @HiveField(0)
+  String get id => throw _privateConstructorUsedError;
   @HiveField(2)
   String? get phone => throw _privateConstructorUsedError;
   @HiveField(3)
@@ -76,8 +76,8 @@ abstract class $ContactModelCopyWith<$Res> {
       _$ContactModelCopyWithImpl<$Res, ContactModel>;
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String name,
+      {@HiveField(1) String name,
+      @HiveField(0) String id,
       @HiveField(2) String? phone,
       @HiveField(3) String? mobile,
       @HiveField(4) String? email,
@@ -112,8 +112,8 @@ class _$ContactModelCopyWithImpl<$Res, $Val extends ContactModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? name = null,
+    Object? id = null,
     Object? phone = freezed,
     Object? mobile = freezed,
     Object? email = freezed,
@@ -135,13 +135,13 @@ class _$ContactModelCopyWithImpl<$Res, $Val extends ContactModel>
     Object? updatedAt = freezed,
   }) {
     return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       phone: freezed == phone
           ? _value.phone
@@ -232,8 +232,8 @@ abstract class _$$ContactModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String name,
+      {@HiveField(1) String name,
+      @HiveField(0) String id,
       @HiveField(2) String? phone,
       @HiveField(3) String? mobile,
       @HiveField(4) String? email,
@@ -266,8 +266,8 @@ class __$$ContactModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? name = null,
+    Object? id = null,
     Object? phone = freezed,
     Object? mobile = freezed,
     Object? email = freezed,
@@ -289,13 +289,13 @@ class __$$ContactModelImplCopyWithImpl<$Res>
     Object? updatedAt = freezed,
   }) {
     return _then(_$ContactModelImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       phone: freezed == phone
           ? _value.phone
@@ -381,8 +381,8 @@ class __$$ContactModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$ContactModelImpl extends _ContactModel {
   const _$ContactModelImpl(
-      {@HiveField(0) this.id = '',
-      @HiveField(1) required this.name,
+      {@HiveField(1) required this.name,
+      @HiveField(0) this.id = '',
       @HiveField(2) this.phone,
       @HiveField(3) this.mobile,
       @HiveField(4) this.email,
@@ -408,12 +408,12 @@ class _$ContactModelImpl extends _ContactModel {
       _$$ContactModelImplFromJson(json);
 
   @override
+  @HiveField(1)
+  final String name;
+  @override
   @JsonKey()
   @HiveField(0)
   final String id;
-  @override
-  @HiveField(1)
-  final String name;
   @override
   @HiveField(2)
   final String? phone;
@@ -481,7 +481,7 @@ class _$ContactModelImpl extends _ContactModel {
 
   @override
   String toString() {
-    return 'ContactModel(id: $id, name: $name, phone: $phone, mobile: $mobile, email: $email, address: $address, city: $city, district: $district, vatNumber: $vatNumber, panNumber: $panNumber, type: $type, openingBalance: $openingBalance, isActive: $isActive, remarks: $remarks, totalPurchases: $totalPurchases, totalSales: $totalSales, totalPayments: $totalPayments, totalReceipts: $totalReceipts, balance: $balance, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'ContactModel(name: $name, id: $id, phone: $phone, mobile: $mobile, email: $email, address: $address, city: $city, district: $district, vatNumber: $vatNumber, panNumber: $panNumber, type: $type, openingBalance: $openingBalance, isActive: $isActive, remarks: $remarks, totalPurchases: $totalPurchases, totalSales: $totalSales, totalPayments: $totalPayments, totalReceipts: $totalReceipts, balance: $balance, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -489,8 +489,8 @@ class _$ContactModelImpl extends _ContactModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$ContactModelImpl &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.phone, phone) || other.phone == phone) &&
             (identical(other.mobile, mobile) || other.mobile == mobile) &&
             (identical(other.email, email) || other.email == email) &&
@@ -527,8 +527,8 @@ class _$ContactModelImpl extends _ContactModel {
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
-        id,
         name,
+        id,
         phone,
         mobile,
         email,
@@ -566,8 +566,8 @@ class _$ContactModelImpl extends _ContactModel {
 
 abstract class _ContactModel extends ContactModel {
   const factory _ContactModel(
-      {@HiveField(0) final String id,
-      @HiveField(1) required final String name,
+      {@HiveField(1) required final String name,
+      @HiveField(0) final String id,
       @HiveField(2) final String? phone,
       @HiveField(3) final String? mobile,
       @HiveField(4) final String? email,
@@ -593,11 +593,11 @@ abstract class _ContactModel extends ContactModel {
       _$ContactModelImpl.fromJson;
 
   @override
-  @HiveField(0)
-  String get id;
-  @override
   @HiveField(1)
   String get name;
+  @override
+  @HiveField(0)
+  String get id;
   @override
   @HiveField(2)
   String? get phone;

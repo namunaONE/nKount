@@ -17,9 +17,9 @@ class SettingModelAdapter extends TypeAdapter<SettingModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return SettingModel(
-      id: fields[0] as String,
       key: fields[1] as String,
       value: fields[2] as dynamic,
+      id: fields[0] as String,
       description: fields[3] as String?,
       category: fields[4] as String,
       isSystemSetting: fields[5] as bool,
@@ -34,12 +34,12 @@ class SettingModelAdapter extends TypeAdapter<SettingModel> {
   void write(BinaryWriter writer, SettingModel obj) {
     writer
       ..writeByte(10)
-      ..writeByte(0)
-      ..write(obj.id)
       ..writeByte(1)
       ..write(obj.key)
       ..writeByte(2)
       ..write(obj.value)
+      ..writeByte(0)
+      ..write(obj.id)
       ..writeByte(3)
       ..write(obj.description)
       ..writeByte(4)
@@ -73,9 +73,9 @@ class SettingModelAdapter extends TypeAdapter<SettingModel> {
 
 _$SettingModelImpl _$$SettingModelImplFromJson(Map<String, dynamic> json) =>
     _$SettingModelImpl(
-      id: json['id'] as String? ?? '',
       key: json['key'] as String,
       value: json['value'],
+      id: json['id'] as String? ?? '',
       description: json['description'] as String?,
       category: json['category'] as String? ?? 'app',
       isSystemSetting: json['isSystemSetting'] as bool? ?? false,
@@ -91,9 +91,9 @@ _$SettingModelImpl _$$SettingModelImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$SettingModelImplToJson(_$SettingModelImpl instance) =>
     <String, dynamic>{
-      'id': instance.id,
       'key': instance.key,
       'value': instance.value,
+      'id': instance.id,
       'description': instance.description,
       'category': instance.category,
       'isSystemSetting': instance.isSystemSetting,

@@ -20,20 +20,20 @@ PaymentModel _$PaymentModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$PaymentModel {
-  @HiveField(0)
-  String get id => throw _privateConstructorUsedError;
   @HiveField(1)
   String get type => throw _privateConstructorUsedError; // payment or receipt
   @HiveField(2)
   String get transactionId => throw _privateConstructorUsedError;
-  @HiveField(3)
-  String? get invoiceNumber => throw _privateConstructorUsedError;
   @HiveField(4)
   String get contactId => throw _privateConstructorUsedError;
-  @HiveField(5)
-  double get amount => throw _privateConstructorUsedError;
   @HiveField(6)
   String get method => throw _privateConstructorUsedError;
+  @HiveField(0)
+  String get id => throw _privateConstructorUsedError;
+  @HiveField(3)
+  String? get invoiceNumber => throw _privateConstructorUsedError;
+  @HiveField(5)
+  double get amount => throw _privateConstructorUsedError;
   @HiveField(7)
   String? get referenceNumber => throw _privateConstructorUsedError;
   @HiveField(8)
@@ -74,13 +74,13 @@ abstract class $PaymentModelCopyWith<$Res> {
       _$PaymentModelCopyWithImpl<$Res, PaymentModel>;
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String type,
+      {@HiveField(1) String type,
       @HiveField(2) String transactionId,
-      @HiveField(3) String? invoiceNumber,
       @HiveField(4) String contactId,
-      @HiveField(5) double amount,
       @HiveField(6) String method,
+      @HiveField(0) String id,
+      @HiveField(3) String? invoiceNumber,
+      @HiveField(5) double amount,
       @HiveField(7) String? referenceNumber,
       @HiveField(8) String? bankName,
       @HiveField(9) String? chequeNumber,
@@ -109,13 +109,13 @@ class _$PaymentModelCopyWithImpl<$Res, $Val extends PaymentModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? type = null,
     Object? transactionId = null,
-    Object? invoiceNumber = freezed,
     Object? contactId = null,
-    Object? amount = null,
     Object? method = null,
+    Object? id = null,
+    Object? invoiceNumber = freezed,
+    Object? amount = null,
     Object? referenceNumber = freezed,
     Object? bankName = freezed,
     Object? chequeNumber = freezed,
@@ -131,10 +131,6 @@ class _$PaymentModelCopyWithImpl<$Res, $Val extends PaymentModel>
     Object? cancellationReason = freezed,
   }) {
     return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       type: null == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
@@ -143,22 +139,26 @@ class _$PaymentModelCopyWithImpl<$Res, $Val extends PaymentModel>
           ? _value.transactionId
           : transactionId // ignore: cast_nullable_to_non_nullable
               as String,
-      invoiceNumber: freezed == invoiceNumber
-          ? _value.invoiceNumber
-          : invoiceNumber // ignore: cast_nullable_to_non_nullable
-              as String?,
       contactId: null == contactId
           ? _value.contactId
           : contactId // ignore: cast_nullable_to_non_nullable
               as String,
-      amount: null == amount
-          ? _value.amount
-          : amount // ignore: cast_nullable_to_non_nullable
-              as double,
       method: null == method
           ? _value.method
           : method // ignore: cast_nullable_to_non_nullable
               as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      invoiceNumber: freezed == invoiceNumber
+          ? _value.invoiceNumber
+          : invoiceNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      amount: null == amount
+          ? _value.amount
+          : amount // ignore: cast_nullable_to_non_nullable
+              as double,
       referenceNumber: freezed == referenceNumber
           ? _value.referenceNumber
           : referenceNumber // ignore: cast_nullable_to_non_nullable
@@ -224,13 +224,13 @@ abstract class _$$PaymentModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String type,
+      {@HiveField(1) String type,
       @HiveField(2) String transactionId,
-      @HiveField(3) String? invoiceNumber,
       @HiveField(4) String contactId,
-      @HiveField(5) double amount,
       @HiveField(6) String method,
+      @HiveField(0) String id,
+      @HiveField(3) String? invoiceNumber,
+      @HiveField(5) double amount,
       @HiveField(7) String? referenceNumber,
       @HiveField(8) String? bankName,
       @HiveField(9) String? chequeNumber,
@@ -257,13 +257,13 @@ class __$$PaymentModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? type = null,
     Object? transactionId = null,
-    Object? invoiceNumber = freezed,
     Object? contactId = null,
-    Object? amount = null,
     Object? method = null,
+    Object? id = null,
+    Object? invoiceNumber = freezed,
+    Object? amount = null,
     Object? referenceNumber = freezed,
     Object? bankName = freezed,
     Object? chequeNumber = freezed,
@@ -279,10 +279,6 @@ class __$$PaymentModelImplCopyWithImpl<$Res>
     Object? cancellationReason = freezed,
   }) {
     return _then(_$PaymentModelImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       type: null == type
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
@@ -291,22 +287,26 @@ class __$$PaymentModelImplCopyWithImpl<$Res>
           ? _value.transactionId
           : transactionId // ignore: cast_nullable_to_non_nullable
               as String,
-      invoiceNumber: freezed == invoiceNumber
-          ? _value.invoiceNumber
-          : invoiceNumber // ignore: cast_nullable_to_non_nullable
-              as String?,
       contactId: null == contactId
           ? _value.contactId
           : contactId // ignore: cast_nullable_to_non_nullable
               as String,
-      amount: null == amount
-          ? _value.amount
-          : amount // ignore: cast_nullable_to_non_nullable
-              as double,
       method: null == method
           ? _value.method
           : method // ignore: cast_nullable_to_non_nullable
               as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      invoiceNumber: freezed == invoiceNumber
+          ? _value.invoiceNumber
+          : invoiceNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      amount: null == amount
+          ? _value.amount
+          : amount // ignore: cast_nullable_to_non_nullable
+              as double,
       referenceNumber: freezed == referenceNumber
           ? _value.referenceNumber
           : referenceNumber // ignore: cast_nullable_to_non_nullable
@@ -367,13 +367,13 @@ class __$$PaymentModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$PaymentModelImpl extends _PaymentModel {
   const _$PaymentModelImpl(
-      {@HiveField(0) this.id = '',
-      @HiveField(1) required this.type,
+      {@HiveField(1) required this.type,
       @HiveField(2) required this.transactionId,
-      @HiveField(3) this.invoiceNumber,
       @HiveField(4) required this.contactId,
-      @HiveField(5) this.amount = 0.0,
       @HiveField(6) required this.method,
+      @HiveField(0) this.id = '',
+      @HiveField(3) this.invoiceNumber,
+      @HiveField(5) this.amount = 0.0,
       @HiveField(7) this.referenceNumber,
       @HiveField(8) this.bankName,
       @HiveField(9) this.chequeNumber,
@@ -393,10 +393,6 @@ class _$PaymentModelImpl extends _PaymentModel {
       _$$PaymentModelImplFromJson(json);
 
   @override
-  @JsonKey()
-  @HiveField(0)
-  final String id;
-  @override
   @HiveField(1)
   final String type;
 // payment or receipt
@@ -404,18 +400,22 @@ class _$PaymentModelImpl extends _PaymentModel {
   @HiveField(2)
   final String transactionId;
   @override
-  @HiveField(3)
-  final String? invoiceNumber;
-  @override
   @HiveField(4)
   final String contactId;
+  @override
+  @HiveField(6)
+  final String method;
+  @override
+  @JsonKey()
+  @HiveField(0)
+  final String id;
+  @override
+  @HiveField(3)
+  final String? invoiceNumber;
   @override
   @JsonKey()
   @HiveField(5)
   final double amount;
-  @override
-  @HiveField(6)
-  final String method;
   @override
   @HiveField(7)
   final String? referenceNumber;
@@ -460,7 +460,7 @@ class _$PaymentModelImpl extends _PaymentModel {
 
   @override
   String toString() {
-    return 'PaymentModel(id: $id, type: $type, transactionId: $transactionId, invoiceNumber: $invoiceNumber, contactId: $contactId, amount: $amount, method: $method, referenceNumber: $referenceNumber, bankName: $bankName, chequeNumber: $chequeNumber, chequeDate: $chequeDate, date: $date, notes: $notes, isCleared: $isCleared, clearedDate: $clearedDate, createdBy: $createdBy, createdAt: $createdAt, updatedAt: $updatedAt, isCancelled: $isCancelled, cancellationReason: $cancellationReason)';
+    return 'PaymentModel(type: $type, transactionId: $transactionId, contactId: $contactId, method: $method, id: $id, invoiceNumber: $invoiceNumber, amount: $amount, referenceNumber: $referenceNumber, bankName: $bankName, chequeNumber: $chequeNumber, chequeDate: $chequeDate, date: $date, notes: $notes, isCleared: $isCleared, clearedDate: $clearedDate, createdBy: $createdBy, createdAt: $createdAt, updatedAt: $updatedAt, isCancelled: $isCancelled, cancellationReason: $cancellationReason)';
   }
 
   @override
@@ -468,16 +468,16 @@ class _$PaymentModelImpl extends _PaymentModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$PaymentModelImpl &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.transactionId, transactionId) ||
                 other.transactionId == transactionId) &&
-            (identical(other.invoiceNumber, invoiceNumber) ||
-                other.invoiceNumber == invoiceNumber) &&
             (identical(other.contactId, contactId) ||
                 other.contactId == contactId) &&
-            (identical(other.amount, amount) || other.amount == amount) &&
             (identical(other.method, method) || other.method == method) &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.invoiceNumber, invoiceNumber) ||
+                other.invoiceNumber == invoiceNumber) &&
+            (identical(other.amount, amount) || other.amount == amount) &&
             (identical(other.referenceNumber, referenceNumber) ||
                 other.referenceNumber == referenceNumber) &&
             (identical(other.bankName, bankName) ||
@@ -508,13 +508,13 @@ class _$PaymentModelImpl extends _PaymentModel {
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
-        id,
         type,
         transactionId,
-        invoiceNumber,
         contactId,
-        amount,
         method,
+        id,
+        invoiceNumber,
+        amount,
         referenceNumber,
         bankName,
         chequeNumber,
@@ -546,13 +546,13 @@ class _$PaymentModelImpl extends _PaymentModel {
 
 abstract class _PaymentModel extends PaymentModel {
   const factory _PaymentModel(
-      {@HiveField(0) final String id,
-      @HiveField(1) required final String type,
+      {@HiveField(1) required final String type,
       @HiveField(2) required final String transactionId,
-      @HiveField(3) final String? invoiceNumber,
       @HiveField(4) required final String contactId,
-      @HiveField(5) final double amount,
       @HiveField(6) required final String method,
+      @HiveField(0) final String id,
+      @HiveField(3) final String? invoiceNumber,
+      @HiveField(5) final double amount,
       @HiveField(7) final String? referenceNumber,
       @HiveField(8) final String? bankName,
       @HiveField(9) final String? chequeNumber,
@@ -572,26 +572,26 @@ abstract class _PaymentModel extends PaymentModel {
       _$PaymentModelImpl.fromJson;
 
   @override
-  @HiveField(0)
-  String get id;
-  @override
   @HiveField(1)
   String get type;
   @override // payment or receipt
   @HiveField(2)
   String get transactionId;
   @override
-  @HiveField(3)
-  String? get invoiceNumber;
-  @override
   @HiveField(4)
   String get contactId;
   @override
-  @HiveField(5)
-  double get amount;
-  @override
   @HiveField(6)
   String get method;
+  @override
+  @HiveField(0)
+  String get id;
+  @override
+  @HiveField(3)
+  String? get invoiceNumber;
+  @override
+  @HiveField(5)
+  double get amount;
   @override
   @HiveField(7)
   String? get referenceNumber;

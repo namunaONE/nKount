@@ -20,12 +20,12 @@ TaxRateModel _$TaxRateModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$TaxRateModel {
-  @HiveField(0)
-  String get id => throw _privateConstructorUsedError;
   @HiveField(1)
   String get name => throw _privateConstructorUsedError;
   @HiveField(2)
   String get code => throw _privateConstructorUsedError;
+  @HiveField(0)
+  String get id => throw _privateConstructorUsedError;
   @HiveField(3)
   double get rate => throw _privateConstructorUsedError;
   @HiveField(4)
@@ -62,9 +62,9 @@ abstract class $TaxRateModelCopyWith<$Res> {
       _$TaxRateModelCopyWithImpl<$Res, TaxRateModel>;
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String name,
+      {@HiveField(1) String name,
       @HiveField(2) String code,
+      @HiveField(0) String id,
       @HiveField(3) double rate,
       @HiveField(4) String? description,
       @HiveField(5) String type,
@@ -91,9 +91,9 @@ class _$TaxRateModelCopyWithImpl<$Res, $Val extends TaxRateModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? name = null,
     Object? code = null,
+    Object? id = null,
     Object? rate = null,
     Object? description = freezed,
     Object? type = null,
@@ -107,10 +107,6 @@ class _$TaxRateModelCopyWithImpl<$Res, $Val extends TaxRateModel>
     Object? updatedAt = freezed,
   }) {
     return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -118,6 +114,10 @@ class _$TaxRateModelCopyWithImpl<$Res, $Val extends TaxRateModel>
       code: null == code
           ? _value.code
           : code // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       rate: null == rate
           ? _value.rate
@@ -176,9 +176,9 @@ abstract class _$$TaxRateModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String name,
+      {@HiveField(1) String name,
       @HiveField(2) String code,
+      @HiveField(0) String id,
       @HiveField(3) double rate,
       @HiveField(4) String? description,
       @HiveField(5) String type,
@@ -203,9 +203,9 @@ class __$$TaxRateModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? name = null,
     Object? code = null,
+    Object? id = null,
     Object? rate = null,
     Object? description = freezed,
     Object? type = null,
@@ -219,10 +219,6 @@ class __$$TaxRateModelImplCopyWithImpl<$Res>
     Object? updatedAt = freezed,
   }) {
     return _then(_$TaxRateModelImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -230,6 +226,10 @@ class __$$TaxRateModelImplCopyWithImpl<$Res>
       code: null == code
           ? _value.code
           : code // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       rate: null == rate
           ? _value.rate
@@ -283,9 +283,9 @@ class __$$TaxRateModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$TaxRateModelImpl extends _TaxRateModel {
   const _$TaxRateModelImpl(
-      {@HiveField(0) this.id = '',
-      @HiveField(1) required this.name,
+      {@HiveField(1) required this.name,
       @HiveField(2) required this.code,
+      @HiveField(0) this.id = '',
       @HiveField(3) this.rate = 0.0,
       @HiveField(4) this.description,
       @HiveField(5) this.type = 'percentage',
@@ -303,15 +303,15 @@ class _$TaxRateModelImpl extends _TaxRateModel {
       _$$TaxRateModelImplFromJson(json);
 
   @override
-  @JsonKey()
-  @HiveField(0)
-  final String id;
-  @override
   @HiveField(1)
   final String name;
   @override
   @HiveField(2)
   final String code;
+  @override
+  @JsonKey()
+  @HiveField(0)
+  final String id;
   @override
   @JsonKey()
   @HiveField(3)
@@ -354,7 +354,7 @@ class _$TaxRateModelImpl extends _TaxRateModel {
 
   @override
   String toString() {
-    return 'TaxRateModel(id: $id, name: $name, code: $code, rate: $rate, description: $description, type: $type, isActive: $isActive, isDefault: $isDefault, isVat: $isVat, isCompound: $isCompound, effectiveFrom: $effectiveFrom, effectiveTo: $effectiveTo, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'TaxRateModel(name: $name, code: $code, id: $id, rate: $rate, description: $description, type: $type, isActive: $isActive, isDefault: $isDefault, isVat: $isVat, isCompound: $isCompound, effectiveFrom: $effectiveFrom, effectiveTo: $effectiveTo, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -362,9 +362,9 @@ class _$TaxRateModelImpl extends _TaxRateModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$TaxRateModelImpl &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.code, code) || other.code == code) &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.rate, rate) || other.rate == rate) &&
             (identical(other.description, description) ||
                 other.description == description) &&
@@ -390,9 +390,9 @@ class _$TaxRateModelImpl extends _TaxRateModel {
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      id,
       name,
       code,
+      id,
       rate,
       description,
       type,
@@ -421,9 +421,9 @@ class _$TaxRateModelImpl extends _TaxRateModel {
 
 abstract class _TaxRateModel extends TaxRateModel {
   const factory _TaxRateModel(
-      {@HiveField(0) final String id,
-      @HiveField(1) required final String name,
+      {@HiveField(1) required final String name,
       @HiveField(2) required final String code,
+      @HiveField(0) final String id,
       @HiveField(3) final double rate,
       @HiveField(4) final String? description,
       @HiveField(5) final String type,
@@ -441,14 +441,14 @@ abstract class _TaxRateModel extends TaxRateModel {
       _$TaxRateModelImpl.fromJson;
 
   @override
-  @HiveField(0)
-  String get id;
-  @override
   @HiveField(1)
   String get name;
   @override
   @HiveField(2)
   String get code;
+  @override
+  @HiveField(0)
+  String get id;
   @override
   @HiveField(3)
   double get rate;

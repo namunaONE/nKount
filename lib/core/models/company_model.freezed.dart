@@ -20,10 +20,10 @@ CompanyModel _$CompanyModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$CompanyModel {
-  @HiveField(0)
-  String get id => throw _privateConstructorUsedError;
   @HiveField(1)
   String get name => throw _privateConstructorUsedError;
+  @HiveField(0)
+  String get id => throw _privateConstructorUsedError;
   @HiveField(2)
   String? get address => throw _privateConstructorUsedError;
   @HiveField(3)
@@ -92,8 +92,8 @@ abstract class $CompanyModelCopyWith<$Res> {
       _$CompanyModelCopyWithImpl<$Res, CompanyModel>;
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String name,
+      {@HiveField(1) String name,
+      @HiveField(0) String id,
       @HiveField(2) String? address,
       @HiveField(3) String? city,
       @HiveField(4) String? district,
@@ -136,8 +136,8 @@ class _$CompanyModelCopyWithImpl<$Res, $Val extends CompanyModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? name = null,
+    Object? id = null,
     Object? address = freezed,
     Object? city = freezed,
     Object? district = freezed,
@@ -167,13 +167,13 @@ class _$CompanyModelCopyWithImpl<$Res, $Val extends CompanyModel>
     Object? updatedAt = freezed,
   }) {
     return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       address: freezed == address
           ? _value.address
@@ -296,8 +296,8 @@ abstract class _$$CompanyModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) String id,
-      @HiveField(1) String name,
+      {@HiveField(1) String name,
+      @HiveField(0) String id,
       @HiveField(2) String? address,
       @HiveField(3) String? city,
       @HiveField(4) String? district,
@@ -338,8 +338,8 @@ class __$$CompanyModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
     Object? name = null,
+    Object? id = null,
     Object? address = freezed,
     Object? city = freezed,
     Object? district = freezed,
@@ -369,13 +369,13 @@ class __$$CompanyModelImplCopyWithImpl<$Res>
     Object? updatedAt = freezed,
   }) {
     return _then(_$CompanyModelImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
               as String,
       address: freezed == address
           ? _value.address
@@ -493,8 +493,8 @@ class __$$CompanyModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$CompanyModelImpl extends _CompanyModel {
   const _$CompanyModelImpl(
-      {@HiveField(0) this.id = '',
-      @HiveField(1) required this.name,
+      {@HiveField(1) required this.name,
+      @HiveField(0) this.id = '',
       @HiveField(2) this.address,
       @HiveField(3) this.city,
       @HiveField(4) this.district,
@@ -528,12 +528,12 @@ class _$CompanyModelImpl extends _CompanyModel {
       _$$CompanyModelImplFromJson(json);
 
   @override
+  @HiveField(1)
+  final String name;
+  @override
   @JsonKey()
   @HiveField(0)
   final String id;
-  @override
-  @HiveField(1)
-  final String name;
   @override
   @HiveField(2)
   final String? address;
@@ -629,7 +629,7 @@ class _$CompanyModelImpl extends _CompanyModel {
 
   @override
   String toString() {
-    return 'CompanyModel(id: $id, name: $name, address: $address, city: $city, district: $district, phone: $phone, mobile: $mobile, email: $email, website: $website, vatNumber: $vatNumber, panNumber: $panNumber, registrationNumber: $registrationNumber, logoPath: $logoPath, currency: $currency, locale: $locale, dateFormat: $dateFormat, useNepaliDate: $useNepaliDate, defaultVatRate: $defaultVatRate, invoicePrefix: $invoicePrefix, invoiceStartNumber: $invoiceStartNumber, purchaseStartNumber: $purchaseStartNumber, footerText: $footerText, showTaxOnInvoice: $showTaxOnInvoice, showVatNumber: $showVatNumber, isIRDRegistered: $isIRDRegistered, financialYearStart: $financialYearStart, financialYearEnd: $financialYearEnd, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'CompanyModel(name: $name, id: $id, address: $address, city: $city, district: $district, phone: $phone, mobile: $mobile, email: $email, website: $website, vatNumber: $vatNumber, panNumber: $panNumber, registrationNumber: $registrationNumber, logoPath: $logoPath, currency: $currency, locale: $locale, dateFormat: $dateFormat, useNepaliDate: $useNepaliDate, defaultVatRate: $defaultVatRate, invoicePrefix: $invoicePrefix, invoiceStartNumber: $invoiceStartNumber, purchaseStartNumber: $purchaseStartNumber, footerText: $footerText, showTaxOnInvoice: $showTaxOnInvoice, showVatNumber: $showVatNumber, isIRDRegistered: $isIRDRegistered, financialYearStart: $financialYearStart, financialYearEnd: $financialYearEnd, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -637,8 +637,8 @@ class _$CompanyModelImpl extends _CompanyModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$CompanyModelImpl &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.address, address) || other.address == address) &&
             (identical(other.city, city) || other.city == city) &&
             (identical(other.district, district) ||
@@ -692,8 +692,8 @@ class _$CompanyModelImpl extends _CompanyModel {
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
-        id,
         name,
+        id,
         address,
         city,
         district,
@@ -739,8 +739,8 @@ class _$CompanyModelImpl extends _CompanyModel {
 
 abstract class _CompanyModel extends CompanyModel {
   const factory _CompanyModel(
-      {@HiveField(0) final String id,
-      @HiveField(1) required final String name,
+      {@HiveField(1) required final String name,
+      @HiveField(0) final String id,
       @HiveField(2) final String? address,
       @HiveField(3) final String? city,
       @HiveField(4) final String? district,
@@ -774,11 +774,11 @@ abstract class _CompanyModel extends CompanyModel {
       _$CompanyModelImpl.fromJson;
 
   @override
-  @HiveField(0)
-  String get id;
-  @override
   @HiveField(1)
   String get name;
+  @override
+  @HiveField(0)
+  String get id;
   @override
   @HiveField(2)
   String? get address;

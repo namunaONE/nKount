@@ -17,26 +17,26 @@ class ProductModelAdapter extends TypeAdapter<ProductModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return ProductModel(
-      id: fields[0] as String,
       name: fields[1] as String,
+      id: fields[0] as String,
       code: fields[2] as String?,
       barcode: fields[3] as String?,
       category: fields[4] as String?,
       brand: fields[5] as String?,
       unit: fields[6] as String?,
-      purchasePrice: fields[7] as double,
-      salePrice: fields[8] as double,
-      costPrice: fields[9] as double,
-      quantity: fields[10] as double,
-      minQuantity: fields[11] as double,
+      purchasePrice: (fields[7] as num).toDouble(),
+      salePrice: (fields[8] as num).toDouble(),
+      costPrice: (fields[9] as num).toDouble(),
+      quantity: (fields[10] as num).toDouble(),
+      minQuantity: (fields[11] as num).toDouble(),
       isTaxable: fields[12] as bool,
-      taxRate: fields[13] as double,
+      taxRate: (fields[13] as num).toDouble(),
       description: fields[14] as String?,
       supplierId: fields[15] as String?,
       isActive: fields[16] as bool,
       imageUrl: fields[17] as String?,
-      totalPurchased: fields[18] as double,
-      totalSold: fields[19] as double,
+      totalPurchased: (fields[18] as num).toDouble(),
+      totalSold: (fields[19] as num).toDouble(),
       createdAt: fields[20] as DateTime?,
       updatedAt: fields[21] as DateTime?,
     );
@@ -46,10 +46,10 @@ class ProductModelAdapter extends TypeAdapter<ProductModel> {
   void write(BinaryWriter writer, ProductModel obj) {
     writer
       ..writeByte(22)
-      ..writeByte(0)
-      ..write(obj.id)
       ..writeByte(1)
       ..write(obj.name)
+      ..writeByte(0)
+      ..write(obj.id)
       ..writeByte(2)
       ..write(obj.code)
       ..writeByte(3)
@@ -109,8 +109,8 @@ class ProductModelAdapter extends TypeAdapter<ProductModel> {
 
 _$ProductModelImpl _$$ProductModelImplFromJson(Map<String, dynamic> json) =>
     _$ProductModelImpl(
-      id: json['id'] as String? ?? '',
       name: json['name'] as String,
+      id: json['id'] as String? ?? '',
       code: json['code'] as String?,
       barcode: json['barcode'] as String?,
       category: json['category'] as String?,
@@ -139,8 +139,8 @@ _$ProductModelImpl _$$ProductModelImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$ProductModelImplToJson(_$ProductModelImpl instance) =>
     <String, dynamic>{
-      'id': instance.id,
       'name': instance.name,
+      'id': instance.id,
       'code': instance.code,
       'barcode': instance.barcode,
       'category': instance.category,
