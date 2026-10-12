@@ -10,6 +10,8 @@ class AppConstants {
   // Company Info
   static const String companyName = 'namunaONE';
   static const String companyWebsite = 'https://namunaone.com.np';
+  static const String maintainedBy = 'Maintained by namunaONE';
+  static const String maintainerTeam = 'HyaMuji & Taire Bhai';
 
   // Storage Keys
   static const String STORAGE_KEY_COMPANY = 'nkount_company';

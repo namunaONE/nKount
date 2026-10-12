@@ -538,6 +538,14 @@ class _AboutSection extends StatelessWidget {
               ),
               SizedBox(height: 4),
               Text(
+                'by ${AppConstants.companyName}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: ClayColors.primary,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
                 'Version ${AppConstants.appVersion}',
                 style: TextStyle(color: Colors.grey),
               ),
@@ -565,6 +573,19 @@ class _AboutSection extends StatelessWidget {
                 style: TextStyle(
                   color: ClayColors.primary,
                   decoration: TextDecoration.underline,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                AppConstants.maintainedBy,
+                style: TextStyle(color: Colors.grey),
+              ),
+              SizedBox(height: 4),
+              Text(
+                AppConstants.maintainerTeam,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: ClayColors.primary,
                 ),
               ),
               SizedBox(height: 16),

@@ -330,3 +330,5 @@ For questions, issues, or feedback:
 **Made with ❤️ in Nepal**
 
 *Simple Accounting for Nepali Businesses*
+
+*Maintained by **namunaONE** — HyaMuji & Taire Bhai*
