@@ -33,6 +33,8 @@ class AuditLogModel with _$AuditLogModel {
   factory AuditLogModel.fromJson(Map<String, dynamic> json) =>
       _$AuditLogModelFromJson(json);
 
+  const AuditLogModel._();
+
   /// Create a new audit log
   factory AuditLogModel.create({
     required String entityType,

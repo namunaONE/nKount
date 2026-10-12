@@ -27,6 +27,8 @@ class TransactionItemModel with _$TransactionItemModel {
   factory TransactionItemModel.fromJson(Map<String, dynamic> json) =>
       _$TransactionItemModelFromJson(json);
 
+  const TransactionItemModel._();
+
   /// Create a new transaction item
   factory TransactionItemModel.create({
     required String productId,

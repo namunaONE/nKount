@@ -26,6 +26,8 @@ class UnitModel with _$UnitModel {
   factory UnitModel.fromJson(Map<String, dynamic> json) =>
       _$UnitModelFromJson(json);
 
+  const UnitModel._();
+
   /// Create a new unit
   factory UnitModel.create({
     required String name,

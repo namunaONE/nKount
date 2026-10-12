@@ -26,6 +26,8 @@ class SettingModel with _$SettingModel {
   factory SettingModel.fromJson(Map<String, dynamic> json) =>
       _$SettingModelFromJson(json);
 
+  const SettingModel._();
+
   /// Create a new setting
   factory SettingModel.create({
     required String key,

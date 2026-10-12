@@ -37,6 +37,8 @@ class ProductModel with _$ProductModel {
   factory ProductModel.fromJson(Map<String, dynamic> json) =>
       _$ProductModelFromJson(json);
 
+  const ProductModel._();
+
   /// Create a new product with auto-generated ID
   factory ProductModel.create({
     required String name,

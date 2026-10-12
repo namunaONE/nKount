@@ -144,6 +144,8 @@ analyzer:
     - lib/core/models/*.freezed.dart
     - lib/core/models/*.g.dart
     - lib/core/providers/*.g.dart
+    - build/**
+    - web/**
 
 # Language options
 dart:

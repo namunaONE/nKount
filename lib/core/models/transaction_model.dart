@@ -42,6 +42,8 @@ class TransactionModel with _$TransactionModel {
   factory TransactionModel.fromJson(Map<String, dynamic> json) =>
       _$TransactionModelFromJson(json);
 
+  const TransactionModel._();
+
   /// Create a new transaction
   factory TransactionModel.create({
     required String type,
@@ -186,6 +188,8 @@ class TransactionItem with _$TransactionItem {
 
   factory TransactionItem.fromJson(Map<String, dynamic> json) =>
       _$TransactionItemFromJson(json);
+
+  const TransactionItem._();
 
   /// Create a new transaction item
   factory TransactionItem.create({

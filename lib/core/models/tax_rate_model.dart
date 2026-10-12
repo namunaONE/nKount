@@ -29,6 +29,8 @@ class TaxRateModel with _$TaxRateModel {
   factory TaxRateModel.fromJson(Map<String, dynamic> json) =>
       _$TaxRateModelFromJson(json);
 
+  const TaxRateModel._();
+
   /// Create a new tax rate
   factory TaxRateModel.create({
     required String name,

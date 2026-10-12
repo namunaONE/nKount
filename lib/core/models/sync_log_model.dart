@@ -34,6 +34,8 @@ class SyncLogModel with _$SyncLogModel {
   factory SyncLogModel.fromJson(Map<String, dynamic> json) =>
       _$SyncLogModelFromJson(json);
 
+  const SyncLogModel._();
+
   /// Create a new sync log
   factory SyncLogModel.create({
     required String entityType,

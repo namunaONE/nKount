@@ -1,29 +1,26 @@
 targets:
   $default:
     builders:
-      # Generate freezed models
+      # Generate freezed models (default .freezed.dart output)
       freezed:
         generate_for:
           include:
             - lib/core/models/*.dart
-        options:
-          build_extensions:
-            '{{path}}': '{{path}}.freezed.dart'
-          
-      # Generate JSON serializable
+
+      # Generate JSON serializable (default .g.dart output)
       json_serializable:
         generate_for:
           include:
             - lib/core/models/*.dart
-        options:
-          build_extensions:
-            '{{path}}': '{{path}}.g.dart'
-          
-      # Generate Riverpod
+
+      # Generate Riverpod (default .g.dart output)
       riverpod_generator:
         generate_for:
           include:
             - lib/core/providers/*.dart
-        options:
-          build_extensions:
-            '{{path}}': '{{path}}.g.dart'
+
+      # Scope hive_generator to models only (default runs on all files)
+      hive_generator:
+        generate_for:
+          include:
+            - lib/core/models/*.dart

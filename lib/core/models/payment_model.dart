@@ -36,6 +36,8 @@ class PaymentModel with _$PaymentModel {
   factory PaymentModel.fromJson(Map<String, dynamic> json) =>
       _$PaymentModelFromJson(json);
 
+  const PaymentModel._();
+
   /// Create a new payment
   factory PaymentModel.create({
     required String type,
@@ -158,4 +160,6 @@ class PaymentSummary with _$PaymentSummary {
 
   factory PaymentSummary.fromJson(Map<String, dynamic> json) =>
       _$PaymentSummaryFromJson(json);
+
+  const PaymentSummary._();
 }

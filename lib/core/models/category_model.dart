@@ -26,6 +26,8 @@ class CategoryModel with _$CategoryModel {
   factory CategoryModel.fromJson(Map<String, dynamic> json) =>
       _$CategoryModelFromJson(json);
 
+  const CategoryModel._();
+
   /// Create a new category
   factory CategoryModel.create({
     required String name,

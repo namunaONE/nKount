@@ -37,6 +37,8 @@ class ContactModel with _$ContactModel {
   factory ContactModel.fromJson(Map<String, dynamic> json) =>
       _$ContactModelFromJson(json);
 
+  const ContactModel._();
+
   /// Create a new contact with auto-generated ID
   factory ContactModel.create({
     required String name,

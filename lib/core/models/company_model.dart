@@ -45,6 +45,8 @@ class CompanyModel with _$CompanyModel {
   factory CompanyModel.fromJson(Map<String, dynamic> json) =>
       _$CompanyModelFromJson(json);
 
+  const CompanyModel._();
+
   /// Create a new company profile
   factory CompanyModel.create({
     required String name,
