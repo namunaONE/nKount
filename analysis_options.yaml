@@ -130,6 +130,7 @@ analyzer:
     
   exclude:
     - test/**
+    - tool/**
     - lib/generated/**
     - lib/core/models/*.freezed.dart
     - lib/core/models/*.g.dart

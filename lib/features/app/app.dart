@@ -9,6 +9,8 @@ import '../dashboard/presentation/dashboard_screen.dart';
 import '../contacts/presentation/contacts_screen.dart';
 import '../products/presentation/products_screen.dart';
 import '../transactions/presentation/transactions_screen.dart';
+import '../sales/presentation/sales_screen.dart';
+import '../purchases/presentation/purchases_screen.dart';
 import '../payments/presentation/payments_screen.dart';
 import '../reports/presentation/reports_screen.dart';
 import '../settings/presentation/settings_screen.dart';
@@ -31,6 +33,14 @@ final _router = GoRouter(
     GoRoute(
       path: '/transactions',
       builder: (context, state) => const TransactionsScreen(),
+    ),
+    GoRoute(
+      path: '/sales',
+      builder: (context, state) => const SalesScreen(),
+    ),
+    GoRoute(
+      path: '/purchases',
+      builder: (context, state) => const PurchasesScreen(),
     ),
     GoRoute(
       path: '/payments',

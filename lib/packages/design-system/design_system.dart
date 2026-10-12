@@ -85,6 +85,106 @@ class ClayThemeBuilder extends StatelessWidget {
       );
 }
 
+/// Adaptive breakpoints (window-size based, never device checks).
+abstract final class ClayBreakpoints {
+  static const double compactMax = 600;
+  static const double mediumMax = 1240;
+  static const double maxContentWidth = 1200;
+
+  static bool isCompact(double width) => width < compactMax;
+  static bool isMedium(double width) =>
+      width >= compactMax && width < mediumMax;
+  static bool isExpanded(double width) => width >= mediumMax;
+}
+
+/// Sidebar navigation for expanded windows, built from bottom-nav items.
+class ClaySidebar extends StatelessWidget {
+  const ClaySidebar({
+    required this.items,
+    required this.currentIndex,
+    super.key,
+    this.onTap,
+    this.header,
+  });
+  final List<ClayBottomNavItem> items;
+  final int currentIndex;
+  final ValueChanged<int>? onTap;
+  final Widget? header;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: 264,
+      color: scheme.surface,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          header ??
+              const Padding(
+                padding: EdgeInsets.fromLTRB(20, 20, 20, 8),
+                child: Text(
+                  'nKount',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+          const SizedBox(height: 8),
+          for (var i = 0; i < items.length; i++)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+              child: Builder(
+                builder: (context) {
+                  final selected = i == currentIndex;
+                  final item = items[i];
+                  return Material(
+                    color:
+                        selected ? scheme.primaryContainer : Colors.transparent,
+                    borderRadius: ClayRadius.medium,
+                    child: InkWell(
+                      borderRadius: ClayRadius.medium,
+                      onTap: onTap == null ? null : () => onTap!.call(i),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              item.icon,
+                              color: selected
+                                  ? scheme.onPrimaryContainer
+                                  : scheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 16),
+                            Text(
+                              item.label,
+                              style: TextStyle(
+                                fontWeight: selected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                color: selected
+                                    ? scheme.onPrimaryContainer
+                                    : scheme.onSurface,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Scaffold passthrough.
 class ClayScaffold extends StatelessWidget {
   const ClayScaffold({
@@ -93,18 +193,102 @@ class ClayScaffold extends StatelessWidget {
     this.body,
     this.bottomNavigationBar,
     this.floatingActionButton,
+    this.sidebar,
+    this.maxContentWidth = ClayBreakpoints.maxContentWidth,
   });
   final PreferredSizeWidget? appBar;
   final Widget? body;
   final Widget? bottomNavigationBar;
   final Widget? floatingActionButton;
 
+  /// Custom sidebar for expanded windows. When null and [bottomNavigationBar]
+  /// is a [ClayBottomNavigation], one is built from its items.
+  final Widget? sidebar;
+  final double maxContentWidth;
+
+  ClayBottomNavigation? get _nav => bottomNavigationBar is ClayBottomNavigation
+      ? bottomNavigationBar as ClayBottomNavigation
+      : null;
+
+  Widget _constrained(Widget? child) {
+    if (child == null) return const SizedBox.shrink();
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxContentWidth),
+        child: child,
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: appBar,
-        body: body,
-        bottomNavigationBar: bottomNavigationBar,
-        floatingActionButton: floatingActionButton,
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final nav = _nav;
+          final content = _constrained(body);
+
+          // Expanded: sidebar + centered content, no bottom bar.
+          if (ClayBreakpoints.isExpanded(width) && nav != null) {
+            return Scaffold(
+              appBar: appBar,
+              floatingActionButton: floatingActionButton,
+              body: SafeArea(
+                top: false,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    sidebar ??
+                        ClaySidebar(
+                          items: nav.items,
+                          currentIndex: nav.currentIndex,
+                          onTap: nav.onTap,
+                        ),
+                    const VerticalDivider(width: 1),
+                    Expanded(child: content),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          // Medium: navigation rail + centered content, no bottom bar.
+          if (ClayBreakpoints.isMedium(width) && nav != null) {
+            return Scaffold(
+              appBar: appBar,
+              floatingActionButton: floatingActionButton,
+              body: SafeArea(
+                top: false,
+                child: Row(
+                  children: [
+                    NavigationRail(
+                      selectedIndex: nav.currentIndex,
+                      onDestinationSelected: nav.onTap,
+                      labelType: NavigationRailLabelType.all,
+                      destinations: [
+                        for (final item in nav.items)
+                          NavigationRailDestination(
+                            icon: Icon(item.icon),
+                            label: Text(item.label),
+                          ),
+                      ],
+                    ),
+                    const VerticalDivider(width: 1),
+                    Expanded(child: content),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          // Compact: classic bottom bar.
+          return Scaffold(
+            appBar: appBar,
+            body: SafeArea(top: false, child: body ?? const SizedBox.shrink()),
+            bottomNavigationBar: bottomNavigationBar,
+            floatingActionButton: floatingActionButton,
+          );
+        },
       );
 }
 
