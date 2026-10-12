@@ -7,7 +7,7 @@ part 'transaction_item_model.g.dart';
 
 /// Transaction Item Model for line items in transactions
 @freezed
-@HiveType(typeId: 3, adapterName: 'TransactionItemModelAdapter')
+@HiveType(typeId: 14, adapterName: 'TransactionItemModelAdapter')
 class TransactionItemModel with _$TransactionItemModel {
   const factory TransactionItemModel({
     @HiveField(1) required String productId,
