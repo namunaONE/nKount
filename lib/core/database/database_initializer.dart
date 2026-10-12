@@ -1,41 +1,40 @@
 import 'package:logger/logger.dart';
-import 'package:nkount/core/models/tax_rate_model.dart';
-import 'package:nkount/core/models/unit_model.dart';
-import 'package:nkount/core/models/category_model.dart';
-import 'package:nkount/core/models/setting_model.dart';
+import '../models/tax_rate_model.dart';
+import '../models/unit_model.dart';
+import '../models/category_model.dart';
+import '../models/setting_model.dart';
 import 'hive_service.dart';
 
 /// Database Initializer for nKount
 /// Creates default data and ensures database is ready for use
 class DatabaseInitializer {
-  static final DatabaseInitializer _instance = DatabaseInitializer._internal();
-  static final Logger _logger = Logger();
-  
-  // Initialization flag
-  bool _isInitialized = false;
-  
-  // Private constructor
-  DatabaseInitializer._internal();
-  
   // Factory constructor
   factory DatabaseInitializer() => _instance;
-  
+
+  // Private constructor
+  DatabaseInitializer._internal();
+  static final DatabaseInitializer _instance = DatabaseInitializer._internal();
+  static final Logger _logger = Logger();
+
+  // Initialization flag
+  bool _isInitialized = false;
+
   /// Initialize the database with default data
   Future<void> initialize() async {
     if (_isInitialized) {
       _logger.i('Database already initialized');
       return;
     }
-    
+
     try {
       _logger.i('Initializing database...');
-      
+
       // Initialize Hive
       await hiveService.initialize();
-      
+
       // Check if we need to create default data
       await _createDefaultData();
-      
+
       _isInitialized = true;
       _logger.i('Database initialized successfully');
     } catch (e) {
@@ -43,26 +42,26 @@ class DatabaseInitializer {
       rethrow;
     }
   }
-  
+
   /// Create default data if not exists
   Future<void> _createDefaultData() async {
     _logger.i('Creating default data...');
-    
+
     // Create default units
     await _createDefaultUnits();
-    
+
     // Create default categories
     await _createDefaultCategories();
-    
+
     // Create default tax rates (including 13% VAT for Nepal)
     await _createDefaultTaxRates();
-    
+
     // Create default settings
     await _createDefaultSettings();
-    
+
     _logger.i('Default data created');
   }
-  
+
   /// Create default units of measurement
   Future<void> _createDefaultUnits() async {
     final units = [
@@ -121,7 +120,7 @@ class DatabaseInitializer {
         baseUnitId: '',
       ),
     ];
-    
+
     // Check if units already exist
     if (hiveService.unitsBox.isEmpty) {
       for (final unit in units) {
@@ -132,7 +131,7 @@ class DatabaseInitializer {
       _logger.i('Default units already exist, skipping creation');
     }
   }
-  
+
   /// Create default product categories
   Future<void> _createDefaultCategories() async {
     final categories = [
@@ -182,7 +181,7 @@ class DatabaseInitializer {
         sortOrder: 9,
       ),
     ];
-    
+
     // Check if categories already exist
     if (hiveService.categoriesBox.isEmpty) {
       for (final category in categories) {
@@ -193,7 +192,7 @@ class DatabaseInitializer {
       _logger.i('Default categories already exist, skipping creation');
     }
   }
-  
+
   /// Create default tax rates for Nepal
   Future<void> _createDefaultTaxRates() async {
     final taxRates = [
@@ -223,7 +222,7 @@ class DatabaseInitializer {
         isActive: true,
       ),
     ];
-    
+
     // Check if tax rates already exist
     if (hiveService.taxRatesBox.isEmpty) {
       for (final taxRate in taxRates) {
@@ -234,7 +233,7 @@ class DatabaseInitializer {
       _logger.i('Default tax rates already exist, skipping creation');
     }
   }
-  
+
   /// Create default settings
   Future<void> _createDefaultSettings() async {
     // Check if settings already exist
@@ -242,46 +241,46 @@ class DatabaseInitializer {
       _logger.i('Default settings already exist, skipping creation');
       return;
     }
-    
+
     // Create default settings for the application
     final settings = SettingModel.createDefaultSettings();
-    
+
     for (final setting in settings) {
       await hiveService.settingsBox.add(setting);
     }
-    
+
     _logger.i('Default settings created');
   }
-  
+
   /// Check if database is initialized
   bool get isInitialized => _isInitialized;
-  
+
   /// Reset database (clear all data and recreate defaults)
   Future<void> resetDatabase() async {
     try {
       _logger.i('Resetting database...');
-      
+
       // Close existing boxes
       await hiveService.close();
-      
+
       // Clear all data
       await hiveService.clearAllData();
-      
+
       // Reinitialize
       _isInitialized = false;
       await initialize();
-      
+
       _logger.i('Database reset completed');
     } catch (e) {
       _logger.e('Error resetting database: $e');
       rethrow;
     }
   }
-  
+
   /// Get database statistics
   Future<Map<String, dynamic>> getDatabaseStats() async {
     final stats = hiveService.getBoxStats();
-    
+
     return {
       'boxes': stats,
       'total_records': stats.values.fold(0, (sum, count) => sum + count),

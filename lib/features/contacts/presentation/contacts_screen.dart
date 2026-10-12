@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nkount/core/constants/app_constants.dart';
-import 'package:nkount/core/database/hive_service.dart';
-import 'package:nkount/core/models/contact_model.dart';
-import 'package:nkount/packages/design-system/design_system.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/database/hive_service.dart';
+import '../../../core/models/contact_model.dart';
+import '../../../packages/design-system/design_system.dart';
 
 /// Contacts Screen with Claymorphism Design
 class ContactsScreen extends ConsumerWidget {
@@ -13,7 +13,7 @@ class ContactsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final contacts = ref.watch(contactsProvider);
-    
+
     return ClayScaffold(
       appBar: ClayAppBar(
         title: const Text('Contacts'),
@@ -47,14 +47,27 @@ class ContactsScreen extends ConsumerWidget {
       bottomNavigationBar: ClayBottomNavigation(
         currentIndex: 1,
         items: const [
-          ClayBottomNavItem(icon: Icons.dashboard, label: 'Dashboard', route: '/'),
-          ClayBottomNavItem(icon: Icons.people, label: 'Contacts', route: '/contacts'),
-          ClayBottomNavItem(icon: Icons.inventory, label: 'Products', route: '/products'),
-          ClayBottomNavItem(icon: Icons.receipt, label: 'Transactions', route: '/transactions'),
-          ClayBottomNavItem(icon: Icons.payment, label: 'Payments', route: '/payments'),
+          ClayBottomNavItem(
+              icon: Icons.dashboard, label: 'Dashboard', route: '/'),
+          ClayBottomNavItem(
+              icon: Icons.people, label: 'Contacts', route: '/contacts'),
+          ClayBottomNavItem(
+              icon: Icons.inventory, label: 'Products', route: '/products'),
+          ClayBottomNavItem(
+              icon: Icons.receipt,
+              label: 'Transactions',
+              route: '/transactions'),
+          ClayBottomNavItem(
+              icon: Icons.payment, label: 'Payments', route: '/payments'),
         ],
         onTap: (index) {
-          final routes = ['/', '/contacts', '/products', '/transactions', '/payments'];
+          final routes = [
+            '/',
+            '/contacts',
+            '/products',
+            '/transactions',
+            '/payments'
+          ];
           if (index < routes.length) {
             context.go(routes[index]);
           }
@@ -68,7 +81,8 @@ class ContactsScreen extends ConsumerWidget {
       context: context,
       builder: (context) => ClayDialog(
         title: const Text('Search Contacts'),
-        content: const ClaySearchInput(hintText: 'Search by name, phone, or email'),
+        content:
+            const ClaySearchInput(hintText: 'Search by name, phone, or email'),
         actions: [
           ClayButton.text(
             onPressed: () => Navigator.pop(context),
@@ -124,9 +138,9 @@ class ContactsScreen extends ConsumerWidget {
   void _showAddContactDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => ClayFormDialog(
-        title: const Text('Add New Contact'),
-        child: const _AddContactForm(),
+      builder: (context) => const ClayFormDialog(
+        title: Text('Add New Contact'),
+        child: _AddContactForm(),
       ),
     );
   }
@@ -137,140 +151,135 @@ class _EmptyContactsState extends StatelessWidget {
   const _EmptyContactsState();
 
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.people_alt_outlined,
-            size: 80,
-            color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'No Contacts Found',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
+  Widget build(BuildContext context) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.people_alt_outlined,
+              size: 80,
+              color: Colors.grey.shade400,
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Add your first contact to get started',
-            style: TextStyle(color: Colors.grey),
-          ),
-          const SizedBox(height: 24),
-          ClayButton(
-            onPressed: () => context.push('/contacts'),
-            child: const Text('Add Contact'),
-          ),
-        ],
-      ),
-    );
-  }
+            const SizedBox(height: 24),
+            const Text(
+              'No Contacts Found',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Add your first contact to get started',
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            ClayButton(
+              onPressed: () => context.push('/contacts'),
+              child: const Text('Add Contact'),
+            ),
+          ],
+        ),
+      );
 }
 
 /// Contacts List
 class _ContactsList extends ConsumerWidget {
+  const _ContactsList({required this.contacts});
   final List<ContactModel> contacts;
 
-  const _ContactsList({required this.contacts});
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ListView.builder(
-      itemCount: contacts.length,
-      itemBuilder: (context, index) {
-        final contact = contacts[index];
-        return _ContactItem(contact: contact);
-      },
-    );
-  }
+  Widget build(BuildContext context, WidgetRef ref) => ListView.builder(
+        itemCount: contacts.length,
+        itemBuilder: (context, index) {
+          final contact = contacts[index];
+          return _ContactItem(contact: contact);
+        },
+      );
 }
 
 /// Contact Item
 class _ContactItem extends StatelessWidget {
+  const _ContactItem({required this.contact});
   final ContactModel contact;
 
-  const _ContactItem({required this.contact});
-
   @override
-  Widget build(BuildContext context) {
-    return ClayCard(
-      onTap: () => _showContactDetailDialog(context, contact),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: _getContactTypeColor(contact.type).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+  Widget build(BuildContext context) => ClayCard(
+        onTap: () => _showContactDetailDialog(context, contact),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color:
+                    _getContactTypeColor(contact.type).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                _getContactTypeIcon(contact.type),
+                color: _getContactTypeColor(contact.type),
+                size: 24,
+              ),
             ),
-            child: Icon(
-              _getContactTypeIcon(contact.type),
-              color: _getContactTypeColor(contact.type),
-              size: 24,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    contact.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    contact.primaryPhone ?? 'No phone',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    contact.typeDisplayName,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _getContactTypeColor(contact.type),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  contact.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  contact.primaryPhone ?? 'No phone',
+                  'NPR ${contact.balance.toStringAsFixed(2)}',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.bold,
+                    color: contact.balance >= 0
+                        ? ClayColors.success
+                        : ClayColors.error,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  contact.typeDisplayName,
+                  contact.isActive ? 'Active' : 'Inactive',
                   style: TextStyle(
-                    fontSize: 12,
-                    color: _getContactTypeColor(contact.type),
+                    fontSize: 11,
+                    color: contact.isActive ? ClayColors.success : Colors.grey,
                   ),
                 ),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                'NPR ${contact.balance.toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: contact.balance >= 0 ? ClayColors.success : ClayColors.error,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                contact.isActive ? 'Active' : 'Inactive',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: contact.isActive ? ClayColors.success : Colors.grey,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 
   Color _getContactTypeColor(String type) {
     switch (type) {
@@ -368,43 +377,40 @@ class _ContactItem extends StatelessWidget {
 
 /// Contact Detail Row
 class _ContactDetailRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
   const _ContactDetailRow({
     required this.icon,
     required this.label,
     required this.value,
   });
+  final IconData icon;
+  final String label;
+  final String value;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Colors.grey),
-          const SizedBox(width: 16),
-          Text(
-            label,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-              color: Colors.grey,
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: Colors.grey),
+            const SizedBox(width: 16),
+            Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                color: Colors.grey,
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          const Text(': '),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w500),
+            const SizedBox(width: 8),
+            const Text(': '),
+            Expanded(
+              child: Text(
+                value,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 }
 
 /// Add Contact Form
@@ -432,140 +438,144 @@ class _AddContactFormState extends ConsumerState<_AddContactForm> {
   String _remarks = '';
 
   @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            ClayInputWithLabel(
-              label: 'Full Name *',
-              hintText: 'Enter contact name',
-              value: _name,
-              onChanged: (value) => _name = value,
-              validator: (value) => value?.isEmpty == true ? 'Name is required' : null,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ClayInputWithLabel(
-                    label: 'Phone',
-                    hintText: 'Phone number',
-                    value: _phone,
-                    onChanged: (value) => _phone = value,
-                    keyboardType: TextInputType.phone,
+  Widget build(BuildContext context) => Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              ClayInputWithLabel(
+                label: 'Full Name *',
+                hintText: 'Enter contact name',
+                value: _name,
+                onChanged: (value) => _name = value,
+                validator: (value) =>
+                    value?.isEmpty ?? false ? 'Name is required' : null,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ClayInputWithLabel(
+                      label: 'Phone',
+                      hintText: 'Phone number',
+                      value: _phone,
+                      onChanged: (value) => _phone = value,
+                      keyboardType: TextInputType.phone,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ClayInputWithLabel(
-                    label: 'Mobile',
-                    hintText: 'Mobile number',
-                    value: _mobile,
-                    onChanged: (value) => _mobile = value,
-                    keyboardType: TextInputType.phone,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ClayInputWithLabel(
+                      label: 'Mobile',
+                      hintText: 'Mobile number',
+                      value: _mobile,
+                      onChanged: (value) => _mobile = value,
+                      keyboardType: TextInputType.phone,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ClayInputWithLabel(
-              label: 'Email',
-              hintText: 'Email address',
-              value: _email,
-              onChanged: (value) => _email = value,
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 16),
-            ClayInputWithLabel(
-              label: 'Address',
-              hintText: 'Street address',
-              value: _address,
-              onChanged: (value) => _address = value,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ClayInputWithLabel(
-                    label: 'City',
-                    hintText: 'City',
-                    value: _city,
-                    onChanged: (value) => _city = value,
+                ],
+              ),
+              const SizedBox(height: 16),
+              ClayInputWithLabel(
+                label: 'Email',
+                hintText: 'Email address',
+                value: _email,
+                onChanged: (value) => _email = value,
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 16),
+              ClayInputWithLabel(
+                label: 'Address',
+                hintText: 'Street address',
+                value: _address,
+                onChanged: (value) => _address = value,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ClayInputWithLabel(
+                      label: 'City',
+                      hintText: 'City',
+                      value: _city,
+                      onChanged: (value) => _city = value,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ClayInputWithLabel(
-                    label: 'District',
-                    hintText: 'District',
-                    value: _district,
-                    onChanged: (value) => _district = value,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ClayInputWithLabel(
+                      label: 'District',
+                      hintText: 'District',
+                      value: _district,
+                      onChanged: (value) => _district = value,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ClayInputWithLabel(
-                    label: 'VAT Number',
-                    hintText: 'VAT registration number',
-                    value: _vatNumber,
-                    onChanged: (value) => _vatNumber = value,
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ClayInputWithLabel(
+                      label: 'VAT Number',
+                      hintText: 'VAT registration number',
+                      value: _vatNumber,
+                      onChanged: (value) => _vatNumber = value,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ClayInputWithLabel(
-                    label: 'PAN Number',
-                    hintText: 'PAN number',
-                    value: _panNumber,
-                    onChanged: (value) => _panNumber = value,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ClayInputWithLabel(
+                      label: 'PAN Number',
+                      hintText: 'PAN number',
+                      value: _panNumber,
+                      onChanged: (value) => _panNumber = value,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ClayInputWithLabel(
-              label: 'Opening Balance',
-              hintText: 'Opening balance',
-              value: _openingBalance?.toString() ?? '',
-              onChanged: (value) => _openingBalance = double.tryParse(value),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-            ClayDropdownInput<String>(
-              label: 'Contact Type',
-              value: _type,
-              items: const [
-                DropdownMenuItem(value: AppConstants.CONTACT_CUSTOMER, child: Text('Customer')),
-                DropdownMenuItem(value: AppConstants.CONTACT_SUPPLIER, child: Text('Supplier')),
-                DropdownMenuItem(value: AppConstants.CONTACT_BOTH, child: Text('Both')),
-              ],
-              onChanged: (value) => setState(() => _type = value!),
-            ),
-            const SizedBox(height: 16),
-            ClaySwitchInput(
-              label: 'Active',
-              value: _isActive,
-              onChanged: (value) => setState(() => _isActive = value),
-            ),
-            const SizedBox(height: 16),
-            ClayInputWithLabel(
-              label: 'Remarks',
-              hintText: 'Additional notes',
-              value: _remarks,
-              onChanged: (value) => _remarks = value,
-              maxLines: 3,
-            ),
-          ],
+                ],
+              ),
+              const SizedBox(height: 16),
+              ClayInputWithLabel(
+                label: 'Opening Balance',
+                hintText: 'Opening balance',
+                value: _openingBalance?.toString() ?? '',
+                onChanged: (value) => _openingBalance = double.tryParse(value),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+              ClayDropdownInput<String>(
+                label: 'Contact Type',
+                value: _type,
+                items: const [
+                  DropdownMenuItem(
+                      value: AppConstants.CONTACT_CUSTOMER,
+                      child: Text('Customer')),
+                  DropdownMenuItem(
+                      value: AppConstants.CONTACT_SUPPLIER,
+                      child: Text('Supplier')),
+                  DropdownMenuItem(
+                      value: AppConstants.CONTACT_BOTH, child: Text('Both')),
+                ],
+                onChanged: (value) => setState(() => _type = value!),
+              ),
+              const SizedBox(height: 16),
+              ClaySwitchInput(
+                label: 'Active',
+                value: _isActive,
+                onChanged: (value) => setState(() => _isActive = value),
+              ),
+              const SizedBox(height: 16),
+              ClayInputWithLabel(
+                label: 'Remarks',
+                hintText: 'Additional notes',
+                value: _remarks,
+                onChanged: (value) => _remarks = value,
+                maxLines: 3,
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 }
 
 /// Provider for contacts

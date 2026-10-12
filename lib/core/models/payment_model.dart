@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hive/hive.dart';
-import 'package:nkount/core/constants/app_constants.dart';
+import '../constants/app_constants.dart';
 import 'package:uuid/uuid.dart';
 
 part 'payment_model.freezed.dart';
@@ -11,13 +11,13 @@ part 'payment_model.g.dart';
 @HiveType(typeId: 5, adapterName: 'PaymentModelAdapter')
 class PaymentModel with _$PaymentModel {
   const factory PaymentModel({
-    @HiveField(0) @Default('') String id,
     @HiveField(1) required String type, // payment or receipt
     @HiveField(2) required String transactionId,
-    @HiveField(3) String? invoiceNumber,
     @HiveField(4) required String contactId,
-    @HiveField(5) @Default(0.0) double amount,
     @HiveField(6) required String method,
+    @HiveField(0) @Default('') String id,
+    @HiveField(3) String? invoiceNumber,
+    @HiveField(5) @Default(0.0) double amount,
     @HiveField(7) String? referenceNumber,
     @HiveField(8) String? bankName,
     @HiveField(9) String? chequeNumber,
@@ -42,10 +42,10 @@ class PaymentModel with _$PaymentModel {
   factory PaymentModel.create({
     required String type,
     required String transactionId,
-    String? invoiceNumber,
     required String contactId,
     required double amount,
     required String method,
+    String? invoiceNumber,
     String? referenceNumber,
     String? bankName,
     String? chequeNumber,
@@ -53,52 +53,49 @@ class PaymentModel with _$PaymentModel {
     DateTime? date,
     String? notes,
     String? createdBy,
-  }) {
-    return PaymentModel(
-      id: const Uuid().v4(),
-      type: type,
-      transactionId: transactionId,
-      invoiceNumber: invoiceNumber,
-      contactId: contactId,
-      amount: amount,
-      method: method,
-      referenceNumber: referenceNumber,
-      bankName: bankName,
-      chequeNumber: chequeNumber,
-      chequeDate: chequeDate,
-      date: date ?? DateTime.now(),
-      notes: notes,
-      isCleared: method != AppConstants.PAYMENT_CHEQUE,
-      clearedDate: method != AppConstants.PAYMENT_CHEQUE ? DateTime.now() : null,
-      createdBy: createdBy,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-  }
+  }) =>
+      PaymentModel(
+        id: const Uuid().v4(),
+        type: type,
+        transactionId: transactionId,
+        invoiceNumber: invoiceNumber,
+        contactId: contactId,
+        amount: amount,
+        method: method,
+        referenceNumber: referenceNumber,
+        bankName: bankName,
+        chequeNumber: chequeNumber,
+        chequeDate: chequeDate,
+        date: date ?? DateTime.now(),
+        notes: notes,
+        isCleared: method != AppConstants.PAYMENT_CHEQUE,
+        clearedDate:
+            method != AppConstants.PAYMENT_CHEQUE ? DateTime.now() : null,
+        createdBy: createdBy,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
   /// Clear payment (for cheque clearance)
-  PaymentModel copyWithCleared() {
-    return copyWith(
-      isCleared: true,
-      clearedDate: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-  }
+  PaymentModel copyWithCleared() => copyWith(
+        isCleared: true,
+        clearedDate: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
   /// Cancel payment
-  PaymentModel copyWithCancellation(String reason) {
-    return copyWith(
-      isCancelled: true,
-      cancellationReason: reason,
-      updatedAt: DateTime.now(),
-    );
-  }
+  PaymentModel copyWithCancellation(String reason) => copyWith(
+        isCancelled: true,
+        cancellationReason: reason,
+        updatedAt: DateTime.now(),
+      );
 
   /// Check if payment is cleared
   bool get isClearedPayment => isCleared && !isCancelled;
 
   /// Check if payment is pending clearance
-  bool get isPendingClearance => method == AppConstants.PAYMENT_CHEQUE && !isCleared && !isCancelled;
+  bool get isPendingClearance =>
+      method == AppConstants.PAYMENT_CHEQUE && !isCleared && !isCancelled;
 
   /// Get payment type display name
   String get typeDisplayName {

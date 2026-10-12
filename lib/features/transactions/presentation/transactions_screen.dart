@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nkount/core/constants/app_constants.dart';
-import 'package:nkount/core/database/hive_service.dart';
-import 'package:nkount/core/models/transaction_model.dart';
-import 'package:nkount/packages/design-system/design_system.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/database/hive_service.dart';
+import '../../../core/models/transaction_model.dart';
+import '../../../packages/design-system/design_system.dart';
 
 /// Transactions Screen with Claymorphism Design
 class TransactionsScreen extends ConsumerWidget {
@@ -13,7 +13,7 @@ class TransactionsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final transactions = ref.watch(transactionsProvider);
-    
+
     return ClayScaffold(
       appBar: ClayAppBar(
         title: const Text('Transactions'),
@@ -47,14 +47,27 @@ class TransactionsScreen extends ConsumerWidget {
       bottomNavigationBar: ClayBottomNavigation(
         currentIndex: 3,
         items: const [
-          ClayBottomNavItem(icon: Icons.dashboard, label: 'Dashboard', route: '/'),
-          ClayBottomNavItem(icon: Icons.people, label: 'Contacts', route: '/contacts'),
-          ClayBottomNavItem(icon: Icons.inventory, label: 'Products', route: '/products'),
-          ClayBottomNavItem(icon: Icons.receipt, label: 'Transactions', route: '/transactions'),
-          ClayBottomNavItem(icon: Icons.payment, label: 'Payments', route: '/payments'),
+          ClayBottomNavItem(
+              icon: Icons.dashboard, label: 'Dashboard', route: '/'),
+          ClayBottomNavItem(
+              icon: Icons.people, label: 'Contacts', route: '/contacts'),
+          ClayBottomNavItem(
+              icon: Icons.inventory, label: 'Products', route: '/products'),
+          ClayBottomNavItem(
+              icon: Icons.receipt,
+              label: 'Transactions',
+              route: '/transactions'),
+          ClayBottomNavItem(
+              icon: Icons.payment, label: 'Payments', route: '/payments'),
         ],
         onTap: (index) {
-          final routes = ['/', '/contacts', '/products', '/transactions', '/payments'];
+          final routes = [
+            '/',
+            '/contacts',
+            '/products',
+            '/transactions',
+            '/payments'
+          ];
           if (index < routes.length) {
             context.go(routes[index]);
           }
@@ -68,7 +81,8 @@ class TransactionsScreen extends ConsumerWidget {
       context: context,
       builder: (context) => ClayDialog(
         title: const Text('Search Transactions'),
-        content: const ClaySearchInput(hintText: 'Search by invoice number, contact, or amount'),
+        content: const ClaySearchInput(
+            hintText: 'Search by invoice number, contact, or amount'),
         actions: [
           ClayButton.text(
             onPressed: () => Navigator.pop(context),
@@ -136,9 +150,9 @@ class TransactionsScreen extends ConsumerWidget {
   void _showAddTransactionDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => ClayFormDialog(
-        title: const Text('Add New Transaction'),
-        child: const _AddTransactionForm(),
+      builder: (context) => const ClayFormDialog(
+        title: Text('Add New Transaction'),
+        child: _AddTransactionForm(),
       ),
     );
   }
@@ -149,134 +163,127 @@ class _EmptyTransactionsState extends StatelessWidget {
   const _EmptyTransactionsState();
 
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.receipt_outlined,
-            size: 80,
-            color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'No Transactions Found',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
+  Widget build(BuildContext context) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.receipt_outlined,
+              size: 80,
+              color: Colors.grey.shade400,
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Add your first transaction to get started',
-            style: TextStyle(color: Colors.grey),
-          ),
-          const SizedBox(height: 24),
-          ClayButton(
-            onPressed: () => context.push('/transactions'),
-            child: const Text('Add Transaction'),
-          ),
-        ],
-      ),
-    );
-  }
+            const SizedBox(height: 24),
+            const Text(
+              'No Transactions Found',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Add your first transaction to get started',
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            ClayButton(
+              onPressed: () => context.push('/transactions'),
+              child: const Text('Add Transaction'),
+            ),
+          ],
+        ),
+      );
 }
 
 /// Transactions List
 class _TransactionsList extends ConsumerWidget {
+  const _TransactionsList({required this.transactions});
   final List<TransactionModel> transactions;
 
-  const _TransactionsList({required this.transactions});
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ListView.builder(
-      itemCount: transactions.length,
-      itemBuilder: (context, index) {
-        final transaction = transactions[index];
-        return _TransactionItem(transaction: transaction);
-      },
-    );
-  }
+  Widget build(BuildContext context, WidgetRef ref) => ListView.builder(
+        itemCount: transactions.length,
+        itemBuilder: (context, index) {
+          final transaction = transactions[index];
+          return _TransactionItem(transaction: transaction);
+        },
+      );
 }
 
 /// Transaction Item
 class _TransactionItem extends StatelessWidget {
+  const _TransactionItem({required this.transaction});
   final TransactionModel transaction;
 
-  const _TransactionItem({required this.transaction});
-
   @override
-  Widget build(BuildContext context) {
-    return ClayCard(
-      onTap: () => _showTransactionDetailDialog(context, transaction),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: _getTransactionTypeColor(transaction.type).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+  Widget build(BuildContext context) => ClayCard(
+        onTap: () => _showTransactionDetailDialog(context, transaction),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: _getTransactionTypeColor(transaction.type)
+                    .withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                _getTransactionTypeIcon(transaction.type),
+                color: _getTransactionTypeColor(transaction.type),
+                size: 24,
+              ),
             ),
-            child: Icon(
-              _getTransactionTypeIcon(transaction.type),
-              color: _getTransactionTypeColor(transaction.type),
-              size: 24,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    transaction.invoiceNumber ?? 'N/A',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    transaction.typeDisplayName,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _getTransactionTypeColor(transaction.type),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Items: ${transaction.items?.length ?? 0}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  transaction.invoiceNumber ?? 'N/A',
+                  'NPR ${transaction.total.toStringAsFixed(2)}',
                   style: const TextStyle(
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    color: ClayColors.primary,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  transaction.typeDisplayName,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: _getTransactionTypeColor(transaction.type),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Items: ${transaction.items?.length ?? 0}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
+                _PaymentStatusBadge(status: transaction.paymentStatus),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                'NPR ${transaction.total.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: ClayColors.primary,
-                ),
-              ),
-              const SizedBox(height: 4),
-              _PaymentStatusBadge(status: transaction.paymentStatus),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 
   Color _getTransactionTypeColor(String type) {
     switch (type) {
@@ -308,11 +315,13 @@ class _TransactionItem extends StatelessWidget {
     }
   }
 
-  void _showTransactionDetailDialog(BuildContext context, TransactionModel transaction) {
+  void _showTransactionDetailDialog(
+      BuildContext context, TransactionModel transaction) {
     showDialog(
       context: context,
       builder: (context) => ClayDialog(
-        title: Text('${transaction.typeDisplayName} - ${transaction.invoiceNumber ?? 'N/A'}'),
+        title: Text(
+            '${transaction.typeDisplayName} - ${transaction.invoiceNumber ?? 'N/A'}'),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -408,56 +417,52 @@ class _TransactionItem extends StatelessWidget {
 
 /// Transaction Detail Row
 class _TransactionDetailRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
   const _TransactionDetailRow({
     required this.icon,
     required this.label,
     required this.value,
   });
+  final IconData icon;
+  final String label;
+  final String value;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Colors.grey),
-          const SizedBox(width: 16),
-          Text(
-            label,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-              color: Colors.grey,
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: Colors.grey),
+            const SizedBox(width: 16),
+            Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                color: Colors.grey,
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          const Text(': '),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w500),
+            const SizedBox(width: 8),
+            const Text(': '),
+            Expanded(
+              child: Text(
+                value,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 }
 
 /// Payment Status Badge
 class _PaymentStatusBadge extends StatelessWidget {
-  final String status;
-
   const _PaymentStatusBadge({required this.status});
+  final String status;
 
   @override
   Widget build(BuildContext context) {
     Color color;
     String label;
-    
+
     switch (status) {
       case AppConstants.PAYMENT_STATUS_PAID:
         color = ClayColors.success;
@@ -479,11 +484,11 @@ class _PaymentStatusBadge extends StatelessWidget {
         color = Colors.grey;
         label = status;
     }
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -503,7 +508,8 @@ class _AddTransactionForm extends ConsumerStatefulWidget {
   const _AddTransactionForm();
 
   @override
-  ConsumerState<_AddTransactionForm> createState() => _AddTransactionFormState();
+  ConsumerState<_AddTransactionForm> createState() =>
+      _AddTransactionFormState();
 }
 
 class _AddTransactionFormState extends ConsumerState<_AddTransactionForm> {
@@ -526,180 +532,204 @@ class _AddTransactionFormState extends ConsumerState<_AddTransactionForm> {
   double _vatRate = 13.0;
 
   @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            ClayDropdownInput<String>(
-              label: 'Transaction Type *',
-              value: _type,
-              items: const [
-                DropdownMenuItem(value: AppConstants.TRANSACTION_SALE, child: Text('Sale')),
-                DropdownMenuItem(value: AppConstants.TRANSACTION_PURCHASE, child: Text('Purchase')),
-                DropdownMenuItem(value: AppConstants.TRANSACTION_EXPENSE, child: Text('Expense')),
-                DropdownMenuItem(value: AppConstants.TRANSACTION_INCOME, child: Text('Income')),
-              ],
-              onChanged: (value) => setState(() => _type = value!),
-              validator: (value) => value == null ? 'Type is required' : null,
-            ),
-            const SizedBox(height: 16),
-            ClayInputWithLabel(
-              label: 'Invoice Number',
-              hintText: 'Invoice number',
-              value: _invoiceNumber,
-              onChanged: (value) => _invoiceNumber = value,
-            ),
-            const SizedBox(height: 16),
-            ClayInputWithLabel(
-              label: 'Contact ID *',
-              hintText: 'Contact ID',
-              value: _contactId,
-              onChanged: (value) => _contactId = value,
-              validator: (value) => value?.isEmpty == true ? 'Contact ID is required' : null,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ClayDateInput(
-                    label: 'Date',
-                    value: _date,
-                    onChanged: (value) => _date = value,
+  Widget build(BuildContext context) => Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              ClayDropdownInput<String>(
+                label: 'Transaction Type *',
+                value: _type,
+                items: const [
+                  DropdownMenuItem(
+                      value: AppConstants.TRANSACTION_SALE,
+                      child: Text('Sale')),
+                  DropdownMenuItem(
+                      value: AppConstants.TRANSACTION_PURCHASE,
+                      child: Text('Purchase')),
+                  DropdownMenuItem(
+                      value: AppConstants.TRANSACTION_EXPENSE,
+                      child: Text('Expense')),
+                  DropdownMenuItem(
+                      value: AppConstants.TRANSACTION_INCOME,
+                      child: Text('Income')),
+                ],
+                onChanged: (value) => setState(() => _type = value!),
+                validator: (value) => value == null ? 'Type is required' : null,
+              ),
+              const SizedBox(height: 16),
+              ClayInputWithLabel(
+                label: 'Invoice Number',
+                hintText: 'Invoice number',
+                value: _invoiceNumber,
+                onChanged: (value) => _invoiceNumber = value,
+              ),
+              const SizedBox(height: 16),
+              ClayInputWithLabel(
+                label: 'Contact ID *',
+                hintText: 'Contact ID',
+                value: _contactId,
+                onChanged: (value) => _contactId = value,
+                validator: (value) =>
+                    value?.isEmpty ?? false ? 'Contact ID is required' : null,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ClayDateInput(
+                      label: 'Date',
+                      value: _date,
+                      onChanged: (value) => _date = value,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ClayDateInput(
-                    label: 'Due Date',
-                    value: _dueDate,
-                    onChanged: (value) => _dueDate = value,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ClayDateInput(
+                      label: 'Due Date',
+                      value: _dueDate,
+                      onChanged: (value) => _dueDate = value,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ClayCurrencyInput(
-                    label: 'Subtotal',
-                    hintText: 'Subtotal',
-                    value: _subtotal,
-                    onChanged: (value) => _subtotal = value,
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ClayCurrencyInput(
+                      label: 'Subtotal',
+                      hintText: 'Subtotal',
+                      value: _subtotal,
+                      onChanged: (value) => _subtotal = value ?? 0,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ClayCurrencyInput(
-                    label: 'Discount',
-                    hintText: 'Discount',
-                    value: _discount,
-                    onChanged: (value) => _discount = value,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ClayCurrencyInput(
+                      label: 'Discount',
+                      hintText: 'Discount',
+                      value: _discount,
+                      onChanged: (value) => _discount = value ?? 0,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ClayCurrencyInput(
-                    label: 'Tax',
-                    hintText: 'Tax',
-                    value: _tax,
-                    onChanged: (value) => _tax = value,
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ClayCurrencyInput(
+                      label: 'Tax',
+                      hintText: 'Tax',
+                      value: _tax,
+                      onChanged: (value) => _tax = value ?? 0,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ClayCurrencyInput(
-                    label: 'Total',
-                    hintText: 'Total',
-                    value: _total,
-                    onChanged: (value) => _total = value,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ClayCurrencyInput(
+                      label: 'Total',
+                      hintText: 'Total',
+                      value: _total,
+                      onChanged: (value) => _total = value ?? 0,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ClayCurrencyInput(
-              label: 'Paid Amount',
-              hintText: 'Paid amount',
-              value: _paidAmount,
-              onChanged: (value) => _paidAmount = value,
-            ),
-            const SizedBox(height: 16),
-            ClayDropdownInput<String>(
-              label: 'Payment Status',
-              value: _paymentStatus,
-              items: const [
-                DropdownMenuItem(value: AppConstants.PAYMENT_STATUS_PENDING, child: Text('Pending')),
-                DropdownMenuItem(value: AppConstants.PAYMENT_STATUS_PAID, child: Text('Paid')),
-                DropdownMenuItem(value: AppConstants.PAYMENT_STATUS_PARTIAL, child: Text('Partial')),
-              ],
-              onChanged: (value) => setState(() => _paymentStatus = value!),
-            ),
-            const SizedBox(height: 16),
-            ClayDropdownInput<String>(
-              label: 'Payment Method',
-              value: _paymentMethod,
-              items: const [
-                DropdownMenuItem(value: AppConstants.PAYMENT_CASH, child: Text('Cash')),
-                DropdownMenuItem(value: AppConstants.PAYMENT_BANK, child: Text('Bank')),
-                DropdownMenuItem(value: AppConstants.PAYMENT_CHEQUE, child: Text('Cheque')),
-                DropdownMenuItem(value: AppConstants.PAYMENT_ONLINE, child: Text('Online')),
-                DropdownMenuItem(value: AppConstants.PAYMENT_CREDIT, child: Text('Credit')),
-              ],
-              onChanged: (value) => setState(() => _paymentMethod = value!),
-            ),
-            const SizedBox(height: 16),
-            ClayInputWithLabel(
-              label: 'Reference Number',
-              hintText: 'Reference number',
-              value: _referenceNumber,
-              onChanged: (value) => _referenceNumber = value,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ClaySwitchInput(
-                    label: 'VAT Included',
-                    value: _isVatIncluded,
-                    onChanged: (value) => setState(() => _isVatIncluded = value),
+                ],
+              ),
+              const SizedBox(height: 16),
+              ClayCurrencyInput(
+                label: 'Paid Amount',
+                hintText: 'Paid amount',
+                value: _paidAmount,
+                onChanged: (value) => _paidAmount = value ?? 0,
+              ),
+              const SizedBox(height: 16),
+              ClayDropdownInput<String>(
+                label: 'Payment Status',
+                value: _paymentStatus,
+                items: const [
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_STATUS_PENDING,
+                      child: Text('Pending')),
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_STATUS_PAID,
+                      child: Text('Paid')),
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_STATUS_PARTIAL,
+                      child: Text('Partial')),
+                ],
+                onChanged: (value) => setState(() => _paymentStatus = value!),
+              ),
+              const SizedBox(height: 16),
+              ClayDropdownInput<String>(
+                label: 'Payment Method',
+                value: _paymentMethod,
+                items: const [
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_CASH, child: Text('Cash')),
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_BANK, child: Text('Bank')),
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_CHEQUE,
+                      child: Text('Cheque')),
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_ONLINE,
+                      child: Text('Online')),
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_CREDIT,
+                      child: Text('Credit')),
+                ],
+                onChanged: (value) => setState(() => _paymentMethod = value!),
+              ),
+              const SizedBox(height: 16),
+              ClayInputWithLabel(
+                label: 'Reference Number',
+                hintText: 'Reference number',
+                value: _referenceNumber,
+                onChanged: (value) => _referenceNumber = value,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ClaySwitchInput(
+                      label: 'VAT Included',
+                      value: _isVatIncluded,
+                      onChanged: (value) =>
+                          setState(() => _isVatIncluded = value),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ClayInputWithLabel(
-                    label: 'VAT Rate %',
-                    hintText: 'VAT rate',
-                    value: _vatRate.toString(),
-                    onChanged: (value) => _vatRate = double.tryParse(value) ?? 13.0,
-                    keyboardType: TextInputType.number,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ClayInputWithLabel(
+                      label: 'VAT Rate %',
+                      hintText: 'VAT rate',
+                      value: _vatRate.toString(),
+                      onChanged: (value) =>
+                          _vatRate = double.tryParse(value) ?? 13.0,
+                      keyboardType: TextInputType.number,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ClayInputWithLabel(
-              label: 'Notes',
-              hintText: 'Additional notes',
-              value: _notes,
-              onChanged: (value) => _notes = value,
-              maxLines: 3,
-            ),
-          ],
+                ],
+              ),
+              const SizedBox(height: 16),
+              ClayInputWithLabel(
+                label: 'Notes',
+                hintText: 'Additional notes',
+                value: _notes,
+                onChanged: (value) => _notes = value,
+                maxLines: 3,
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 }
 
 /// Provider for transactions
-final transactionsProvider = FutureProvider<List<TransactionModel>>((ref) async {
+final transactionsProvider =
+    FutureProvider<List<TransactionModel>>((ref) async {
   final hiveService = ref.watch(hiveServiceProvider);
   return hiveService.transactionsBox.values.toList();
 });

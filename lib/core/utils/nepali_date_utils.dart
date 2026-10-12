@@ -1,8 +1,9 @@
 /// Nepali Date Utilities for Bikram Sambat (BS) support
-/// 
+///
 /// This provides comprehensive Nepali date handling for accounting software
 /// in Nepal. The Nepali calendar (Bikram Sambat) is approximately 57 years ahead
 /// of the Gregorian calendar.
+library;
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -81,7 +82,7 @@ class NepaliDateUtils {
     final nepaliYear = date.year + 57;
     final nepaliMonth = date.month;
     final nepaliDay = date.day;
-    
+
     return '${_toNepaliNumber(nepaliYear.toString())}/${_toNepaliNumber(nepaliMonth.toString())}/${_toNepaliNumber(nepaliDay.toString())} (BS)';
   }
 
@@ -91,9 +92,9 @@ class NepaliDateUtils {
     final nepaliYear = date.year + 57;
     final nepaliMonthIndex = date.month - 1;
     final nepaliDay = date.day;
-    
+
     final monthName = nepaliMonthsEnglish[nepaliMonthIndex];
-    
+
     return '${_toNepaliNumber(nepaliDay.toString())} $monthName, ${_toNepaliNumber(nepaliYear.toString())} (BS)';
   }
 
@@ -102,19 +103,16 @@ class NepaliDateUtils {
     final nepaliYear = date.year + 57;
     final nepaliMonthIndex = date.month - 1;
     final nepaliDay = date.day;
-    
+
     final monthName = nepaliMonthsDevanagari[nepaliMonthIndex];
-    
+
     return '${_toNepaliNumber(nepaliDay.toString())} $monthName ${_toNepaliNumber(nepaliYear.toString())}';
   }
 
   /// Convert English number string to Nepali (Devanagari) number string
-  static String toNepaliNumbers(String input) {
-    return input.replaceAllMapped(
-      RegExp(r'[0-9]'),
-      (match) => nepaliNumbers[match.group(0)] ?? match.group(0)!
-    );
-  }
+  static String toNepaliNumbers(String input) => input.replaceAllMapped(
+      RegExp('[0-9]'),
+      (match) => nepaliNumbers[match.group(0)] ?? match.group(0)!);
 
   /// Convert Nepali (Devanagari) number string to English number string
   static String toEnglishNumbers(String input) {
@@ -122,17 +120,13 @@ class NepaliDateUtils {
     nepaliNumbers.forEach((key, value) {
       reversedMap[value] = key;
     });
-    
-    return input.replaceAllMapped(
-      RegExp(r'[	66-	6F]'),
-      (match) => reversedMap[match.group(0)] ?? match.group(0)!
-    );
+
+    return input.replaceAllMapped(RegExp('[\u0966-\u096F]'),
+        (match) => reversedMap[match.group(0)] ?? match.group(0)!);
   }
 
   /// Convert number string to Nepali
-  static String _toNepaliNumber(String number) {
-    return toNepaliNumbers(number);
-  }
+  static String _toNepaliNumber(String number) => toNepaliNumbers(number);
 
   /// Format Nepali currency
   /// Example: NPR 1,000.00 -> रू १,०००.००
@@ -148,7 +142,8 @@ class NepaliDateUtils {
   }
 
   /// Format number with Nepali numerals
-  static String formatNumberWithNepaliNumerals(double number, {int decimalPlaces = 2}) {
+  static String formatNumberWithNepaliNumerals(double number,
+      {int decimalPlaces = 2}) {
     final formatted = number.toStringAsFixed(decimalPlaces);
     return toNepaliNumbers(formatted);
   }
@@ -158,19 +153,20 @@ class NepaliDateUtils {
     if (index < 0 || index > 11) {
       return 'Invalid Month';
     }
-    return devanagari ? nepaliMonthsDevanagari[index] : nepaliMonthsEnglish[index];
+    return devanagari
+        ? nepaliMonthsDevanagari[index]
+        : nepaliMonthsEnglish[index];
   }
 
   /// Get all Nepali months
-  static List<String> getNepaliMonths({bool devanagari = false}) {
-    return devanagari ? nepaliMonthsDevanagari : nepaliMonthsEnglish;
-  }
+  static List<String> getNepaliMonths({bool devanagari = false}) =>
+      devanagari ? nepaliMonthsDevanagari : nepaliMonthsEnglish;
 
   /// Nepali fiscal year (starts from Baisakh 1)
   static String getNepaliFiscalYear(DateTime date) {
     final nepaliYear = date.year + 57;
     final nepaliMonth = date.month;
-    
+
     // Fiscal year starts in Baisakh (April)
     if (nepaliMonth >= 4) {
       // After Baisakh (April), fiscal year is current year to next year
@@ -198,7 +194,7 @@ class NepaliDateUtils {
       29, // Falgun
       30, // Chaitra
     ];
-    
+
     if (month >= 1 && month <= 12) {
       return daysInMonth[month - 1];
     }
@@ -206,11 +202,9 @@ class NepaliDateUtils {
   }
 
   /// Check if a Nepali year is a leap year (approximate)
-  static bool isNepaliLeapYear(int nepaliYear) {
-    // Nepali leap years occur approximately every 3-4 years
-    // This is a simplified calculation
-    return (nepaliYear + 57) % 4 == 0;
-  }
+  // Nepali leap years occur approximately every 3-4 years.
+  // This is a simplified calculation.
+  static bool isNepaliLeapYear(int nepaliYear) => (nepaliYear + 57) % 4 == 0;
 
   /// Convert approximate Gregorian date to Nepali date
   /// Note: This is an approximation. For exact conversion, use a proper library.
@@ -218,7 +212,7 @@ class NepaliDateUtils {
     final year = date.year + 57;
     final month = date.month;
     final day = date.day;
-    
+
     return {
       'year': year,
       'month': month,
@@ -227,16 +221,16 @@ class NepaliDateUtils {
   }
 
   /// Convert approximate Nepali date to Gregorian date
-  static DateTime nepaliToGregorian(int nepaliYear, int nepaliMonth, int nepaliDay) {
-    return DateTime(nepaliYear - 57, nepaliMonth, nepaliDay);
-  }
+  static DateTime nepaliToGregorian(
+          int nepaliYear, int nepaliMonth, int nepaliDay) =>
+      DateTime(nepaliYear - 57, nepaliMonth, nepaliDay);
 
   /// Get Nepali date range for a fiscal year
   static Map<String, DateTime> getFiscalYearRange(int nepaliYear) {
     // Fiscal year starts in Baisakh (April)
     final startYear = nepaliYear - 57;
     final endYear = nepaliYear - 56;
-    
+
     return {
       'start': DateTime(startYear, 4, 1), // Baisakh 1
       'end': DateTime(endYear, 3, 31), // Chaitra end
@@ -251,14 +245,11 @@ class NepaliDateUtils {
   }
 
   /// Get current Nepali date as a formatted string
-  static String getCurrentNepaliDate() {
-    return formatToNepaliDate(DateTime.now());
-  }
+  static String getCurrentNepaliDate() => formatToNepaliDate(DateTime.now());
 
   /// Get current Nepali date with month name
-  static String getCurrentNepaliDateWithMonthName() {
-    return formatToNepaliDateWithMonthName(DateTime.now());
-  }
+  static String getCurrentNepaliDateWithMonthName() =>
+      formatToNepaliDateWithMonthName(DateTime.now());
 
   /// Get Nepali weekday name
   static const List<String> nepaliWeekdays = [
@@ -285,7 +276,7 @@ class NepaliDateUtils {
     if (weekday < 1 || weekday > 7) {
       return 'Invalid Day';
     }
-    return devanagari 
+    return devanagari
         ? nepaliWeekdaysDevanagari[weekday - 1]
         : nepaliWeekdays[weekday - 1];
   }
@@ -294,19 +285,15 @@ class NepaliDateUtils {
 /// Extension methods for DateTime
 extension NepaliDateTimeExtensions on DateTime {
   /// Convert to Nepali date string
-  String toNepaliDate() {
-    return NepaliDateUtils.formatToNepaliDate(this);
-  }
+  String toNepaliDate() => NepaliDateUtils.formatToNepaliDate(this);
 
   /// Convert to Nepali date with month name
-  String toNepaliDateWithMonthName() {
-    return NepaliDateUtils.formatToNepaliDateWithMonthName(this);
-  }
+  String toNepaliDateWithMonthName() =>
+      NepaliDateUtils.formatToNepaliDateWithMonthName(this);
 
   /// Convert to Nepali date with Devanagari
-  String toNepaliDateDevanagari() {
-    return NepaliDateUtils.formatToNepaliDateDevanagari(this);
-  }
+  String toNepaliDateDevanagari() =>
+      NepaliDateUtils.formatToNepaliDateDevanagari(this);
 
   /// Get Nepali year
   int get nepaliYear => year + 57;
@@ -321,19 +308,16 @@ extension NepaliDateTimeExtensions on DateTime {
 /// Extension methods for double (currency formatting)
 extension NepaliCurrencyExtensions on double {
   /// Format as Nepali currency
-  String toNepaliCurrency() {
-    return NepaliDateUtils.formatNepaliCurrency(this);
-  }
+  String toNepaliCurrency() => NepaliDateUtils.formatNepaliCurrency(this);
 
   /// Format as Nepali currency with symbol
-  String toNepaliCurrencyWithSymbol() {
-    return NepaliDateUtils.formatNepaliCurrencyWithSymbol(this);
-  }
+  String toNepaliCurrencyWithSymbol() =>
+      NepaliDateUtils.formatNepaliCurrencyWithSymbol(this);
 
   /// Format number with Nepali numerals
-  String toNepaliNumerals({int decimalPlaces = 2}) {
-    return NepaliDateUtils.formatNumberWithNepaliNumerals(this, decimalPlaces: decimalPlaces);
-  }
+  String toNepaliNumerals({int decimalPlaces = 2}) =>
+      NepaliDateUtils.formatNumberWithNepaliNumerals(this,
+          decimalPlaces: decimalPlaces);
 }
 
 /// Nepali Date Picker Theme
@@ -344,29 +328,29 @@ class NepaliDatePickerTheme {
   static const Color textColor = Color(0xFF1F2937);
   static const Color accentColor = Color(0xFF34D399);
   static const Color errorColor = Color(0xFFD63031);
-  
+
   static const TextStyle titleStyle = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
     color: textColor,
   );
-  
+
   static const TextStyle subtitleStyle = TextStyle(
     fontSize: 14,
     color: Color(0xFF6B7280),
   );
-  
+
   static const TextStyle dayStyle = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w500,
   );
-  
+
   static const TextStyle selectedDayStyle = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.bold,
     color: Colors.white,
   );
-  
+
   static const TextStyle todayStyle = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.bold,

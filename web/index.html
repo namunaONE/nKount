@@ -6,7 +6,8 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="nKount - Simple, modern, IRD-compliant accounting software for Nepali businesses">
-  <meta name="theme-color" content="#8B5CF6">
+  <meta name="theme-color" content="#6C5CE7">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="nKount">
@@ -16,27 +17,8 @@
   <link rel="icon" type="image/svg+xml" href="assets/images/logo.svg">
 
   <title>nKount - Nepali Accounting Software</title>
-
-  <script>
-    // The value below is injected by flutter build, do not touch.
-    const serviceWorkerVersion = null;
-  </script>
 </head>
 <body>
-  <script src="flutter.js" defer></script>
-  <script>
-    window.addEventListener('load', function (ev) {
-      _flutter.loader.loadEntrypoint({
-        serviceWorker: {
-          serviceWorkerVersion: serviceWorkerVersion,
-        },
-        onEntrypointLoaded: function (engineInitializer) {
-          engineInitializer.initializeEngine().then(function (appRunner) {
-            appRunner.runApp();
-          });
-        }
-      });
-    });
-  </script>
+  <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

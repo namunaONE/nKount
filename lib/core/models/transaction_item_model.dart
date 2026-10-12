@@ -10,9 +10,9 @@ part 'transaction_item_model.g.dart';
 @HiveType(typeId: 3, adapterName: 'TransactionItemModelAdapter')
 class TransactionItemModel with _$TransactionItemModel {
   const factory TransactionItemModel({
-    @HiveField(0) @Default('') String id,
     @HiveField(1) required String productId,
     @HiveField(2) required String productName,
+    @HiveField(0) @Default('') String id,
     @HiveField(3) @Default(0.0) double quantity,
     @HiveField(4) @Default(0.0) double unitPrice,
     @HiveField(5) @Default(0.0) double discount,
@@ -42,7 +42,8 @@ class TransactionItemModel with _$TransactionItemModel {
   }) {
     final calculatedDiscount = discount ?? 0.0;
     final calculatedTax = tax ?? 0.0;
-    final calculatedAmount = (unitPrice * quantity) - calculatedDiscount + calculatedTax;
+    final calculatedAmount =
+        (unitPrice * quantity) - calculatedDiscount + calculatedTax;
 
     return TransactionItemModel(
       id: const Uuid().v4(),

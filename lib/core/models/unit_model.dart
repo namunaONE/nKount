@@ -10,9 +10,9 @@ part 'unit_model.g.dart';
 @HiveType(typeId: 9, adapterName: 'UnitModelAdapter')
 class UnitModel with _$UnitModel {
   const factory UnitModel({
-    @HiveField(0) @Default('') String id,
     @HiveField(1) required String name,
     @HiveField(2) required String code,
+    @HiveField(0) @Default('') String id,
     @HiveField(3) String? description,
     @HiveField(4) @Default(1.0) double baseUnitMultiplier,
     @HiveField(5) @Default('') String baseUnitId,
@@ -38,42 +38,40 @@ class UnitModel with _$UnitModel {
     bool isActive = true,
     bool isBaseUnit = false,
     int? sortOrder,
-  }) {
-    return UnitModel(
-      id: const Uuid().v4(),
-      name: name,
-      code: code.toUpperCase(),
-      description: description,
-      baseUnitMultiplier: baseUnitMultiplier,
-      baseUnitId: baseUnitId,
-      isActive: isActive,
-      isBaseUnit: isBaseUnit,
-      sortOrder: sortOrder ?? 0,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-  }
+  }) =>
+      UnitModel(
+        id: const Uuid().v4(),
+        name: name,
+        code: code.toUpperCase(),
+        description: description,
+        baseUnitMultiplier: baseUnitMultiplier,
+        baseUnitId: baseUnitId ?? '',
+        isActive: isActive,
+        isBaseUnit: isBaseUnit,
+        sortOrder: sortOrder ?? 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
   /// Create base unit
   factory UnitModel.createBaseUnit({
     required String name,
     required String code,
     String? description,
-  }) {
-    return UnitModel(
-      id: const Uuid().v4(),
-      name: name,
-      code: code.toUpperCase(),
-      description: description,
-      baseUnitMultiplier: 1.0,
-      baseUnitId: '',
-      isActive: true,
-      isBaseUnit: true,
-      sortOrder: 0,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-  }
+  }) =>
+      UnitModel(
+        id: const Uuid().v4(),
+        name: name,
+        code: code.toUpperCase(),
+        description: description,
+        baseUnitMultiplier: 1.0,
+        baseUnitId: '',
+        isActive: true,
+        isBaseUnit: true,
+        sortOrder: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
   /// Check if unit can be converted to another unit
   bool canConvertTo(UnitModel other) {
@@ -88,6 +86,7 @@ class UnitModel with _$UnitModel {
   String get displayName => '$name ($code)';
 
   /// Get full display name
-  String get fullDisplayName => 
-    isBaseUnit ? displayName : '$displayName = ${baseUnitMultiplier}x $baseUnitId';
+  String get fullDisplayName => isBaseUnit
+      ? displayName
+      : '$displayName = ${baseUnitMultiplier}x $baseUnitId';
 }

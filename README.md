@@ -67,7 +67,7 @@ cd nKount
 flutter pub get
 
 # Generate code (Freezed, JSON, Riverpod)
-flutter pub run build_runner build
+dart run build_runner build
 
 # Run web app
 flutter run -d chrome
@@ -212,7 +212,7 @@ cd nKount
 flutter pub get
 
 # Generate code (required for models)
-flutter pub run build_runner build
+dart run build_runner build
 
 # Run the app
 flutter run
@@ -223,7 +223,7 @@ flutter run
 Whenever you modify models in `lib/core/models/`, run:
 
 ```bash
-flutter pub run build_runner build --delete-conflicting-outputs
+dart run build_runner build --delete-conflicting-outputs
 ```
 
 This generates:
@@ -237,28 +237,19 @@ This generates:
 
 ### GitHub Pages (Recommended)
 
-1. **Build the app:**
-   ```bash
-   flutter build web --release
-   ```
+Deploys automatically via `.github/workflows/deploy.yml` on every push to
+`main` (branchless artifact deployment — no `gh-pages` branch).
 
-2. **Push to `gh-pages` branch:**
-   ```bash
-   cd build/web
-   git init
-   git add .
-   git commit -m "Deploy nKount"
-   git remote add origin https://github.com/namunaONE/nKount.git
-   git push -u origin HEAD:gh-pages --force
-   ```
-
-3. **Enable GitHub Pages:**
+1. **Enable Pages once:**
    - Go to **Settings > Pages**
-   - Select **gh-pages** branch
-   - Select **/ (root)** folder
+   - Select **Source: GitHub Actions**
    - Save
 
-4. **Access your app:**
+2. **Deploy:** push to `main`. The workflow runs `flutter pub get`,
+   `dart run build_runner build --delete-conflicting-outputs`, and
+   `flutter build web --release --base-href /nKount/`.
+
+3. **Access your app:**
    - `https://namunaone.github.io/nKount/`
 
 ### Netlify / Vercel / Firebase

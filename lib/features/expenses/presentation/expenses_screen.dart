@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nkount/core/constants/app_constants.dart';
-import 'package:nkount/core/database/hive_service.dart';
-import 'package:nkount/core/models/transaction_model.dart';
-import 'package:nkount/packages/design-system/design_system.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/database/hive_service.dart';
+import '../../../core/models/transaction_model.dart';
+import '../../../packages/design-system/design_system.dart';
 
 /// Expenses Screen with Claymorphism Design
 class ExpensesScreen extends ConsumerWidget {
@@ -13,7 +13,7 @@ class ExpensesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final expenses = ref.watch(expensesProvider);
-    
+
     return ClayScaffold(
       appBar: ClayAppBar(
         title: const Text('Expenses'),
@@ -47,14 +47,27 @@ class ExpensesScreen extends ConsumerWidget {
       bottomNavigationBar: ClayBottomNavigation(
         currentIndex: 3,
         items: const [
-          ClayBottomNavItem(icon: Icons.dashboard, label: 'Dashboard', route: '/'),
-          ClayBottomNavItem(icon: Icons.people, label: 'Contacts', route: '/contacts'),
-          ClayBottomNavItem(icon: Icons.inventory, label: 'Products', route: '/products'),
-          ClayBottomNavItem(icon: Icons.receipt, label: 'Transactions', route: '/transactions'),
-          ClayBottomNavItem(icon: Icons.payment, label: 'Payments', route: '/payments'),
+          ClayBottomNavItem(
+              icon: Icons.dashboard, label: 'Dashboard', route: '/'),
+          ClayBottomNavItem(
+              icon: Icons.people, label: 'Contacts', route: '/contacts'),
+          ClayBottomNavItem(
+              icon: Icons.inventory, label: 'Products', route: '/products'),
+          ClayBottomNavItem(
+              icon: Icons.receipt,
+              label: 'Transactions',
+              route: '/transactions'),
+          ClayBottomNavItem(
+              icon: Icons.payment, label: 'Payments', route: '/payments'),
         ],
         onTap: (index) {
-          final routes = ['/', '/contacts', '/products', '/transactions', '/payments'];
+          final routes = [
+            '/',
+            '/contacts',
+            '/products',
+            '/transactions',
+            '/payments'
+          ];
           if (index < routes.length) {
             context.go(routes[index]);
           }
@@ -68,7 +81,8 @@ class ExpensesScreen extends ConsumerWidget {
       context: context,
       builder: (context) => ClayDialog(
         title: const Text('Search Expenses'),
-        content: const ClaySearchInput(hintText: 'Search by description, category, or amount'),
+        content: const ClaySearchInput(
+            hintText: 'Search by description, category, or amount'),
         actions: [
           ClayButton.text(
             onPressed: () => Navigator.pop(context),
@@ -136,9 +150,9 @@ class ExpensesScreen extends ConsumerWidget {
   void _showAddExpenseDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => ClayFormDialog(
-        title: const Text('Add New Expense'),
-        child: const _AddExpenseForm(),
+      builder: (context) => const ClayFormDialog(
+        title: Text('Add New Expense'),
+        child: _AddExpenseForm(),
       ),
     );
   }
@@ -149,109 +163,124 @@ class _EmptyExpensesState extends StatelessWidget {
   const _EmptyExpensesState();
 
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.money_off_outlined,
-            size: 80,
-            color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'No Expenses Found',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
+  Widget build(BuildContext context) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.money_off_outlined,
+              size: 80,
+              color: Colors.grey.shade400,
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Add your first expense to get started',
-            style: TextStyle(color: Colors.grey),
-          ),
-          const SizedBox(height: 24),
-          ClayButton(
-            onPressed: () => context.push('/expenses'),
-            child: const Text('Add Expense'),
-          ),
-        ],
-      ),
-    );
-  }
+            const SizedBox(height: 24),
+            const Text(
+              'No Expenses Found',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Add your first expense to get started',
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            ClayButton(
+              onPressed: () => context.push('/expenses'),
+              child: const Text('Add Expense'),
+            ),
+          ],
+        ),
+      );
 }
 
 /// Expenses List
 class _ExpensesList extends ConsumerWidget {
+  const _ExpensesList({required this.expenses});
   final List<TransactionModel> expenses;
 
-  const _ExpensesList({required this.expenses});
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ListView.builder(
-      itemCount: expenses.length,
-      itemBuilder: (context, index) {
-        final expense = expenses[index];
-        return _ExpenseItem(expense: expense);
-      },
-    );
-  }
+  Widget build(BuildContext context, WidgetRef ref) => ListView.builder(
+        itemCount: expenses.length,
+        itemBuilder: (context, index) {
+          final expense = expenses[index];
+          return _ExpenseItem(expense: expense);
+        },
+      );
 }
 
 /// Expense Item
 class _ExpenseItem extends StatelessWidget {
+  const _ExpenseItem({required this.expense});
   final TransactionModel expense;
 
-  const _ExpenseItem({required this.expense});
-
   @override
-  Widget build(BuildContext context) {
-    return ClayCard(
-      onTap: () => _showExpenseDetailDialog(context, expense),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: ClayColors.error.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+  Widget build(BuildContext context) => ClayCard(
+        onTap: () => _showExpenseDetailDialog(context, expense),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: ClayColors.error.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.money_off,
+                color: ClayColors.error,
+                size: 24,
+              ),
             ),
-            child: const Icon(
-              Icons.money_off,
-              color: ClayColors.error,
-              size: 24,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    expense.invoiceNumber ?? 'N/A',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    expense.notes ?? 'No description',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _getCategoryLabel(expense),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  expense.invoiceNumber ?? 'N/A',
+                  '${AppConstants.CURRENCY} ${expense.total.toStringAsFixed(2)}',
                   style: const TextStyle(
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    color: ClayColors.error,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  expense.notes ?? 'No description',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _getCategoryLabel(expense),
+                  _formatDate(expense.date),
                   style: TextStyle(
                     fontSize: 11,
                     color: Colors.grey.shade500,
@@ -259,52 +288,34 @@ class _ExpenseItem extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${AppConstants.CURRENCY} ${expense.total.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: ClayColors.error,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                _formatDate(expense.date),
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey.shade500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 
   String _getCategoryLabel(TransactionModel expense) {
     // Extract category from notes or items
-    if (expense.notes != null && expense.notes!.isNotEmpty) {
-      final lowerNotes = expense.notes!.toLowerCase();
-      if (lowerNotes.contains('rent')) return 'Rent';
-      if (lowerNotes.contains('salary')) return 'Salary';
-      if (lowerNotes.contains('electricity') || lowerNotes.contains('electric')) return 'Electricity';
-      if (lowerNotes.contains('water')) return 'Water';
-      if (lowerNotes.contains('internet') || lowerNotes.contains('wifi')) return 'Internet';
-      if (lowerNotes.contains('phone') || lowerNotes.contains('mobile')) return 'Phone';
-      if (lowerNotes.contains('transport') || lowerNotes.contains('fuel')) return 'Transport';
-      if (lowerNotes.contains('food') || lowerNotes.contains('meal')) return 'Food';
-      if (lowerNotes.contains('stationery') || lowerNotes.contains('office')) return 'Office';
-      if (lowerNotes.contains('travel')) return 'Travel';
-      if (lowerNotes.contains('maintenance')) return 'Maintenance';
-      if (lowerNotes.contains('insurance')) return 'Insurance';
-      if (lowerNotes.contains('tax')) return 'Tax';
-      if (lowerNotes.contains('bank') || lowerNotes.contains('interest')) return 'Bank Charges';
-      if (lowerNotes.contains('advertising') || lowerNotes.contains('marketing')) return 'Marketing';
+    final notes = expense.notes;
+    if (notes == null || notes.isEmpty) return 'General';
+    final lowerNotes = notes.toLowerCase();
+    const table = [
+      (['rent'], 'Rent'),
+      (['salary'], 'Salary'),
+      (['electricity', 'electric'], 'Electricity'),
+      (['water'], 'Water'),
+      (['internet', 'wifi'], 'Internet'),
+      (['phone', 'mobile'], 'Phone'),
+      (['transport', 'fuel'], 'Transport'),
+      (['food', 'meal'], 'Food'),
+      (['stationery', 'office'], 'Office'),
+      (['travel'], 'Travel'),
+      (['maintenance'], 'Maintenance'),
+      (['insurance'], 'Insurance'),
+      (['tax'], 'Tax'),
+      (['bank', 'interest'], 'Bank Charges'),
+      (['advertising', 'marketing'], 'Marketing'),
+    ];
+    for (final entry in table) {
+      if (entry.$1.any(lowerNotes.contains)) return entry.$2;
     }
     return 'General';
   }
@@ -314,7 +325,8 @@ class _ExpenseItem extends StatelessWidget {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  void _showExpenseDetailDialog(BuildContext context, TransactionModel expense) {
+  void _showExpenseDetailDialog(
+      BuildContext context, TransactionModel expense) {
     showDialog(
       context: context,
       builder: (context) => ClayDialog(
@@ -344,7 +356,8 @@ class _ExpenseItem extends StatelessWidget {
               _ExpenseDetailRow(
                 icon: Icons.money,
                 label: 'Amount',
-                value: '${AppConstants.CURRENCY} ${expense.total.toStringAsFixed(2)}',
+                value:
+                    '${AppConstants.CURRENCY} ${expense.total.toStringAsFixed(2)}',
               ),
               const Divider(),
               _ExpenseDetailRow(
@@ -356,7 +369,8 @@ class _ExpenseItem extends StatelessWidget {
               _ExpenseDetailRow(
                 icon: Icons.money,
                 label: 'VAT Amount',
-                value: '${AppConstants.CURRENCY} ${expense.tax.toStringAsFixed(2)}',
+                value:
+                    '${AppConstants.CURRENCY} ${expense.tax.toStringAsFixed(2)}',
               ),
               const Divider(),
               _ExpenseDetailRow(
@@ -397,7 +411,7 @@ class _ExpenseItem extends StatelessWidget {
           ClayButton(
             onPressed: () {},
             style: ClayButtonStyle(
-              backgroundColor: ClayColors.error.withOpacity(0.1),
+              backgroundColor: ClayColors.error.withValues(alpha: 0.1),
               foregroundColor: ClayColors.error,
             ),
             child: const Text('Delete'),
@@ -410,43 +424,40 @@ class _ExpenseItem extends StatelessWidget {
 
 /// Expense Detail Row
 class _ExpenseDetailRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
   const _ExpenseDetailRow({
     required this.icon,
     required this.label,
     required this.value,
   });
+  final IconData icon;
+  final String label;
+  final String value;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Colors.grey),
-          const SizedBox(width: 16),
-          Text(
-            label,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-              color: Colors.grey,
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: Colors.grey),
+            const SizedBox(width: 16),
+            Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                color: Colors.grey,
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          const Text(': '),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w500),
+            const SizedBox(width: 8),
+            const Text(': '),
+            Expanded(
+              child: Text(
+                value,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 }
 
 /// Add Expense Form
@@ -492,106 +503,121 @@ class _AddExpenseFormState extends ConsumerState<_AddExpenseForm> {
   ];
 
   @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            ClayInputWithLabel(
-              label: 'Expense Number',
-              hintText: 'Expense reference number',
-              value: _invoiceNumber,
-              onChanged: (value) => _invoiceNumber = value,
-            ),
-            const SizedBox(height: 16),
-            ClayDateInput(
-              label: 'Date',
-              value: _date,
-              onChanged: (value) => _date = value,
-            ),
-            const SizedBox(height: 16),
-            ClayInputWithLabel(
-              label: 'Contact / Vendor (Optional)',
-              hintText: 'Contact ID or name',
-              value: _contactId,
-              onChanged: (value) => _contactId = value,
-            ),
-            const SizedBox(height: 16),
-            ClayCurrencyInput(
-              label: 'Amount *',
-              hintText: 'Expense amount',
-              value: _amount,
-              onChanged: (value) => _amount = value,
-              validator: (value) => value == null || value <= 0 ? 'Amount is required' : null,
-            ),
-            const SizedBox(height: 16),
-            ClayDropdownInput<String>(
-              label: 'Category *',
-              value: _category,
-              items: _categories.map((category) => DropdownMenuItem(
-                value: category,
-                child: Text(category),
-              )).toList(),
-              onChanged: (value) => setState(() => _category = value!),
-              validator: (value) => value == null ? 'Category is required' : null,
-            ),
-            const SizedBox(height: 16),
-            ClayDropdownInput<String>(
-              label: 'Payment Method',
-              value: _paymentMethod,
-              items: const [
-                DropdownMenuItem(value: AppConstants.PAYMENT_CASH, child: Text('Cash')),
-                DropdownMenuItem(value: AppConstants.PAYMENT_BANK, child: Text('Bank Transfer')),
-                DropdownMenuItem(value: AppConstants.PAYMENT_CHEQUE, child: Text('Cheque')),
-                DropdownMenuItem(value: AppConstants.PAYMENT_ONLINE, child: Text('Online Payment')),
-                DropdownMenuItem(value: AppConstants.PAYMENT_CREDIT, child: Text('Credit Card')),
-              ],
-              onChanged: (value) => setState(() => _paymentMethod = value!),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ClayInputWithLabel(
-                    label: 'VAT Rate %',
-                    hintText: 'VAT rate',
-                    value: _vatRate.toString(),
-                    onChanged: (value) => _vatRate = double.tryParse(value) ?? 13.0,
-                    keyboardType: TextInputType.number,
+  Widget build(BuildContext context) => Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              ClayInputWithLabel(
+                label: 'Expense Number',
+                hintText: 'Expense reference number',
+                value: _invoiceNumber,
+                onChanged: (value) => _invoiceNumber = value,
+              ),
+              const SizedBox(height: 16),
+              ClayDateInput(
+                label: 'Date',
+                value: _date,
+                onChanged: (value) => _date = value,
+              ),
+              const SizedBox(height: 16),
+              ClayInputWithLabel(
+                label: 'Contact / Vendor (Optional)',
+                hintText: 'Contact ID or name',
+                value: _contactId,
+                onChanged: (value) => _contactId = value,
+              ),
+              const SizedBox(height: 16),
+              ClayCurrencyInput(
+                label: 'Amount *',
+                hintText: 'Expense amount',
+                value: _amount,
+                onChanged: (value) => _amount = value ?? 0,
+                validator: (value) =>
+                    value == null || value <= 0 ? 'Amount is required' : null,
+              ),
+              const SizedBox(height: 16),
+              ClayDropdownInput<String>(
+                label: 'Category *',
+                value: _category,
+                items: _categories
+                    .map((category) => DropdownMenuItem(
+                          value: category,
+                          child: Text(category),
+                        ))
+                    .toList(),
+                onChanged: (value) => setState(() => _category = value!),
+                validator: (value) =>
+                    value == null ? 'Category is required' : null,
+              ),
+              const SizedBox(height: 16),
+              ClayDropdownInput<String>(
+                label: 'Payment Method',
+                value: _paymentMethod,
+                items: const [
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_CASH, child: Text('Cash')),
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_BANK,
+                      child: Text('Bank Transfer')),
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_CHEQUE,
+                      child: Text('Cheque')),
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_ONLINE,
+                      child: Text('Online Payment')),
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_CREDIT,
+                      child: Text('Credit Card')),
+                ],
+                onChanged: (value) => setState(() => _paymentMethod = value!),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ClayInputWithLabel(
+                      label: 'VAT Rate %',
+                      hintText: 'VAT rate',
+                      value: _vatRate.toString(),
+                      onChanged: (value) =>
+                          _vatRate = double.tryParse(value) ?? 13.0,
+                      keyboardType: TextInputType.number,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ClaySwitchInput(
-                    label: 'VAT Included',
-                    value: _isVatIncluded,
-                    onChanged: (value) => setState(() => _isVatIncluded = value),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ClaySwitchInput(
+                      label: 'VAT Included',
+                      value: _isVatIncluded,
+                      onChanged: (value) =>
+                          setState(() => _isVatIncluded = value),
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ClayInputWithLabel(
-              label: 'Reference Number',
-              hintText: 'Cheque number, transaction ID, etc.',
-              value: _referenceNumber,
-              onChanged: (value) => _referenceNumber = value,
-            ),
-            const SizedBox(height: 16),
-            ClayInputWithLabel(
-              label: 'Description',
-              hintText: 'Expense description',
-              value: _description,
-              onChanged: (value) => _description = value,
-              maxLines: 3,
-              validator: (value) => value?.isEmpty == true ? 'Description is recommended' : null,
-            ),
-          ],
+                ],
+              ),
+              const SizedBox(height: 16),
+              ClayInputWithLabel(
+                label: 'Reference Number',
+                hintText: 'Cheque number, transaction ID, etc.',
+                value: _referenceNumber,
+                onChanged: (value) => _referenceNumber = value,
+              ),
+              const SizedBox(height: 16),
+              ClayInputWithLabel(
+                label: 'Description',
+                hintText: 'Expense description',
+                value: _description,
+                onChanged: (value) => _description = value,
+                maxLines: 3,
+                validator: (value) => value?.isEmpty ?? false
+                    ? 'Description is recommended'
+                    : null,
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 }
 
 /// Provider for expenses
@@ -601,9 +627,4 @@ final expensesProvider = FutureProvider<List<TransactionModel>>((ref) async {
   return allTransactions
       .where((t) => t.type == AppConstants.TRANSACTION_EXPENSE)
       .toList();
-});
-
-/// Provider for HiveService
-final hiveServiceProvider = Provider<HiveService>((ref) {
-  return hiveService;
 });

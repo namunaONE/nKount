@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nkount/core/constants/app_constants.dart';
-import 'package:nkount/core/database/database_initializer.dart';
-import 'package:nkount/packages/design-system/design_system.dart';
-import 'package:nkount/features/dashboard/presentation/dashboard_screen.dart';
-import 'package:nkount/features/contacts/presentation/contacts_screen.dart';
-import 'package:nkount/features/products/presentation/products_screen.dart';
-import 'package:nkount/features/transactions/presentation/transactions_screen.dart';
-import 'package:nkount/features/payments/presentation/payments_screen.dart';
-import 'package:nkount/features/reports/presentation/reports_screen.dart';
-import 'package:nkount/features/settings/presentation/settings_screen.dart';
+import '../../core/constants/app_constants.dart';
+import '../../core/database/database_initializer.dart';
+import '../../packages/design-system/design_system.dart';
+import '../dashboard/presentation/dashboard_screen.dart';
+import '../contacts/presentation/contacts_screen.dart';
+import '../products/presentation/products_screen.dart';
+import '../transactions/presentation/transactions_screen.dart';
+import '../payments/presentation/payments_screen.dart';
+import '../reports/presentation/reports_screen.dart';
+import '../settings/presentation/settings_screen.dart';
 
 /// App Router Configuration
 final _router = GoRouter(
@@ -57,45 +57,37 @@ class NKountApp extends ConsumerWidget {
   const NKountApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Watch database initialization status
-    final dbStatus = ref.watch(databaseInitializerProvider);
-    
-    return MaterialApp.router(
-      title: AppConstants.appName,
-      debugShowCheckedModeBanner: false,
-      
-      // Apply Claymorphism theme
-      theme: ClayTheme.lightTheme,
-      darkTheme: ClayTheme.darkTheme,
-      themeMode: ThemeMode.light,
-      
-      // Localization
-      locale: const Locale('en', 'NP'),
-      supportedLocales: const [
-        Locale('en', 'NP'),
-        Locale('ne', 'NP'),
-      ],
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      
-      // Router
-      routerConfig: _router,
-      
-      // Builder with Claymorphism background
-      builder: (context, child) {
-        return ClayThemeBuilder(
+  Widget build(BuildContext context, WidgetRef ref) => MaterialApp.router(
+        title: AppConstants.appName,
+        debugShowCheckedModeBanner: false,
+
+        // Apply Claymorphism theme
+        theme: ClayTheme.lightTheme,
+        darkTheme: ClayTheme.darkTheme,
+        themeMode: ThemeMode.light,
+
+        // Localization
+        locale: const Locale('en', 'NP'),
+        supportedLocales: const [
+          Locale('en', 'NP'),
+          Locale('ne', 'NP'),
+        ],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+
+        // Router
+        routerConfig: _router,
+
+        // Builder with Claymorphism background
+        builder: (context, child) => ClayThemeBuilder(
           child: child ?? const SizedBox(),
-        );
-      },
-    );
-  }
+        ),
+      );
 }
 
 /// Provider for database initializer status
-final databaseInitializerProvider = Provider<DatabaseInitializer>((ref) {
-  return databaseInitializer;
-});
+final databaseInitializerProvider =
+    Provider<DatabaseInitializer>((ref) => databaseInitializer);

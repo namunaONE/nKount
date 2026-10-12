@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hive/hive.dart';
-import 'package:nkount/core/constants/app_constants.dart';
+import '../constants/app_constants.dart';
 import 'package:uuid/uuid.dart';
 
 part 'contact_model.freezed.dart';
@@ -11,8 +11,8 @@ part 'contact_model.g.dart';
 @HiveType(typeId: 1, adapterName: 'ContactModelAdapter')
 class ContactModel with _$ContactModel {
   const factory ContactModel({
-    @HiveField(0) @Default('') String id,
     @HiveField(1) required String name,
+    @HiveField(0) @Default('') String id,
     @HiveField(2) String? phone,
     @HiveField(3) String? mobile,
     @HiveField(4) String? email,
@@ -54,45 +54,42 @@ class ContactModel with _$ContactModel {
     double? openingBalance,
     bool isActive = true,
     String? remarks,
-  }) {
-    return ContactModel(
-      id: const Uuid().v4(),
-      name: name,
-      phone: phone,
-      mobile: mobile,
-      email: email,
-      address: address,
-      city: city,
-      district: district,
-      vatNumber: vatNumber,
-      panNumber: panNumber,
-      type: type,
-      openingBalance: openingBalance,
-      isActive: isActive,
-      remarks: remarks,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-  }
+  }) =>
+      ContactModel(
+        id: const Uuid().v4(),
+        name: name,
+        phone: phone,
+        mobile: mobile,
+        email: email,
+        address: address,
+        city: city,
+        district: district,
+        vatNumber: vatNumber,
+        panNumber: panNumber,
+        type: type,
+        openingBalance: openingBalance,
+        isActive: isActive,
+        remarks: remarks,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
   /// Update contact balance
-  ContactModel copyWithUpdatedBalance(double newBalance) {
-    return copyWith(
-      balance: newBalance,
-      updatedAt: DateTime.now(),
-    );
-  }
+  ContactModel copyWithUpdatedBalance(double newBalance) => copyWith(
+        balance: newBalance,
+        updatedAt: DateTime.now(),
+      );
 
   /// Update contact with new transaction
   ContactModel copyWithTransaction({
     required String transactionType,
     required double amount,
   }) {
-    double newBalance = balance;
-    double newTotalPurchases = totalPurchases ?? 0;
-    double newTotalSales = totalSales ?? 0;
-    double newTotalPayments = totalPayments ?? 0;
-    double newTotalReceipts = totalReceipts ?? 0;
+    var newBalance = balance;
+    var newTotalPurchases = totalPurchases;
+    var newTotalSales = totalSales;
+    var newTotalPayments = totalPayments;
+    var newTotalReceipts = totalReceipts;
 
     if (transactionType == AppConstants.TRANSACTION_PURCHASE) {
       newTotalPurchases += amount;
@@ -136,7 +133,7 @@ class ContactModel with _$ContactModel {
   }
 
   /// Get primary contact number
-  String? get primaryPhone => mobile?.isNotEmpty == true ? mobile : phone;
+  String? get primaryPhone => mobile?.isNotEmpty ?? false ? mobile : phone;
 
   /// Get full address
   String get fullAddress {

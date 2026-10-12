@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hive/hive.dart';
-import 'package:nkount/core/constants/app_constants.dart';
+import '../constants/app_constants.dart';
 import 'package:uuid/uuid.dart';
 
 part 'transaction_model.freezed.dart';
@@ -11,10 +11,10 @@ part 'transaction_model.g.dart';
 @HiveType(typeId: 3, adapterName: 'TransactionModelAdapter')
 class TransactionModel with _$TransactionModel {
   const factory TransactionModel({
-    @HiveField(0) @Default('') String id,
     @HiveField(1) required String type,
-    @HiveField(2) String? invoiceNumber,
     @HiveField(3) required String contactId,
+    @HiveField(0) @Default('') String id,
+    @HiveField(2) String? invoiceNumber,
     @HiveField(4) List<TransactionItem>? items,
     @HiveField(5) @Default(0.0) double subtotal,
     @HiveField(6) @Default(0.0) double discount,
@@ -22,7 +22,9 @@ class TransactionModel with _$TransactionModel {
     @HiveField(8) @Default(0.0) double total,
     @HiveField(9) @Default(0.0) double paidAmount,
     @HiveField(10) @Default(0.0) double dueAmount,
-    @HiveField(11) @Default(AppConstants.PAYMENT_STATUS_PENDING) String paymentStatus,
+    @HiveField(11)
+    @Default(AppConstants.PAYMENT_STATUS_PENDING)
+    String paymentStatus,
     @HiveField(12) String? paymentMethod,
     @HiveField(13) String? referenceNumber,
     @HiveField(14) DateTime? date,
@@ -47,8 +49,8 @@ class TransactionModel with _$TransactionModel {
   /// Create a new transaction
   factory TransactionModel.create({
     required String type,
-    String? invoiceNumber,
     required String contactId,
+    String? invoiceNumber,
     List<TransactionItem>? items,
     double? subtotal,
     double? discount,
@@ -67,10 +69,15 @@ class TransactionModel with _$TransactionModel {
   }) {
     final now = DateTime.now();
     final calculatedItems = items ?? [];
-    final calculatedSubtotal = subtotal ?? calculatedItems.fold(0.0, (sum, item) => sum + item.amount);
+    final calculatedSubtotal = subtotal ??
+        calculatedItems.fold<double>(0.0, (sum, item) => sum + item.amount);
     final calculatedDiscount = discount ?? 0.0;
-    final calculatedTax = tax ?? (isVatIncluded ? (calculatedSubtotal - calculatedDiscount) * vatRate / 100 : 0.0);
-    final calculatedTotal = total ?? (calculatedSubtotal - calculatedDiscount + calculatedTax);
+    final calculatedTax = tax ??
+        (isVatIncluded
+            ? (calculatedSubtotal - calculatedDiscount) * vatRate / 100
+            : 0.0);
+    final calculatedTotal =
+        total ?? (calculatedSubtotal - calculatedDiscount + calculatedTax);
     final calculatedPaid = paidAmount ?? 0.0;
     final calculatedDue = calculatedTotal - calculatedPaid;
 
@@ -86,7 +93,8 @@ class TransactionModel with _$TransactionModel {
       total: calculatedTotal,
       paidAmount: calculatedPaid,
       dueAmount: calculatedDue,
-      paymentStatus: calculatedDue <= 0 ? AppConstants.PAYMENT_STATUS_PAID : paymentStatus,
+      paymentStatus:
+          calculatedDue <= 0 ? AppConstants.PAYMENT_STATUS_PAID : paymentStatus,
       paymentMethod: paymentMethod,
       referenceNumber: referenceNumber,
       date: date ?? now,
@@ -103,7 +111,8 @@ class TransactionModel with _$TransactionModel {
   /// Generate invoice number
   static String _generateInvoiceNumber(String type) {
     final prefix = type == AppConstants.TRANSACTION_PURCHASE ? 'PUR' : 'INV';
-    final timestamp = DateTime.now().millisecondsSinceEpoch.toString().substring(4);
+    final timestamp =
+        DateTime.now().millisecondsSinceEpoch.toString().substring(4);
     return '$prefix-$timestamp';
   }
 
@@ -115,9 +124,9 @@ class TransactionModel with _$TransactionModel {
   }) {
     final newPaid = paidAmount + amount;
     final newDue = total - newPaid;
-    final newStatus = newDue <= 0 
+    final newStatus = newDue <= 0
         ? AppConstants.PAYMENT_STATUS_PAID
-        : (newDue < total 
+        : (newDue < total
             ? AppConstants.PAYMENT_STATUS_PARTIAL
             : AppConstants.PAYMENT_STATUS_PENDING);
 
@@ -132,22 +141,22 @@ class TransactionModel with _$TransactionModel {
   }
 
   /// Cancel transaction
-  TransactionModel copyWithCancellation(String reason) {
-    return copyWith(
-      isCancelled: true,
-      cancellationReason: reason,
-      updatedAt: DateTime.now(),
-    );
-  }
+  TransactionModel copyWithCancellation(String reason) => copyWith(
+        isCancelled: true,
+        cancellationReason: reason,
+        updatedAt: DateTime.now(),
+      );
 
   /// Check if transaction is overdue
-  bool get isOverdue => dueDate != null && dueDate!.isBefore(DateTime.now()) && dueAmount > 0;
+  bool get isOverdue =>
+      dueDate != null && dueDate!.isBefore(DateTime.now()) && dueAmount > 0;
 
   /// Check if transaction is fully paid
   bool get isFullyPaid => paymentStatus == AppConstants.PAYMENT_STATUS_PAID;
 
   /// Check if transaction is partially paid
-  bool get isPartiallyPaid => paymentStatus == AppConstants.PAYMENT_STATUS_PARTIAL;
+  bool get isPartiallyPaid =>
+      paymentStatus == AppConstants.PAYMENT_STATUS_PARTIAL;
 
   /// Check if transaction is pending
   bool get isPending => paymentStatus == AppConstants.PAYMENT_STATUS_PENDING;
@@ -174,9 +183,9 @@ class TransactionModel with _$TransactionModel {
 @HiveType(typeId: 4, adapterName: 'TransactionItemAdapter')
 class TransactionItem with _$TransactionItem {
   const factory TransactionItem({
-    @HiveField(0) @Default('') String id,
     @HiveField(1) required String productId,
     @HiveField(2) required String productName,
+    @HiveField(0) @Default('') String id,
     @HiveField(3) @Default(0.0) double quantity,
     @HiveField(4) @Default(0.0) double unitPrice,
     @HiveField(5) @Default(0.0) double discount,
@@ -204,7 +213,8 @@ class TransactionItem with _$TransactionItem {
   }) {
     final calculatedDiscount = discount ?? 0.0;
     final calculatedTax = tax ?? 0.0;
-    final calculatedAmount = (unitPrice * quantity) - calculatedDiscount + calculatedTax;
+    final calculatedAmount =
+        (unitPrice * quantity) - calculatedDiscount + calculatedTax;
 
     return TransactionItem(
       id: const Uuid().v4(),

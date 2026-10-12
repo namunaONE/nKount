@@ -10,10 +10,10 @@ part 'audit_log_model.g.dart';
 @HiveType(typeId: 13, adapterName: 'AuditLogModelAdapter')
 class AuditLogModel with _$AuditLogModel {
   const factory AuditLogModel({
-    @HiveField(0) @Default('') String id,
     @HiveField(1) required String entityType,
     @HiveField(2) required String entityId,
     @HiveField(3) required String action,
+    @HiveField(0) @Default('') String id,
     @HiveField(4) Map<String, dynamic>? oldValues,
     @HiveField(5) Map<String, dynamic>? newValues,
     @HiveField(6) String? description,
@@ -49,45 +49,42 @@ class AuditLogModel with _$AuditLogModel {
     String? ipAddress,
     String? userAgent,
     bool isSystemAction = false,
-  }) {
-    return AuditLogModel(
-      id: const Uuid().v4(),
-      entityType: entityType,
-      entityId: entityId,
-      action: action,
-      oldValues: oldValues,
-      newValues: newValues,
-      description: description,
-      companyId: companyId,
-      userId: userId,
-      userName: userName,
-      ipAddress: ipAddress,
-      userAgent: userAgent,
-      isSystemAction: isSystemAction,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-  }
+  }) =>
+      AuditLogModel(
+        id: const Uuid().v4(),
+        entityType: entityType,
+        entityId: entityId,
+        action: action,
+        oldValues: oldValues,
+        newValues: newValues,
+        description: description,
+        companyId: companyId,
+        userId: userId,
+        userName: userName,
+        ipAddress: ipAddress,
+        userAgent: userAgent,
+        isSystemAction: isSystemAction,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
   /// Reverse an audit log (for undo operations)
-  AuditLogModel copyWithReversal(String reversedBy) {
-    return copyWith(
-      isReversed: true,
-      reversedBy: reversedBy,
-      reversedAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-  }
+  AuditLogModel copyWithReversal(String reversedBy) => copyWith(
+        isReversed: true,
+        reversedBy: reversedBy,
+        reversedAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
   /// Check if audit log has changes
-  bool get hasChanges => 
-    (oldValues != null && oldValues!.isNotEmpty) ||
-    (newValues != null && newValues!.isNotEmpty);
+  bool get hasChanges =>
+      (oldValues != null && oldValues!.isNotEmpty) ||
+      (newValues != null && newValues!.isNotEmpty);
 
   /// Get changed fields
   List<String> get changedFields {
     if (oldValues == null || newValues == null) return [];
-    
+
     final changes = <String>[];
     for (final key in newValues!.keys) {
       if (!oldValues!.containsKey(key) || oldValues![key] != newValues![key]) {
@@ -151,14 +148,14 @@ class AuditLogModel with _$AuditLogModel {
     if (description != null && description!.isNotEmpty) {
       return description!;
     }
-    
+
     final buffer = StringBuffer();
-    buffer.write('${entityTypeDisplayName} ${actionDisplayName.toLowerCase()}');
-    
+    buffer.write('$entityTypeDisplayName ${actionDisplayName.toLowerCase()}');
+
     if (changedFields.isNotEmpty) {
       buffer.write(' (${changedFields.join(', ')})');
     }
-    
+
     return buffer.toString();
   }
 }

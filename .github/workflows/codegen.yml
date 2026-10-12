@@ -28,7 +28,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.5'
+          flutter-version: '3.47.5'
           channel: 'stable'
           cache: true
       
@@ -38,14 +38,14 @@ jobs:
       
       # Run code generation
       - name: Run build_runner
-        run: flutter pub run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build --delete-conflicting-outputs
       
       # Check for changes
       - name: Check for generated changes
         id: verify
         run: |
           git diff --stat -- lib/core/models/*.freezed.dart lib/core/models/*.g.dart
-          echo "::set-output name=changes::$(git diff --name-only -- lib/core/models/*.freezed.dart lib/core/models/*.g.dart | wc -l)"
+          echo "changes=$(git diff --name-only -- lib/core/models/*.freezed.dart lib/core/models/*.g.dart | wc -l)" >> "$GITHUB_OUTPUT"
       
       # Commit generated files if changed
       - name: Commit generated files

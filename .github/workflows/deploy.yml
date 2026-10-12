@@ -28,16 +28,16 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.5'
+          flutter-version: '3.47.5'
           channel: 'stable'
           cache: true
-          cache-key: 'flutter-3.19.5'
+          cache-key: 'flutter-3.47.5'
 
       - name: Install dependencies
         run: flutter pub get
 
       - name: Generate code (Freezed, JSON serializable, Riverpod)
-        run: flutter pub run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Build web app
         run: flutter build web --release --base-href /nKount/

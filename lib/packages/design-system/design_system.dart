@@ -1,0 +1,659 @@
+/// Compat design-system shim (Material-backed).
+///
+/// The app was written against a `packages/design-system` workspace package
+/// that was never committed (see README project structure). This file provides
+/// source-compatible `Clay*` widgets backed by Material 3 so the app compiles
+/// and runs offline-first while the real Claymorphism system is built (P4).
+library;
+
+import 'package:flutter/material.dart';
+
+/// Brand palette (README color palette).
+abstract final class ClayColors {
+  static const Color primary = Color(0xFF6C5CE7);
+  static const Color secondary = Color(0xFFA29BFE);
+  static const Color tertiary = Color(0xFFFD79A8);
+  static const Color success = Color(0xFF00B894);
+  static const Color warning = Color(0xFFFDCB6E);
+  static const Color error = Color(0xFFD63031);
+  static const Color info = Color(0xFF0984E3);
+}
+
+/// Corner radii.
+abstract final class ClayRadius {
+  static const BorderRadius small = BorderRadius.all(Radius.circular(8));
+  static const BorderRadius medium = BorderRadius.all(Radius.circular(16));
+  static const BorderRadius large = BorderRadius.all(Radius.circular(24));
+}
+
+/// App themes.
+abstract final class ClayTheme {
+  static ThemeData get lightTheme {
+    final scheme = ColorScheme.fromSeed(
+      seedColor: ClayColors.primary,
+      brightness: Brightness.light,
+    );
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: const Color(0xFFF1F2F6),
+      appBarTheme: AppBarTheme(
+        backgroundColor: scheme.surface,
+        foregroundColor: scheme.onSurface,
+        elevation: 0,
+      ),
+      cardTheme: const CardThemeData(
+        elevation: 3,
+        shadowColor: Colors.black12,
+        margin: EdgeInsets.all(8),
+        shape: RoundedRectangleBorder(borderRadius: ClayRadius.medium),
+      ),
+    );
+  }
+
+  static ThemeData get darkTheme {
+    final scheme = ColorScheme.fromSeed(
+      seedColor: ClayColors.primary,
+      brightness: Brightness.dark,
+    );
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: scheme,
+      appBarTheme: AppBarTheme(
+        backgroundColor: scheme.surface,
+        foregroundColor: scheme.onSurface,
+        elevation: 0,
+      ),
+      cardTheme: const CardThemeData(
+        elevation: 3,
+        margin: EdgeInsets.all(8),
+        shape: RoundedRectangleBorder(borderRadius: ClayRadius.medium),
+      ),
+    );
+  }
+}
+
+/// Background wrapper applied around the router child.
+class ClayThemeBuilder extends StatelessWidget {
+  const ClayThemeBuilder({required this.child, super.key});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => ColoredBox(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: child,
+      );
+}
+
+/// Scaffold passthrough.
+class ClayScaffold extends StatelessWidget {
+  const ClayScaffold({
+    super.key,
+    this.appBar,
+    this.body,
+    this.bottomNavigationBar,
+    this.floatingActionButton,
+  });
+  final PreferredSizeWidget? appBar;
+  final Widget? body;
+  final Widget? bottomNavigationBar;
+  final Widget? floatingActionButton;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: appBar,
+        body: body,
+        bottomNavigationBar: bottomNavigationBar,
+        floatingActionButton: floatingActionButton,
+      );
+}
+
+/// App bar with optional subtitle.
+class ClayAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const ClayAppBar({
+    required this.title,
+    super.key,
+    this.subtitle,
+    this.actions,
+  });
+  final Widget title;
+  final Widget? subtitle;
+  final List<Widget>? actions;
+
+  @override
+  Size get preferredSize =>
+      Size.fromHeight(subtitle == null ? kToolbarHeight : kToolbarHeight + 20);
+
+  @override
+  Widget build(BuildContext context) {
+    final sub = subtitle;
+    return AppBar(
+      title: sub == null
+          ? title
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [title, sub],
+            ),
+      actions: actions,
+    );
+  }
+}
+
+/// Icon button passthrough.
+class ClayIconButton extends StatelessWidget {
+  const ClayIconButton({
+    required this.icon,
+    super.key,
+    this.onPressed,
+    this.tooltip,
+  });
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final String? tooltip;
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+        icon: Icon(icon),
+        onPressed: onPressed,
+        tooltip: tooltip,
+      );
+}
+
+/// Button style bag.
+class ClayButtonStyle {
+  const ClayButtonStyle({
+    this.backgroundColor,
+    this.foregroundColor,
+    this.borderColor,
+    this.borderRadius,
+    this.padding,
+  });
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final Color? borderColor;
+  final BorderRadiusGeometry? borderRadius;
+  final EdgeInsetsGeometry? padding;
+}
+
+ButtonStyle _toButtonStyle(ClayButtonStyle? style) {
+  if (style == null) return const ButtonStyle();
+  return ButtonStyle(
+    backgroundColor: style.backgroundColor == null
+        ? null
+        : WidgetStatePropertyAll(style.backgroundColor),
+    foregroundColor: style.foregroundColor == null
+        ? null
+        : WidgetStatePropertyAll(style.foregroundColor),
+    padding:
+        style.padding == null ? null : WidgetStatePropertyAll(style.padding),
+    shape: style.borderRadius == null
+        ? null
+        : WidgetStatePropertyAll(
+            RoundedRectangleBorder(borderRadius: style.borderRadius!),
+          ),
+    side: style.borderColor == null
+        ? null
+        : WidgetStatePropertyAll(BorderSide(color: style.borderColor!)),
+  );
+}
+
+/// Elevated-style button with text/outlined variants.
+class ClayButton extends StatelessWidget {
+  const ClayButton({
+    required this.onPressed,
+    required this.child,
+    super.key,
+    this.style,
+    this.icon,
+  })  : _text = false,
+        _outlined = false;
+
+  const ClayButton.text({
+    required this.onPressed,
+    required this.child,
+    super.key,
+  })  : style = null,
+        icon = null,
+        _text = true,
+        _outlined = false;
+
+  const ClayButton.outlined({
+    required this.onPressed,
+    required this.child,
+    super.key,
+    this.style,
+  })  : icon = null,
+        _text = false,
+        _outlined = true;
+  final VoidCallback? onPressed;
+  final Widget child;
+  final ClayButtonStyle? style;
+  final IconData? icon;
+  final bool _text;
+  final bool _outlined;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = _toButtonStyle(style);
+    final label = child;
+    final iconWidget = icon == null ? null : Icon(icon);
+    if (_text) {
+      if (iconWidget == null) {
+        return TextButton(onPressed: onPressed, style: s, child: label);
+      }
+      return TextButton.icon(
+        onPressed: onPressed,
+        style: s,
+        icon: iconWidget,
+        label: label,
+      );
+    }
+    if (_outlined) {
+      if (iconWidget == null) {
+        return OutlinedButton(onPressed: onPressed, style: s, child: label);
+      }
+      return OutlinedButton.icon(
+        onPressed: onPressed,
+        style: s,
+        icon: iconWidget,
+        label: label,
+      );
+    }
+    if (iconWidget == null) {
+      return ElevatedButton(onPressed: onPressed, style: s, child: label);
+    }
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      style: s,
+      icon: iconWidget,
+      label: label,
+    );
+  }
+}
+
+/// Bottom navigation item data.
+class ClayBottomNavItem {
+  const ClayBottomNavItem({
+    required this.icon,
+    required this.label,
+    required this.route,
+  });
+  final IconData icon;
+  final String label;
+  final String route;
+}
+
+/// Bottom navigation backed by [BottomNavigationBar].
+class ClayBottomNavigation extends StatelessWidget {
+  const ClayBottomNavigation({
+    required this.currentIndex,
+    required this.items,
+    super.key,
+    this.onTap,
+  });
+  final int currentIndex;
+  final List<ClayBottomNavItem> items;
+  final ValueChanged<int>? onTap;
+
+  @override
+  Widget build(BuildContext context) => BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: onTap,
+        type: BottomNavigationBarType.fixed,
+        items: [
+          for (final item in items)
+            BottomNavigationBarItem(
+              icon: Icon(item.icon),
+              label: item.label,
+            ),
+        ],
+      );
+}
+
+/// Card wrapper.
+class ClayCard extends StatelessWidget {
+  const ClayCard({
+    super.key,
+    this.title,
+    this.child,
+    this.onTap,
+    this.padding,
+  });
+  final Widget? title;
+  final Widget? child;
+  final VoidCallback? onTap;
+  final EdgeInsetsGeometry? padding;
+
+  @override
+  Widget build(BuildContext context) {
+    final content = Padding(
+      padding: padding ?? EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (title != null) title!,
+          if (child != null) child!,
+        ],
+      ),
+    );
+    return Card(
+      child: onTap == null
+          ? content
+          : InkWell(
+              borderRadius: ClayRadius.medium,
+              onTap: onTap,
+              child: content,
+            ),
+    );
+  }
+}
+
+/// Stat card with icon + value.
+class ClayStatCard extends StatelessWidget {
+  const ClayStatCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+    super.key,
+    this.iconColor,
+    this.onTap,
+    this.subtitle,
+  });
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color? iconColor;
+  final VoidCallback? onTap;
+  final String? subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final sub = subtitle;
+    return ClayCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: iconColor),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          Text(title, style: Theme.of(context).textTheme.bodySmall),
+          if (sub != null)
+            Text(sub, style: Theme.of(context).textTheme.bodySmall),
+        ],
+      ),
+    );
+  }
+}
+
+/// Dialog wrapper.
+class ClayDialog extends StatelessWidget {
+  const ClayDialog({super.key, this.title, this.content, this.actions});
+  final Widget? title;
+  final Widget? content;
+  final List<Widget>? actions;
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+        title: title,
+        content: content,
+        actions: actions,
+      );
+}
+
+/// Form dialog wrapper.
+class ClayFormDialog extends StatelessWidget {
+  const ClayFormDialog({super.key, this.title, this.child, this.actions});
+  final Widget? title;
+  final Widget? child;
+  final List<Widget>? actions;
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+        title: title,
+        content: SizedBox(
+          width: 480,
+          child: SingleChildScrollView(child: child),
+        ),
+        actions: actions,
+      );
+}
+
+/// Search input.
+class ClaySearchInput extends StatelessWidget {
+  const ClaySearchInput({
+    super.key,
+    this.hintText,
+    this.controller,
+    this.onChanged,
+  });
+  final String? hintText;
+  final TextEditingController? controller;
+  final ValueChanged<String>? onChanged;
+
+  @override
+  Widget build(BuildContext context) => TextField(
+        controller: controller,
+        onChanged: onChanged,
+        decoration: InputDecoration(
+          hintText: hintText,
+          prefixIcon: const Icon(Icons.search),
+          border: const OutlineInputBorder(
+            borderRadius: ClayRadius.medium,
+          ),
+        ),
+      );
+}
+
+/// Labeled text input (uncontrolled shim: [value] seeds the field).
+class ClayInputWithLabel extends StatelessWidget {
+  const ClayInputWithLabel({
+    required this.label,
+    super.key,
+    this.hintText,
+    this.value,
+    this.onChanged,
+    this.validator,
+    this.keyboardType,
+    this.maxLines,
+  });
+  final String label;
+  final String? hintText;
+  final String? value;
+  final ValueChanged<String>? onChanged;
+  final FormFieldValidator<String>? validator;
+  final TextInputType? keyboardType;
+  final int? maxLines;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.labelLarge),
+          const SizedBox(height: 6),
+          TextFormField(
+            initialValue: value,
+            onChanged: onChanged,
+            validator: validator,
+            keyboardType: keyboardType,
+            maxLines: maxLines ?? 1,
+            decoration: InputDecoration(hintText: hintText),
+          ),
+        ],
+      );
+}
+
+/// Dropdown input.
+class ClayDropdownInput<T> extends StatelessWidget {
+  const ClayDropdownInput({
+    required this.label,
+    required this.value,
+    required this.items,
+    super.key,
+    this.onChanged,
+    this.validator,
+  });
+  final String label;
+  final T? value;
+  final List<DropdownMenuItem<T>> items;
+  final ValueChanged<T?>? onChanged;
+  final FormFieldValidator<T>? validator;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.labelLarge),
+          const SizedBox(height: 6),
+          DropdownButtonFormField<T>(
+            initialValue: value,
+            items: items,
+            onChanged: onChanged,
+            validator: validator,
+          ),
+        ],
+      );
+}
+
+/// Switch row.
+class ClaySwitch extends StatelessWidget {
+  const ClaySwitch({required this.value, required this.onChanged, super.key});
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+
+  @override
+  Widget build(BuildContext context) =>
+      Switch(value: value, onChanged: onChanged);
+}
+
+/// Labeled switch input.
+class ClaySwitchInput extends StatelessWidget {
+  const ClaySwitchInput({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    super.key,
+  });
+  final String label;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) => Row(
+        children: [
+          Expanded(child: Text(label)),
+          Switch(value: value, onChanged: onChanged),
+        ],
+      );
+}
+
+/// Radio list tile.
+class ClayRadioListTile<T> extends StatelessWidget {
+  const ClayRadioListTile({
+    required this.value,
+    required this.groupValue,
+    required this.onChanged,
+    super.key,
+    this.title,
+  });
+  final Widget? title;
+  final T value;
+  final T? groupValue;
+  final ValueChanged<T?> onChanged;
+
+  @override
+  Widget build(BuildContext context) => RadioGroup<T>(
+        groupValue: groupValue,
+        onChanged: onChanged,
+        child: RadioListTile<T>(
+          title: title,
+          value: value,
+        ),
+      );
+}
+
+/// Date input (AD picker; BS picker lands in P4).
+class ClayDateInput extends StatelessWidget {
+  const ClayDateInput({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    super.key,
+  });
+  final String label;
+  final DateTime? value;
+  final ValueChanged<DateTime?>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final text =
+        value == null ? '' : value!.toLocal().toString().split(' ').first;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.labelLarge),
+        const SizedBox(height: 6),
+        TextFormField(
+          readOnly: true,
+          controller: TextEditingController(text: text),
+          onTap: () async {
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: value ?? DateTime.now(),
+              firstDate: DateTime(2000),
+              lastDate: DateTime(2100),
+            );
+            onChanged?.call(picked);
+          },
+          decoration: const InputDecoration(
+            suffixIcon: Icon(Icons.calendar_today),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Currency/amount input.
+class ClayCurrencyInput extends StatelessWidget {
+  const ClayCurrencyInput({
+    required this.label,
+    super.key,
+    this.hintText,
+    this.value,
+    this.onChanged,
+    this.validator,
+  });
+  final String label;
+  final String? hintText;
+  final double? value;
+  final ValueChanged<double?>? onChanged;
+  final FormFieldValidator<double>? validator;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.labelLarge),
+          const SizedBox(height: 6),
+          TextFormField(
+            initialValue: value?.toString() ?? '',
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: (text) => onChanged?.call(double.tryParse(text)),
+            validator: (text) => validator?.call(
+              text == null || text.isEmpty ? null : double.tryParse(text),
+            ),
+            decoration: InputDecoration(
+              hintText: hintText,
+              prefixText: 'Rs ',
+            ),
+          ),
+        ],
+      );
+}

@@ -1,4 +1,4 @@
-import 'package:hive/hive.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logger/logger.dart';
 import '../models/company_model.dart';
@@ -18,9 +18,14 @@ import '../models/audit_log_model.dart';
 /// Hive Database Service for nKount
 /// Provides persistent storage for Flutter web using IndexedDB
 class HiveService {
+  // Factory constructor
+  factory HiveService() => _instance;
+
+  // Private constructor
+  HiveService._internal();
   static final HiveService _instance = HiveService._internal();
   static final Logger _logger = Logger();
-  
+
   // Box names
   static const String boxCompanies = 'nkount_companies';
   static const String boxContacts = 'nkount_contacts';
@@ -35,7 +40,7 @@ class HiveService {
   static const String boxSettings = 'nkount_settings';
   static const String boxSyncLogs = 'nkount_sync_logs';
   static const String boxAuditLogs = 'nkount_audit_logs';
-  
+
   // Box instances
   late final Box<CompanyModel> companiesBox;
   late final Box<ContactModel> contactsBox;
@@ -50,35 +55,29 @@ class HiveService {
   late final Box<SettingModel> settingsBox;
   late final Box<SyncLogModel> syncLogsBox;
   late final Box<AuditLogModel> auditLogsBox;
-  
+
   // Initialization flag
   bool _isInitialized = false;
-  
-  // Private constructor
-  HiveService._internal();
-  
-  // Factory constructor
-  factory HiveService() => _instance;
-  
+
   /// Initialize Hive database
   Future<void> initialize() async {
     if (_isInitialized) {
       _logger.i('Hive database already initialized');
       return;
     }
-    
+
     try {
       _logger.i('Initializing Hive database...');
-      
+
       // Initialize Hive for Flutter
       await Hive.initFlutter();
-      
+
       // Register adapters
       _registerAdapters();
-      
+
       // Open boxes
       await _openBoxes();
-      
+
       _isInitialized = true;
       _logger.i('Hive database initialized successfully');
     } catch (e) {
@@ -86,7 +85,7 @@ class HiveService {
       rethrow;
     }
   }
-  
+
   /// Register Hive adapters
   void _registerAdapters() {
     // Type ID 0
@@ -117,17 +116,18 @@ class HiveService {
     Hive.registerAdapter(SyncLogModelAdapter());
     // Type ID 13
     Hive.registerAdapter(AuditLogModelAdapter());
-    
+
     _logger.i('All Hive adapters registered');
   }
-  
+
   /// Open all Hive boxes
   Future<void> _openBoxes() async {
     companiesBox = await Hive.openBox<CompanyModel>(boxCompanies);
     contactsBox = await Hive.openBox<ContactModel>(boxContacts);
     productsBox = await Hive.openBox<ProductModel>(boxProducts);
     transactionsBox = await Hive.openBox<TransactionModel>(boxTransactions);
-    transactionItemsBox = await Hive.openBox<TransactionItemModel>(boxTransactionItems);
+    transactionItemsBox =
+        await Hive.openBox<TransactionItemModel>(boxTransactionItems);
     paymentsBox = await Hive.openBox<PaymentModel>(boxPayments);
     categoriesBox = await Hive.openBox<CategoryModel>(boxCategories);
     brandsBox = await Hive.openBox<BrandModel>(boxBrands);
@@ -136,13 +136,13 @@ class HiveService {
     settingsBox = await Hive.openBox<SettingModel>(boxSettings);
     syncLogsBox = await Hive.openBox<SyncLogModel>(boxSyncLogs);
     auditLogsBox = await Hive.openBox<AuditLogModel>(boxAuditLogs);
-    
+
     _logger.i('All Hive boxes opened successfully');
   }
-  
+
   /// Check if Hive is initialized
   bool get isInitialized => _isInitialized;
-  
+
   /// Close all boxes
   Future<void> close() async {
     try {
@@ -159,7 +159,7 @@ class HiveService {
       await settingsBox.close();
       await syncLogsBox.close();
       await auditLogsBox.close();
-      
+
       _isInitialized = false;
       _logger.i('All Hive boxes closed');
     } catch (e) {
@@ -167,7 +167,7 @@ class HiveService {
       rethrow;
     }
   }
-  
+
   /// Delete all data from all boxes
   Future<void> clearAllData() async {
     try {
@@ -184,14 +184,14 @@ class HiveService {
       await settingsBox.clear();
       await syncLogsBox.clear();
       await auditLogsBox.clear();
-      
+
       _logger.i('All Hive data cleared');
     } catch (e) {
       _logger.e('Error clearing Hive data: $e');
       rethrow;
     }
   }
-  
+
   /// Delete a specific box
   Future<void> clearBox(String boxName) async {
     try {
@@ -238,43 +238,43 @@ class HiveService {
         default:
           throw Exception('Unknown box: $boxName');
       }
-      
+
       _logger.i('Hive box $boxName cleared');
     } catch (e) {
       _logger.e('Error clearing Hive box $boxName: $e');
       rethrow;
     }
   }
-  
+
   /// Get box statistics
-  Map<String, int> getBoxStats() {
-    return {
-      'companies': companiesBox.length,
-      'contacts': contactsBox.length,
-      'products': productsBox.length,
-      'transactions': transactionsBox.length,
-      'transaction_items': transactionItemsBox.length,
-      'payments': paymentsBox.length,
-      'categories': categoriesBox.length,
-      'brands': brandsBox.length,
-      'units': unitsBox.length,
-      'tax_rates': taxRatesBox.length,
-      'settings': settingsBox.length,
-      'sync_logs': syncLogsBox.length,
-      'audit_logs': auditLogsBox.length,
-    };
-  }
-  
+  Map<String, int> getBoxStats() => {
+        'companies': companiesBox.length,
+        'contacts': contactsBox.length,
+        'products': productsBox.length,
+        'transactions': transactionsBox.length,
+        'transaction_items': transactionItemsBox.length,
+        'payments': paymentsBox.length,
+        'categories': categoriesBox.length,
+        'brands': brandsBox.length,
+        'units': unitsBox.length,
+        'tax_rates': taxRatesBox.length,
+        'settings': settingsBox.length,
+        'sync_logs': syncLogsBox.length,
+        'audit_logs': auditLogsBox.length,
+      };
+
   /// Export all data as JSON
   Future<Map<String, dynamic>> exportAllData() async {
     try {
       final data = <String, dynamic>{};
-      
+
       data['companies'] = companiesBox.values.map((c) => c.toJson()).toList();
       data['contacts'] = contactsBox.values.map((c) => c.toJson()).toList();
       data['products'] = productsBox.values.map((p) => p.toJson()).toList();
-      data['transactions'] = transactionsBox.values.map((t) => t.toJson()).toList();
-      data['transaction_items'] = transactionItemsBox.values.map((ti) => ti.toJson()).toList();
+      data['transactions'] =
+          transactionsBox.values.map((t) => t.toJson()).toList();
+      data['transaction_items'] =
+          transactionItemsBox.values.map((ti) => ti.toJson()).toList();
       data['payments'] = paymentsBox.values.map((p) => p.toJson()).toList();
       data['categories'] = categoriesBox.values.map((c) => c.toJson()).toList();
       data['brands'] = brandsBox.values.map((b) => b.toJson()).toList();
@@ -282,8 +282,9 @@ class HiveService {
       data['tax_rates'] = taxRatesBox.values.map((tr) => tr.toJson()).toList();
       data['settings'] = settingsBox.values.map((s) => s.toJson()).toList();
       data['sync_logs'] = syncLogsBox.values.map((sl) => sl.toJson()).toList();
-      data['audit_logs'] = auditLogsBox.values.map((al) => al.toJson()).toList();
-      
+      data['audit_logs'] =
+          auditLogsBox.values.map((al) => al.toJson()).toList();
+
       _logger.i('Hive data exported');
       return data;
     } catch (e) {
@@ -291,104 +292,104 @@ class HiveService {
       rethrow;
     }
   }
-  
+
   /// Import data from JSON
   Future<void> importData(Map<String, dynamic> data) async {
     try {
       // Clear existing data
       await clearAllData();
-      
+
       // Import companies
       if (data['companies'] != null) {
         for (final json in data['companies'] as List) {
           await companiesBox.add(CompanyModel.fromJson(json));
         }
       }
-      
+
       // Import contacts
       if (data['contacts'] != null) {
         for (final json in data['contacts'] as List) {
           await contactsBox.add(ContactModel.fromJson(json));
         }
       }
-      
+
       // Import products
       if (data['products'] != null) {
         for (final json in data['products'] as List) {
           await productsBox.add(ProductModel.fromJson(json));
         }
       }
-      
+
       // Import transactions
       if (data['transactions'] != null) {
         for (final json in data['transactions'] as List) {
           await transactionsBox.add(TransactionModel.fromJson(json));
         }
       }
-      
+
       // Import transaction items
       if (data['transaction_items'] != null) {
         for (final json in data['transaction_items'] as List) {
           await transactionItemsBox.add(TransactionItemModel.fromJson(json));
         }
       }
-      
+
       // Import payments
       if (data['payments'] != null) {
         for (final json in data['payments'] as List) {
           await paymentsBox.add(PaymentModel.fromJson(json));
         }
       }
-      
+
       // Import categories
       if (data['categories'] != null) {
         for (final json in data['categories'] as List) {
           await categoriesBox.add(CategoryModel.fromJson(json));
         }
       }
-      
+
       // Import brands
       if (data['brands'] != null) {
         for (final json in data['brands'] as List) {
           await brandsBox.add(BrandModel.fromJson(json));
         }
       }
-      
+
       // Import units
       if (data['units'] != null) {
         for (final json in data['units'] as List) {
           await unitsBox.add(UnitModel.fromJson(json));
         }
       }
-      
+
       // Import tax rates
       if (data['tax_rates'] != null) {
         for (final json in data['tax_rates'] as List) {
           await taxRatesBox.add(TaxRateModel.fromJson(json));
         }
       }
-      
+
       // Import settings
       if (data['settings'] != null) {
         for (final json in data['settings'] as List) {
           await settingsBox.add(SettingModel.fromJson(json));
         }
       }
-      
+
       // Import sync logs
       if (data['sync_logs'] != null) {
         for (final json in data['sync_logs'] as List) {
           await syncLogsBox.add(SyncLogModel.fromJson(json));
         }
       }
-      
+
       // Import audit logs
       if (data['audit_logs'] != null) {
         for (final json in data['audit_logs'] as List) {
           await auditLogsBox.add(AuditLogModel.fromJson(json));
         }
       }
-      
+
       _logger.i('Hive data imported');
     } catch (e) {
       _logger.e('Error importing Hive data: $e');
@@ -399,3 +400,7 @@ class HiveService {
 
 // Singleton instance
 final hiveService = HiveService();
+
+/// Shared provider for the Hive singleton (single definition of truth;
+/// screens must import this instead of redeclaring it).
+final hiveServiceProvider = Provider<HiveService>((ref) => hiveService);

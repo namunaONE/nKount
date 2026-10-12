@@ -10,8 +10,8 @@ part 'category_model.g.dart';
 @HiveType(typeId: 7, adapterName: 'CategoryModelAdapter')
 class CategoryModel with _$CategoryModel {
   const factory CategoryModel({
-    @HiveField(0) @Default('') String id,
     @HiveField(1) required String name,
+    @HiveField(0) @Default('') String id,
     @HiveField(2) String? description,
     @HiveField(3) String? parentId,
     @HiveField(4) @Default(0) int level,
@@ -38,10 +38,9 @@ class CategoryModel with _$CategoryModel {
     int? sortOrder,
     bool isActive = true,
   }) {
-    final parentCategory = parentId != null ? ' > ' : '';
     final calculatedLevel = level ?? (parentId != null ? 1 : 0);
     final calculatedPath = path ?? (parentId != null ? '$parentId/' : '');
-    
+
     return CategoryModel(
       id: const Uuid().v4(),
       name: name,
@@ -58,15 +57,13 @@ class CategoryModel with _$CategoryModel {
   }
 
   /// Update product count
-  CategoryModel copyWithProductCount(int count) {
-    return copyWith(
-      productCount: count,
-      updatedAt: DateTime.now(),
-    );
-  }
+  CategoryModel copyWithProductCount(int count) => copyWith(
+        productCount: count,
+        updatedAt: DateTime.now(),
+      );
 
   /// Check if category is root level
-  bool get isRoot => parentId == null || parentId.isEmpty;
+  bool get isRoot => parentId == null || (parentId?.isEmpty ?? true);
 
   /// Get full path display
   String get fullPath => isRoot ? name : '$name ($path)';

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nkount/core/constants/app_constants.dart';
-import 'package:nkount/core/database/hive_service.dart';
-import 'package:nkount/core/models/transaction_model.dart';
-import 'package:nkount/packages/design-system/design_system.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/database/hive_service.dart';
+import '../../../core/models/transaction_model.dart';
+import '../../../packages/design-system/design_system.dart';
 
 /// Income Screen with Claymorphism Design
 class IncomeScreen extends ConsumerWidget {
@@ -13,7 +13,7 @@ class IncomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final incomes = ref.watch(incomeProvider);
-    
+
     return ClayScaffold(
       appBar: ClayAppBar(
         title: const Text('Income'),
@@ -47,14 +47,27 @@ class IncomeScreen extends ConsumerWidget {
       bottomNavigationBar: ClayBottomNavigation(
         currentIndex: 3,
         items: const [
-          ClayBottomNavItem(icon: Icons.dashboard, label: 'Dashboard', route: '/'),
-          ClayBottomNavItem(icon: Icons.people, label: 'Contacts', route: '/contacts'),
-          ClayBottomNavItem(icon: Icons.inventory, label: 'Products', route: '/products'),
-          ClayBottomNavItem(icon: Icons.receipt, label: 'Transactions', route: '/transactions'),
-          ClayBottomNavItem(icon: Icons.payment, label: 'Payments', route: '/payments'),
+          ClayBottomNavItem(
+              icon: Icons.dashboard, label: 'Dashboard', route: '/'),
+          ClayBottomNavItem(
+              icon: Icons.people, label: 'Contacts', route: '/contacts'),
+          ClayBottomNavItem(
+              icon: Icons.inventory, label: 'Products', route: '/products'),
+          ClayBottomNavItem(
+              icon: Icons.receipt,
+              label: 'Transactions',
+              route: '/transactions'),
+          ClayBottomNavItem(
+              icon: Icons.payment, label: 'Payments', route: '/payments'),
         ],
         onTap: (index) {
-          final routes = ['/', '/contacts', '/products', '/transactions', '/payments'];
+          final routes = [
+            '/',
+            '/contacts',
+            '/products',
+            '/transactions',
+            '/payments'
+          ];
           if (index < routes.length) {
             context.go(routes[index]);
           }
@@ -68,7 +81,8 @@ class IncomeScreen extends ConsumerWidget {
       context: context,
       builder: (context) => ClayDialog(
         title: const Text('Search Income'),
-        content: const ClaySearchInput(hintText: 'Search by description, source, or amount'),
+        content: const ClaySearchInput(
+            hintText: 'Search by description, source, or amount'),
         actions: [
           ClayButton.text(
             onPressed: () => Navigator.pop(context),
@@ -136,9 +150,9 @@ class IncomeScreen extends ConsumerWidget {
   void _showAddIncomeDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => ClayFormDialog(
-        title: const Text('Add New Income'),
-        child: const _AddIncomeForm(),
+      builder: (context) => const ClayFormDialog(
+        title: Text('Add New Income'),
+        child: _AddIncomeForm(),
       ),
     );
   }
@@ -149,109 +163,124 @@ class _EmptyIncomeState extends StatelessWidget {
   const _EmptyIncomeState();
 
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.monetization_on_outlined,
-            size: 80,
-            color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'No Income Found',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
+  Widget build(BuildContext context) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.monetization_on_outlined,
+              size: 80,
+              color: Colors.grey.shade400,
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Add your first income to get started',
-            style: TextStyle(color: Colors.grey),
-          ),
-          const SizedBox(height: 24),
-          ClayButton(
-            onPressed: () => context.push('/income'),
-            child: const Text('Add Income'),
-          ),
-        ],
-      ),
-    );
-  }
+            const SizedBox(height: 24),
+            const Text(
+              'No Income Found',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Add your first income to get started',
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            ClayButton(
+              onPressed: () => context.push('/income'),
+              child: const Text('Add Income'),
+            ),
+          ],
+        ),
+      );
 }
 
 /// Income List
 class _IncomeList extends ConsumerWidget {
+  const _IncomeList({required this.incomes});
   final List<TransactionModel> incomes;
 
-  const _IncomeList({required this.incomes});
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ListView.builder(
-      itemCount: incomes.length,
-      itemBuilder: (context, index) {
-        final income = incomes[index];
-        return _IncomeItem(income: income);
-      },
-    );
-  }
+  Widget build(BuildContext context, WidgetRef ref) => ListView.builder(
+        itemCount: incomes.length,
+        itemBuilder: (context, index) {
+          final income = incomes[index];
+          return _IncomeItem(income: income);
+        },
+      );
 }
 
 /// Income Item
 class _IncomeItem extends StatelessWidget {
+  const _IncomeItem({required this.income});
   final TransactionModel income;
 
-  const _IncomeItem({required this.income});
-
   @override
-  Widget build(BuildContext context) {
-    return ClayCard(
-      onTap: () => _showIncomeDetailDialog(context, income),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: ClayColors.success.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+  Widget build(BuildContext context) => ClayCard(
+        onTap: () => _showIncomeDetailDialog(context, income),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: ClayColors.success.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.monetization_on,
+                color: ClayColors.success,
+                size: 24,
+              ),
             ),
-            child: const Icon(
-              Icons.monetization_on,
-              color: ClayColors.success,
-              size: 24,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    income.invoiceNumber ?? 'N/A',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    income.notes ?? 'No description',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _getSourceLabel(income),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  income.invoiceNumber ?? 'N/A',
+                  '${AppConstants.CURRENCY} ${income.total.toStringAsFixed(2)}',
                   style: const TextStyle(
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    color: ClayColors.success,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  income.notes ?? 'No description',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _getSourceLabel(income),
+                  _formatDate(income.date),
                   style: TextStyle(
                     fontSize: 11,
                     color: Colors.grey.shade500,
@@ -259,48 +288,30 @@ class _IncomeItem extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${AppConstants.CURRENCY} ${income.total.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: ClayColors.success,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                _formatDate(income.date),
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey.shade500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 
   String _getSourceLabel(TransactionModel income) {
-    if (income.notes != null && income.notes!.isNotEmpty) {
-      final lowerNotes = income.notes!.toLowerCase();
-      if (lowerNotes.contains('sale') || lowerNotes.contains('revenue')) return 'Sales';
-      if (lowerNotes.contains('service')) return 'Service';
-      if (lowerNotes.contains('interest')) return 'Interest';
-      if (lowerNotes.contains('rent') || lowerNotes.contains('lease')) return 'Rent';
-      if (lowerNotes.contains('investment')) return 'Investment';
-      if (lowerNotes.contains('commission')) return 'Commission';
-      if (lowerNotes.contains('refund')) return 'Refund';
-      if (lowerNotes.contains('discount')) return 'Discount Received';
-      if (lowerNotes.contains('subsidy')) return 'Subsidy';
-      if (lowerNotes.contains('grant')) return 'Grant';
-      if (lowerNotes.contains('gift')) return 'Gift';
-      if (lowerNotes.contains('other')) return 'Other Income';
+    final notes = income.notes;
+    if (notes == null || notes.isEmpty) return 'General';
+    final lowerNotes = notes.toLowerCase();
+    const table = [
+      (['sale', 'revenue'], 'Sales'),
+      (['service'], 'Service'),
+      (['interest'], 'Interest'),
+      (['rent', 'lease'], 'Rent'),
+      (['investment'], 'Investment'),
+      (['commission'], 'Commission'),
+      (['refund'], 'Refund'),
+      (['discount'], 'Discount Received'),
+      (['subsidy'], 'Subsidy'),
+      (['grant'], 'Grant'),
+      (['gift'], 'Gift'),
+      (['other'], 'Other Income'),
+    ];
+    for (final entry in table) {
+      if (entry.$1.any(lowerNotes.contains)) return entry.$2;
     }
     return 'General';
   }
@@ -340,7 +351,8 @@ class _IncomeItem extends StatelessWidget {
               _IncomeDetailRow(
                 icon: Icons.money,
                 label: 'Amount',
-                value: '${AppConstants.CURRENCY} ${income.total.toStringAsFixed(2)}',
+                value:
+                    '${AppConstants.CURRENCY} ${income.total.toStringAsFixed(2)}',
               ),
               const Divider(),
               _IncomeDetailRow(
@@ -352,7 +364,8 @@ class _IncomeItem extends StatelessWidget {
               _IncomeDetailRow(
                 icon: Icons.money,
                 label: 'VAT Amount',
-                value: '${AppConstants.CURRENCY} ${income.tax.toStringAsFixed(2)}',
+                value:
+                    '${AppConstants.CURRENCY} ${income.tax.toStringAsFixed(2)}',
               ),
               const Divider(),
               _IncomeDetailRow(
@@ -393,7 +406,7 @@ class _IncomeItem extends StatelessWidget {
           ClayButton(
             onPressed: () {},
             style: ClayButtonStyle(
-              backgroundColor: ClayColors.error.withOpacity(0.1),
+              backgroundColor: ClayColors.error.withValues(alpha: 0.1),
               foregroundColor: ClayColors.error,
             ),
             child: const Text('Delete'),
@@ -406,43 +419,40 @@ class _IncomeItem extends StatelessWidget {
 
 /// Income Detail Row
 class _IncomeDetailRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
   const _IncomeDetailRow({
     required this.icon,
     required this.label,
     required this.value,
   });
+  final IconData icon;
+  final String label;
+  final String value;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Colors.grey),
-          const SizedBox(width: 16),
-          Text(
-            label,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-              color: Colors.grey,
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: Colors.grey),
+            const SizedBox(width: 16),
+            Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                color: Colors.grey,
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          const Text(': '),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w500),
+            const SizedBox(width: 8),
+            const Text(': '),
+            Expanded(
+              child: Text(
+                value,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 }
 
 /// Add Income Form
@@ -483,106 +493,121 @@ class _AddIncomeFormState extends ConsumerState<_AddIncomeForm> {
   ];
 
   @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            ClayInputWithLabel(
-              label: 'Income Number',
-              hintText: 'Income reference number',
-              value: _invoiceNumber,
-              onChanged: (value) => _invoiceNumber = value,
-            ),
-            const SizedBox(height: 16),
-            ClayDateInput(
-              label: 'Date',
-              value: _date,
-              onChanged: (value) => _date = value,
-            ),
-            const SizedBox(height: 16),
-            ClayInputWithLabel(
-              label: 'Contact / Source (Optional)',
-              hintText: 'Contact ID or source name',
-              value: _contactId,
-              onChanged: (value) => _contactId = value,
-            ),
-            const SizedBox(height: 16),
-            ClayCurrencyInput(
-              label: 'Amount *',
-              hintText: 'Income amount',
-              value: _amount,
-              onChanged: (value) => _amount = value,
-              validator: (value) => value == null || value <= 0 ? 'Amount is required' : null,
-            ),
-            const SizedBox(height: 16),
-            ClayDropdownInput<String>(
-              label: 'Income Source *',
-              value: _source,
-              items: _sources.map((source) => DropdownMenuItem(
-                value: source,
-                child: Text(source),
-              )).toList(),
-              onChanged: (value) => setState(() => _source = value!),
-              validator: (value) => value == null ? 'Source is required' : null,
-            ),
-            const SizedBox(height: 16),
-            ClayDropdownInput<String>(
-              label: 'Payment Method',
-              value: _paymentMethod,
-              items: const [
-                DropdownMenuItem(value: AppConstants.PAYMENT_CASH, child: Text('Cash')),
-                DropdownMenuItem(value: AppConstants.PAYMENT_BANK, child: Text('Bank Transfer')),
-                DropdownMenuItem(value: AppConstants.PAYMENT_CHEQUE, child: Text('Cheque')),
-                DropdownMenuItem(value: AppConstants.PAYMENT_ONLINE, child: Text('Online Payment')),
-                DropdownMenuItem(value: AppConstants.PAYMENT_CREDIT, child: Text('Credit Card')),
-              ],
-              onChanged: (value) => setState(() => _paymentMethod = value!),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ClayInputWithLabel(
-                    label: 'VAT Rate %',
-                    hintText: 'VAT rate (if applicable)',
-                    value: _vatRate.toString(),
-                    onChanged: (value) => _vatRate = double.tryParse(value) ?? 0.0,
-                    keyboardType: TextInputType.number,
+  Widget build(BuildContext context) => Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              ClayInputWithLabel(
+                label: 'Income Number',
+                hintText: 'Income reference number',
+                value: _invoiceNumber,
+                onChanged: (value) => _invoiceNumber = value,
+              ),
+              const SizedBox(height: 16),
+              ClayDateInput(
+                label: 'Date',
+                value: _date,
+                onChanged: (value) => _date = value,
+              ),
+              const SizedBox(height: 16),
+              ClayInputWithLabel(
+                label: 'Contact / Source (Optional)',
+                hintText: 'Contact ID or source name',
+                value: _contactId,
+                onChanged: (value) => _contactId = value,
+              ),
+              const SizedBox(height: 16),
+              ClayCurrencyInput(
+                label: 'Amount *',
+                hintText: 'Income amount',
+                value: _amount,
+                onChanged: (value) => _amount = value ?? 0,
+                validator: (value) =>
+                    value == null || value <= 0 ? 'Amount is required' : null,
+              ),
+              const SizedBox(height: 16),
+              ClayDropdownInput<String>(
+                label: 'Income Source *',
+                value: _source,
+                items: _sources
+                    .map((source) => DropdownMenuItem(
+                          value: source,
+                          child: Text(source),
+                        ))
+                    .toList(),
+                onChanged: (value) => setState(() => _source = value!),
+                validator: (value) =>
+                    value == null ? 'Source is required' : null,
+              ),
+              const SizedBox(height: 16),
+              ClayDropdownInput<String>(
+                label: 'Payment Method',
+                value: _paymentMethod,
+                items: const [
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_CASH, child: Text('Cash')),
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_BANK,
+                      child: Text('Bank Transfer')),
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_CHEQUE,
+                      child: Text('Cheque')),
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_ONLINE,
+                      child: Text('Online Payment')),
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_CREDIT,
+                      child: Text('Credit Card')),
+                ],
+                onChanged: (value) => setState(() => _paymentMethod = value!),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ClayInputWithLabel(
+                      label: 'VAT Rate %',
+                      hintText: 'VAT rate (if applicable)',
+                      value: _vatRate.toString(),
+                      onChanged: (value) =>
+                          _vatRate = double.tryParse(value) ?? 0.0,
+                      keyboardType: TextInputType.number,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ClaySwitchInput(
-                    label: 'VAT Included',
-                    value: _isVatIncluded,
-                    onChanged: (value) => setState(() => _isVatIncluded = value),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ClaySwitchInput(
+                      label: 'VAT Included',
+                      value: _isVatIncluded,
+                      onChanged: (value) =>
+                          setState(() => _isVatIncluded = value),
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ClayInputWithLabel(
-              label: 'Reference Number',
-              hintText: 'Cheque number, transaction ID, etc.',
-              value: _referenceNumber,
-              onChanged: (value) => _referenceNumber = value,
-            ),
-            const SizedBox(height: 16),
-            ClayInputWithLabel(
-              label: 'Description',
-              hintText: 'Income description',
-              value: _description,
-              onChanged: (value) => _description = value,
-              maxLines: 3,
-              validator: (value) => value?.isEmpty == true ? 'Description is recommended' : null,
-            ),
-          ],
+                ],
+              ),
+              const SizedBox(height: 16),
+              ClayInputWithLabel(
+                label: 'Reference Number',
+                hintText: 'Cheque number, transaction ID, etc.',
+                value: _referenceNumber,
+                onChanged: (value) => _referenceNumber = value,
+              ),
+              const SizedBox(height: 16),
+              ClayInputWithLabel(
+                label: 'Description',
+                hintText: 'Income description',
+                value: _description,
+                onChanged: (value) => _description = value,
+                maxLines: 3,
+                validator: (value) => value?.isEmpty ?? false
+                    ? 'Description is recommended'
+                    : null,
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 }
 
 /// Provider for income

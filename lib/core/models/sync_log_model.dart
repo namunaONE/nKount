@@ -10,10 +10,10 @@ part 'sync_log_model.g.dart';
 @HiveType(typeId: 12, adapterName: 'SyncLogModelAdapter')
 class SyncLogModel with _$SyncLogModel {
   const factory SyncLogModel({
-    @HiveField(0) @Default('') String id,
     @HiveField(1) required String entityType,
     @HiveField(2) required String entityId,
     @HiveField(3) required String action,
+    @HiveField(0) @Default('') String id,
     @HiveField(4) @Default('pending') String status,
     @HiveField(5) String? requestId,
     @HiveField(6) String? responseId,
@@ -44,52 +44,49 @@ class SyncLogModel with _$SyncLogModel {
     String? requestId,
     Map<String, dynamic>? requestData,
     String? createdBy,
-  }) {
-    return SyncLogModel(
-      id: const Uuid().v4(),
-      entityType: entityType,
-      entityId: entityId,
-      action: action,
-      status: 'pending',
-      requestId: requestId,
-      requestData: requestData,
-      retryCount: 0,
-      maxRetries: 3,
-      createdBy: createdBy,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-  }
+  }) =>
+      SyncLogModel(
+        id: const Uuid().v4(),
+        entityType: entityType,
+        entityId: entityId,
+        action: action,
+        status: 'pending',
+        requestId: requestId,
+        requestData: requestData,
+        retryCount: 0,
+        maxRetries: 3,
+        createdBy: createdBy,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
   /// Update sync status
-  SyncLogModel copyWithStatus(String newStatus, {String? errorMessage, Map<String, dynamic>? responseData}) {
+  SyncLogModel copyWithStatus(String newStatus,
+      {String? errorMessage, Map<String, dynamic>? responseData}) {
     final now = DateTime.now();
     return copyWith(
       status: newStatus,
       errorMessage: errorMessage,
       responseData: responseData,
       updatedAt: now,
-      completedAt: newStatus == 'completed' || newStatus == 'failed' ? now : completedAt,
+      completedAt:
+          newStatus == 'completed' || newStatus == 'failed' ? now : completedAt,
     );
   }
 
   /// Increment retry count
-  SyncLogModel copyWithRetry() {
-    return copyWith(
-      retryCount: retryCount + 1,
-      updatedAt: DateTime.now(),
-    );
-  }
+  SyncLogModel copyWithRetry() => copyWith(
+        retryCount: retryCount + 1,
+        updatedAt: DateTime.now(),
+      );
 
   /// Mark as conflict
-  SyncLogModel copyWithConflict(String resolution) {
-    return copyWith(
-      isConflict: true,
-      conflictResolution: resolution,
-      conflictResolvedAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-  }
+  SyncLogModel copyWithConflict(String resolution) => copyWith(
+        isConflict: true,
+        conflictResolution: resolution,
+        conflictResolvedAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
   /// Check if sync is pending
   bool get isPending => status == 'pending';

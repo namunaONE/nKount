@@ -1,6 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hive/hive.dart';
-import 'package:nkount/core/constants/app_constants.dart';
+import '../constants/app_constants.dart';
 import 'package:uuid/uuid.dart';
 
 part 'company_model.freezed.dart';
@@ -11,8 +11,8 @@ part 'company_model.g.dart';
 @HiveType(typeId: 0, adapterName: 'CompanyModelAdapter')
 class CompanyModel with _$CompanyModel {
   const factory CompanyModel({
-    @HiveField(0) @Default('') String id,
     @HiveField(1) required String name,
+    @HiveField(0) @Default('') String id,
     @HiveField(2) String? address,
     @HiveField(3) String? city,
     @HiveField(4) String? district,
@@ -75,55 +75,50 @@ class CompanyModel with _$CompanyModel {
     bool isIRDRegistered = false,
     DateTime? financialYearStart,
     DateTime? financialYearEnd,
-  }) {
-    return CompanyModel(
-      id: const Uuid().v4(),
-      name: name,
-      address: address,
-      city: city,
-      district: district,
-      phone: phone,
-      mobile: mobile,
-      email: email,
-      website: website,
-      vatNumber: vatNumber,
-      panNumber: panNumber,
-      registrationNumber: registrationNumber,
-      logoPath: logoPath,
-      currency: currency,
-      locale: locale,
-      dateFormat: dateFormat,
-      useNepaliDate: useNepaliDate,
-      defaultVatRate: defaultVatRate,
-      invoicePrefix: invoicePrefix,
-      invoiceStartNumber: invoiceStartNumber,
-      purchaseStartNumber: purchaseStartNumber,
-      footerText: footerText ?? 'Thank you for your business!',
-      showTaxOnInvoice: showTaxOnInvoice,
-      showVatNumber: showVatNumber,
-      isIRDRegistered: isIRDRegistered,
-      financialYearStart: financialYearStart,
-      financialYearEnd: financialYearEnd,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-  }
+  }) =>
+      CompanyModel(
+        id: const Uuid().v4(),
+        name: name,
+        address: address,
+        city: city,
+        district: district,
+        phone: phone,
+        mobile: mobile,
+        email: email,
+        website: website,
+        vatNumber: vatNumber,
+        panNumber: panNumber,
+        registrationNumber: registrationNumber,
+        logoPath: logoPath,
+        currency: currency,
+        locale: locale,
+        dateFormat: dateFormat,
+        useNepaliDate: useNepaliDate,
+        defaultVatRate: defaultVatRate,
+        invoicePrefix: invoicePrefix,
+        invoiceStartNumber: invoiceStartNumber,
+        purchaseStartNumber: purchaseStartNumber,
+        footerText: footerText ?? 'Thank you for your business!',
+        showTaxOnInvoice: showTaxOnInvoice,
+        showVatNumber: showVatNumber,
+        isIRDRegistered: isIRDRegistered,
+        financialYearStart: financialYearStart,
+        financialYearEnd: financialYearEnd,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
   /// Update invoice number
-  CompanyModel copyWithNextInvoiceNumber() {
-    return copyWith(
-      invoiceStartNumber: invoiceStartNumber + 1,
-      updatedAt: DateTime.now(),
-    );
-  }
+  CompanyModel copyWithNextInvoiceNumber() => copyWith(
+        invoiceStartNumber: invoiceStartNumber + 1,
+        updatedAt: DateTime.now(),
+      );
 
   /// Update purchase number
-  CompanyModel copyWithNextPurchaseNumber() {
-    return copyWith(
-      purchaseStartNumber: purchaseStartNumber + 1,
-      updatedAt: DateTime.now(),
-    );
-  }
+  CompanyModel copyWithNextPurchaseNumber() => copyWith(
+        purchaseStartNumber: purchaseStartNumber + 1,
+        updatedAt: DateTime.now(),
+      );
 
   /// Get full address
   String get fullAddress {
@@ -137,11 +132,14 @@ class CompanyModel with _$CompanyModel {
   }
 
   /// Get next invoice number
-  String get nextInvoiceNumber => '${invoicePrefix}-${invoiceStartNumber.toString().padLeft(6, '0')}';
+  String get nextInvoiceNumber =>
+      '$invoicePrefix-${invoiceStartNumber.toString().padLeft(6, '0')}';
 
   /// Get next purchase number
-  String get nextPurchaseNumber => 'PUR-${purchaseStartNumber.toString().padLeft(6, '0')}';
+  String get nextPurchaseNumber =>
+      'PUR-${purchaseStartNumber.toString().padLeft(6, '0')}';
 
   /// Check if company is IRD compliant
-  bool get isCompliant => isIRDRegistered && vatNumber != null && vatNumber!.isNotEmpty;
+  bool get isCompliant =>
+      isIRDRegistered && vatNumber != null && vatNumber!.isNotEmpty;
 }

@@ -26,16 +26,12 @@ linter:
     - unnecessary_const
     - unnecessary_new
     - avoid_print
-    - avoid_debugPrint
     
     # Error handling
     - avoid_catches_without_on_clauses
-    - avoid_empty_catches
-    - avoid_returns_in_finally
     
     # Performance
     - avoid_function_literals_in_foreach_calls
-    - prefer_for_elements_in_widget_lists
     - prefer_iterable_whereType
     
     # Documentation
@@ -45,7 +41,6 @@ linter:
     - avoid_annotating_with_dynamic
     - avoid_null_checks_in_equality_operators
     - avoid_positional_boolean_parameters
-    - avoid_shadowing
     - avoid_types_on_closure_parameters
     - avoid_web_libraries_in_flutter
     - cancel_subscriptions
@@ -73,10 +68,7 @@ linter:
     - package_prefixed_library_names
     - prefer_adjacent_string_concatenation
     - prefer_conditional_assignment
-    - prefer_contains_over_indexOf
-    - prefer_equal_for_default_values
     - prefer_expression_function_bodies
-    - prefer_final_in_for_each
     - prefer_foreach
     - prefer_generic_function_type_aliases
     - prefer_if_elements_to_conditional_expressions
@@ -85,7 +77,6 @@ linter:
     - prefer_interpolation_to_compose_strings
     - prefer_is_empty
     - prefer_is_not_empty
-    - prefer_iterable_whereType
     - prefer_null_aware_operators
     - prefer_relative_imports
     - prefer_single_quotes
@@ -102,7 +93,6 @@ linter:
     - unawaited_futures
     - unnecessary_await_in_return
     - unnecessary_brace_in_string_interps
-    - unnecessary_cast
     - unnecessary_getters_setters
     - unnecessary_lambdas
     - unnecessary_null_aware_assignments

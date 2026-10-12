@@ -10,8 +10,8 @@ part 'brand_model.g.dart';
 @HiveType(typeId: 8, adapterName: 'BrandModelAdapter')
 class BrandModel with _$BrandModel {
   const factory BrandModel({
-    @HiveField(0) @Default('') String id,
     @HiveField(1) required String name,
+    @HiveField(0) @Default('') String id,
     @HiveField(2) String? description,
     @HiveField(3) String? logoPath,
     @HiveField(4) String? website,
@@ -37,35 +37,33 @@ class BrandModel with _$BrandModel {
     String? contactPhone,
     String? contactEmail,
     bool isActive = true,
-  }) {
-    return BrandModel(
-      id: const Uuid().v4(),
-      name: name,
-      description: description,
-      logoPath: logoPath,
-      website: website,
-      contactPhone: contactPhone,
-      contactEmail: contactEmail,
-      isActive: isActive,
-      productCount: 0,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-  }
+  }) =>
+      BrandModel(
+        id: const Uuid().v4(),
+        name: name,
+        description: description,
+        logoPath: logoPath,
+        website: website,
+        contactPhone: contactPhone,
+        contactEmail: contactEmail,
+        isActive: isActive,
+        productCount: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
   /// Update product count
-  BrandModel copyWithProductCount(int count) {
-    return copyWith(
-      productCount: count,
-      updatedAt: DateTime.now(),
-    );
-  }
+  BrandModel copyWithProductCount(int count) => copyWith(
+        productCount: count,
+        updatedAt: DateTime.now(),
+      );
 
   /// Check if brand has contact information
-  bool get hasContactInfo => 
-    contactPhone != null && contactPhone!.isNotEmpty ||
-    contactEmail != null && contactEmail!.isNotEmpty;
+  bool get hasContactInfo =>
+      contactPhone != null && contactPhone!.isNotEmpty ||
+      contactEmail != null && contactEmail!.isNotEmpty;
 
   /// Get display name with product count
-  String get displayNameWithCount => productCount > 0 ? '$name ($productCount)' : name;
+  String get displayNameWithCount =>
+      productCount > 0 ? '$name ($productCount)' : name;
 }
