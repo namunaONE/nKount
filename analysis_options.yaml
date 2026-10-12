@@ -134,6 +134,7 @@ analyzer:
     - lib/core/models/*.freezed.dart
     - lib/core/models/*.g.dart
     - lib/core/providers/*.g.dart
+    - lib/core/database/drift/*.g.dart
     - lib/*.g.dart
     - build/**
     - web/**

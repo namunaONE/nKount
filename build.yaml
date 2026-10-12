@@ -24,3 +24,11 @@ targets:
         generate_for:
           include:
             - lib/core/models/*.dart
+          exclude:
+            - lib/core/database/drift/**
+
+      # Drift database (default .g.dart output)
+      drift_dev:
+        generate_for:
+          include:
+            - lib/core/database/drift/*.dart
