@@ -11,15 +11,20 @@ import 'package:flutter/services.dart';
 
 import '../../features/app/commands.dart';
 
-/// Brand palette (README color palette).
+/// Brand palette: deep navy primary seed #002C6D, vivid green secondary
+/// seed #4FD166. Tonal values below come from the M3 tonal palettes
+/// generated for these seeds (see tool/tones_test.dart):
+/// navy T40 #3E5C9F, T60 #728FD5; green T40 #006E27, T50 #008A33,
+/// T80 #5EE072, T90 #7CFD8C, T10 #002107. Direct-use accents are picked
+/// to read on both light and dark surfaces.
 abstract final class ClayColors {
-  static const Color primary = Color(0xFF6C5CE7);
-  static const Color secondary = Color(0xFFA29BFE);
-  static const Color tertiary = Color(0xFFFD79A8);
-  static const Color success = Color(0xFF00B894);
-  static const Color warning = Color(0xFFFDCB6E);
-  static const Color error = Color(0xFFD63031);
-  static const Color info = Color(0xFF0984E3);
+  static const Color primary = Color(0xFF3E5C9F);
+  static const Color secondary = Color(0xFF008A33);
+  static const Color tertiary = Color(0xFF728FD5);
+  static const Color success = Color(0xFF006E27);
+  static const Color warning = Color(0xFF7A5900);
+  static const Color error = Color(0xFFBA1A1A);
+  static const Color info = Color(0xFF3E5C9F);
 }
 
 /// Corner radii.
@@ -29,13 +34,36 @@ abstract final class ClayRadius {
   static const BorderRadius large = BorderRadius.all(Radius.circular(24));
 }
 
-/// App themes.
+/// App themes: M3 fidelity scheme from the navy seed (keeps brand
+/// identity — tonalSpot would wash it to steel blue), with the secondary
+/// roles pinned to the green tonal palette. All roles meet M3 contrast.
 abstract final class ClayTheme {
-  static ThemeData get lightTheme {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: ClayColors.primary,
-      brightness: Brightness.light,
+  static const Color seedPrimary = Color(0xFF002C6D);
+
+  static ColorScheme _scheme(Brightness brightness) {
+    final base = ColorScheme.fromSeed(
+      seedColor: seedPrimary,
+      brightness: brightness,
+      dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
     );
+    if (brightness == Brightness.light) {
+      return base.copyWith(
+        secondary: const Color(0xFF006E27),
+        onSecondary: Colors.white,
+        secondaryContainer: const Color(0xFF7CFD8C),
+        onSecondaryContainer: const Color(0xFF002107),
+      );
+    }
+    return base.copyWith(
+      secondary: const Color(0xFF5EE072),
+      onSecondary: const Color(0xFF003910),
+      secondaryContainer: const Color(0xFF00531B),
+      onSecondaryContainer: const Color(0xFF7CFD8C),
+    );
+  }
+
+  static ThemeData get lightTheme {
+    final scheme = _scheme(Brightness.light);
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
@@ -55,10 +83,7 @@ abstract final class ClayTheme {
   }
 
   static ThemeData get darkTheme {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: ClayColors.primary,
-      brightness: Brightness.dark,
-    );
+    final scheme = _scheme(Brightness.dark);
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,

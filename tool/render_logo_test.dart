@@ -58,7 +58,7 @@ Future<void> _render(String outPath, int size, {bool maskable = false}) async {
   final gradient = ui.Gradient.linear(
     Offset.zero,
     Offset(size.toDouble(), size.toDouble()),
-    const [Color(0xFF6C5CE7), Color(0xFFA29BFE)],
+    const [Color(0xFF002C6D), Color(0xFF0A3D85)],
   );
   final bgPaint = Paint()..shader = gradient;
   if (maskable) {
@@ -84,7 +84,7 @@ Future<void> _render(String outPath, int size, {bool maskable = false}) async {
   canvas.drawParagraph(mono, const Offset(0, 40));
 
   final linePaint = Paint()
-    ..color = const Color(0xFFFDFBF8).withOpacity(0.9)
+    ..color = const Color(0xFF4FD166)
     ..strokeWidth = 20
     ..strokeCap = StrokeCap.round;
   canvas.drawLine(const Offset(110, 285), const Offset(402, 285), linePaint);
@@ -93,7 +93,8 @@ Future<void> _render(String outPath, int size, {bool maskable = false}) async {
   final word = _text('nKount', 56, letterSpacing: 2);
   canvas.drawParagraph(word, const Offset(0, 366));
 
-  final tag = _text('by namunaONE', 30, bold: false);
+  final tag = _text('by namunaONE', 30,
+      bold: false, color: const Color(0xFF7CFD8C));
   canvas.drawParagraph(tag, const Offset(0, 434));
   canvas.restore();
 
