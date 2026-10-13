@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/database/hive_service.dart';
 import '../../../core/models/transaction_model.dart';
+import '../../../core/models/contact_model.dart';
+import '../../../core/services/pdf_service.dart';
 import '../../../core/utils/theme/app_theme.dart';
 import '../../../packages/design-system/design_system.dart';
 
@@ -428,12 +430,53 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 actions: [
                   ClayButton.text(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Close'))
+                      child: const Text('Close')),
+                  ClayButton(
+                    onPressed: () => _printInvoice(context, t),
+                    child: const Text('Print / PDF'),
+                  ),
                 ],
               ));
 
   void _showEditDialog(BuildContext context, TransactionModel t) {
     // TODO: Implement edit dialog
+  }
+
+  /// Generates the invoice PDF and opens the platform print/share sheet.
+  Future<void> _printInvoice(BuildContext context, TransactionModel t) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final companies = hiveService.companiesBox.values.toList();
+      if (companies.isEmpty) {
+        messenger.showSnackBar(
+          const SnackBar(
+              content: Text('Add your company profile in Settings first')),
+        );
+        return;
+      }
+      final contact = hiveService.contactsBox.get(t.contactId) ??
+          ContactModel.create(name: 'Walk-in Customer');
+      final productsById = {
+        for (final p in hiveService.productsBox.values) p.id: p,
+      };
+      final products = [
+        for (final item in t.items ?? <TransactionItem>[])
+          if (productsById.containsKey(item.productId))
+            productsById[item.productId]!,
+      ];
+      final pdfBytes = await pdfService.generateInvoicePdf(
+        transaction: t,
+        company: companies.first,
+        contact: contact,
+        products: products,
+      );
+      await pdfService.sharePdf(
+        pdfBytes,
+        fileName: '${t.invoiceNumber ?? 'invoice'}.pdf',
+      );
+    } on Exception catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Print failed: $e')));
+    }
   }
 
   void _confirmDelete(BuildContext context, TransactionModel t) {

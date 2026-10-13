@@ -6,6 +6,7 @@ import 'package:nepali_utils/nepali_utils.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/database/hive_service.dart';
 import '../../../core/models/transaction_model.dart';
+import '../../../core/providers/theme_provider.dart';
 import '../../../core/utils/theme/app_theme.dart';
 import '../../../packages/design-system/design_system.dart';
 
@@ -32,6 +33,15 @@ class DashboardScreen extends ConsumerWidget {
           ),
           actions: [
             const Center(child: _FiscalChip()),
+            Consumer(builder: (context, ref, _) {
+              final dark = ref.watch(themeModeProvider) == ThemeMode.dark;
+              return ClayIconButton(
+                icon: dark ? Icons.light_mode : Icons.dark_mode,
+                onPressed: () => ref.read(themeModeProvider.notifier).state =
+                    dark ? ThemeMode.light : ThemeMode.dark,
+                tooltip: 'Toggle dark mode',
+              );
+            }),
             ClayIconButton(
               icon: Icons.search,
               onPressed: () => context.push('/transactions'),

@@ -5,17 +5,29 @@ import '../../../core/database/hive_service.dart';
 import '../../../core/models/product_model.dart';
 import '../../../packages/design-system/design_system.dart';
 
-/// Products Screen with Claymorphism Design
-class ProductsScreen extends ConsumerWidget {
+/// Products Screen: dense sortable table (desktop) + cards (mobile).
+class ProductsScreen extends ConsumerStatefulWidget {
   const ProductsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProductsScreen> createState() => _ProductsScreenState();
+}
+
+class _ProductsScreenState extends ConsumerState<ProductsScreen> {
+  String _searchQuery = '';
+  String _selectedStock = 'all';
+  int _rowsPerPage = 25;
+  int _sortColumnIndex = 0;
+  bool _sortAscending = true;
+
+  @override
+  Widget build(BuildContext context) {
     final products = ref.watch(productsProvider);
 
     return ClayScaffold(
       appBar: ClayAppBar(
         title: const Text('Products'),
+        subtitle: const Text('Inventory, pricing, stock levels'),
         actions: [
           ClayIconButton(
             icon: Icons.search,
@@ -37,10 +49,143 @@ class ProductsScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
         data: (productList) {
-          if (productList.isEmpty) {
-            return const _EmptyProductsState();
-          }
-          return _ProductsList(products: productList);
+          final filtered = _filterProducts(productList);
+          final sorted = _sortProducts(filtered);
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              if (ClayBreakpoints.isCompact(constraints.maxWidth)) {
+                if (sorted.isEmpty) return const _EmptyProductsState();
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: sorted.length,
+                  itemBuilder: (context, index) =>
+                      _ProductItem(product: sorted[index]),
+                );
+              }
+              if (sorted.isEmpty) return const _EmptyProductsState();
+              return SizedBox(
+                height: constraints.maxHeight,
+                child: Card(
+                  margin: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Text(
+                              'Products (${sorted.length})',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Spacer(),
+                            SizedBox(
+                              width: 280,
+                              child: ClaySearchInput(
+                                hintText: 'Search...',
+                                onChanged: (v) =>
+                                    setState(() => _searchQuery = v),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: PaginatedDataTable(
+                            header: const Text(
+                              'All products',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            rowsPerPage: _rowsPerPage,
+                            availableRowsPerPage: const [10, 25, 50, 100],
+                            onRowsPerPageChanged: (v) =>
+                                setState(() => _rowsPerPage = v!),
+                            sortColumnIndex: _sortColumnIndex,
+                            sortAscending: _sortAscending,
+                            showCheckboxColumn: false,
+                            columns: [
+                              DataColumn(
+                                label: const Text('Name',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = 0;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              DataColumn(
+                                label: const Text('Code',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = 1;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              DataColumn(
+                                label: const Text('Category',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = 2;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              DataColumn(
+                                label: const Text('Stock',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                numeric: true,
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = 3;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              DataColumn(
+                                label: const Text('Sale Price',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                numeric: true,
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = 4;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              DataColumn(
+                                label: const Text('Status',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = 5;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              const DataColumn(
+                                label: Text('Actions',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                            source: _ProductsDataSource(
+                              products: sorted,
+                              onView: (p) =>
+                                  _showProductDetailDialog(context, p),
+                              onDelete: (p) =>
+                                  _confirmDeleteProduct(context, ref, p),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
         },
       ),
       bottomNavigationBar: ClayBottomNavigation(
@@ -75,56 +220,63 @@ class ProductsScreen extends ConsumerWidget {
     );
   }
 
+  List<ProductModel> _filterProducts(List<ProductModel> list) =>
+      list.where((p) {
+        switch (_selectedStock) {
+          case 'in_stock':
+            if (!p.inStock) return false;
+          case 'low_stock':
+            if (!(p.belowMinimum && p.inStock)) return false;
+          case 'out_of_stock':
+            if (p.inStock) return false;
+        }
+        if (_searchQuery.isNotEmpty) {
+          final q = _searchQuery.toLowerCase();
+          if (!p.name.toLowerCase().contains(q) &&
+              !(p.code?.toLowerCase().contains(q) ?? false) &&
+              !(p.barcode?.contains(_searchQuery) ?? false)) {
+            return false;
+          }
+        }
+        return p.isActive;
+      }).toList();
+
+  List<ProductModel> _sortProducts(List<ProductModel> list) {
+    list.sort((a, b) {
+      var cmp = 0;
+      switch (_sortColumnIndex) {
+        case 0:
+          cmp = a.name.compareTo(b.name);
+          break;
+        case 1:
+          cmp = (a.code ?? '').compareTo(b.code ?? '');
+          break;
+        case 2:
+          cmp = (a.category ?? '').compareTo(b.category ?? '');
+          break;
+        case 3:
+          cmp = a.quantity.compareTo(b.quantity);
+          break;
+        case 4:
+          cmp = a.salePrice.compareTo(b.salePrice);
+          break;
+        case 5:
+          cmp = (a.isActive ? 1 : 0).compareTo(b.isActive ? 1 : 0);
+          break;
+      }
+      return _sortAscending ? cmp : -cmp;
+    });
+    return list;
+  }
+
   void _showSearchDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => ClayDialog(
         title: const Text('Search Products'),
-        content:
-            const ClaySearchInput(hintText: 'Search by name, code, or barcode'),
-        actions: [
-          ClayButton.text(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showFilterDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => ClayDialog(
-        title: const Text('Filter Products'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ClayRadioListTile<String>(
-              title: const Text('All'),
-              value: 'all',
-              groupValue: 'all',
-              onChanged: (value) {},
-            ),
-            ClayRadioListTile<String>(
-              title: const Text('In Stock'),
-              value: 'in_stock',
-              groupValue: 'all',
-              onChanged: (value) {},
-            ),
-            ClayRadioListTile<String>(
-              title: const Text('Low Stock'),
-              value: 'low_stock',
-              groupValue: 'all',
-              onChanged: (value) {},
-            ),
-            ClayRadioListTile<String>(
-              title: const Text('Out of Stock'),
-              value: 'out_of_stock',
-              groupValue: 'all',
-              onChanged: (value) {},
-            ),
-          ],
+        content: ClaySearchInput(
+          hintText: 'Search by name, code, or barcode',
+          onChanged: (v) => setState(() => _searchQuery = v),
         ),
         actions: [
           ClayButton.text(
@@ -133,6 +285,44 @@ class ProductsScreen extends ConsumerWidget {
           ),
           ClayButton(
             onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFilterDialog(BuildContext context) {
+    var selected = _selectedStock;
+    showDialog(
+      context: context,
+      builder: (context) => ClayDialog(
+        title: const Text('Filter Products'),
+        content: SizedBox(
+          width: 300,
+          child: ClayDropdownInput<String>(
+            label: 'Stock',
+            value: selected,
+            items: const [
+              DropdownMenuItem(value: 'all', child: Text('All')),
+              DropdownMenuItem(value: 'in_stock', child: Text('In Stock')),
+              DropdownMenuItem(value: 'low_stock', child: Text('Low Stock')),
+              DropdownMenuItem(
+                  value: 'out_of_stock', child: Text('Out of Stock')),
+            ],
+            onChanged: (v) => selected = v!,
+          ),
+        ),
+        actions: [
+          ClayButton.text(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ClayButton(
+            onPressed: () {
+              setState(() => _selectedStock = selected);
+              Navigator.pop(context);
+            },
             child: const Text('Apply'),
           ),
         ],
@@ -148,6 +338,158 @@ class ProductsScreen extends ConsumerWidget {
         child: _AddProductForm(),
       ),
     );
+  }
+}
+
+/// Table data source for products.
+class _ProductsDataSource extends DataTableSource {
+  _ProductsDataSource({
+    required this.products,
+    required this.onView,
+    required this.onDelete,
+  });
+  final List<ProductModel> products;
+  final void Function(ProductModel) onView;
+  final void Function(ProductModel) onDelete;
+
+  @override
+  DataRow? getRow(int index) {
+    final p = products[index];
+    final low = p.belowMinimum;
+    return DataRow(
+      onSelectChanged: (_) => onView(p),
+      cells: [
+        DataCell(
+            Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold))),
+        DataCell(Text(p.code ?? '—')),
+        DataCell(Text(p.category ?? '—')),
+        DataCell(Text(
+          '${p.quantity.toStringAsFixed(0)} ${p.unit ?? ''}',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: low ? ClayColors.error : null,
+          ),
+        )),
+        DataCell(Text(
+          'NPR ${p.salePrice.toStringAsFixed(2)}',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        )),
+        DataCell(
+          Chip(
+            label: Text(
+              !p.isActive
+                  ? 'Inactive'
+                  : low
+                      ? 'Low'
+                      : 'OK',
+              style: const TextStyle(fontSize: 11),
+            ),
+            backgroundColor: (!p.isActive
+                    ? Colors.grey
+                    : low
+                        ? ClayColors.error
+                        : ClayColors.success)
+                .withValues(alpha: 0.1),
+            visualDensity: VisualDensity.compact,
+          ),
+        ),
+        DataCell(Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.visibility, size: 18),
+              onPressed: () => onView(p),
+              tooltip: 'View',
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, size: 18),
+              color: Colors.red,
+              onPressed: () => onDelete(p),
+              tooltip: 'Delete',
+            ),
+          ],
+        )),
+      ],
+    );
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+  @override
+  int get rowCount => products.length;
+  @override
+  int get selectedRowCount => 0;
+}
+
+void _showProductDetailDialog(BuildContext context, ProductModel product) {
+  showDialog(
+    context: context,
+    builder: (context) => ClayDialog(
+      title: Text(product.name),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _ProductDetailRow(
+              icon: Icons.code,
+              label: 'Product Code',
+              value: product.code ?? 'N/A',
+            ),
+            const Divider(),
+            _ProductDetailRow(
+              icon: Icons.money,
+              label: 'Sale Price',
+              value: 'NPR ${product.salePrice.toStringAsFixed(2)}',
+            ),
+            const Divider(),
+            _ProductDetailRow(
+              icon: Icons.inventory,
+              label: 'Stock Quantity',
+              value:
+                  '${product.quantity.toStringAsFixed(2)} ${product.unit ?? ''}',
+            ),
+            const Divider(),
+            _ProductDetailRow(
+              icon: Icons.description,
+              label: 'Description',
+              value: product.description ?? 'N/A',
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        ClayButton.text(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Close'),
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> _confirmDeleteProduct(
+    BuildContext context, WidgetRef ref, ProductModel product) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Delete product?'),
+      content:
+          Text('Delete ${product.name}? Past transactions keep their history.'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Delete'),
+        ),
+      ],
+    ),
+  );
+  if (confirmed ?? false) {
+    await hiveService.productsBox.delete(product.id);
+    ref.invalidate(productsProvider);
   }
 }
 
@@ -189,22 +531,7 @@ class _EmptyProductsState extends StatelessWidget {
       );
 }
 
-/// Products List
-class _ProductsList extends ConsumerWidget {
-  const _ProductsList({required this.products});
-  final List<ProductModel> products;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) => ListView.builder(
-        itemCount: products.length,
-        itemBuilder: (context, index) {
-          final product = products[index];
-          return _ProductItem(product: product);
-        },
-      );
-}
-
-/// Product Item
+/// Product Item (mobile card)
 class _ProductItem extends StatelessWidget {
   const _ProductItem({required this.product});
   final ProductModel product;

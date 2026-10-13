@@ -6,17 +6,29 @@ import '../../../core/database/hive_service.dart';
 import '../../../core/models/contact_model.dart';
 import '../../../packages/design-system/design_system.dart';
 
-/// Contacts Screen with Claymorphism Design
-class ContactsScreen extends ConsumerWidget {
+/// Contacts Screen: dense sortable table (desktop) + cards (mobile).
+class ContactsScreen extends ConsumerStatefulWidget {
   const ContactsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ContactsScreen> createState() => _ContactsScreenState();
+}
+
+class _ContactsScreenState extends ConsumerState<ContactsScreen> {
+  String _searchQuery = '';
+  String _selectedType = 'all';
+  int _rowsPerPage = 25;
+  int _sortColumnIndex = 0;
+  bool _sortAscending = true;
+
+  @override
+  Widget build(BuildContext context) {
     final contacts = ref.watch(contactsProvider);
 
     return ClayScaffold(
       appBar: ClayAppBar(
         title: const Text('Contacts'),
+        subtitle: const Text('Customers, suppliers, balances'),
         actions: [
           ClayIconButton(
             icon: Icons.search,
@@ -38,10 +50,133 @@ class ContactsScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
         data: (contactList) {
-          if (contactList.isEmpty) {
-            return const _EmptyContactsState();
-          }
-          return _ContactsList(contacts: contactList);
+          final filtered = _filterContacts(contactList);
+          final sorted = _sortContacts(filtered);
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              if (ClayBreakpoints.isCompact(constraints.maxWidth)) {
+                if (sorted.isEmpty) return const _EmptyContactsState();
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: sorted.length,
+                  itemBuilder: (context, index) =>
+                      _ContactItem(contact: sorted[index]),
+                );
+              }
+              if (sorted.isEmpty) return const _EmptyContactsState();
+              return SizedBox(
+                height: constraints.maxHeight,
+                child: Card(
+                  margin: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Text(
+                              'Contacts (${sorted.length})',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Spacer(),
+                            SizedBox(
+                              width: 280,
+                              child: ClaySearchInput(
+                                hintText: 'Search...',
+                                onChanged: (v) =>
+                                    setState(() => _searchQuery = v),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: PaginatedDataTable(
+                            header: const Text(
+                              'All contacts',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            rowsPerPage: _rowsPerPage,
+                            availableRowsPerPage: const [10, 25, 50, 100],
+                            onRowsPerPageChanged: (v) =>
+                                setState(() => _rowsPerPage = v!),
+                            sortColumnIndex: _sortColumnIndex,
+                            sortAscending: _sortAscending,
+                            showCheckboxColumn: false,
+                            columns: [
+                              DataColumn(
+                                label: const Text('Name',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = 0;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              DataColumn(
+                                label: const Text('Phone',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = 1;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              DataColumn(
+                                label: const Text('Type',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = 2;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              DataColumn(
+                                label: const Text('Balance',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                numeric: true,
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = 3;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              DataColumn(
+                                label: const Text('Status',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = 4;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              const DataColumn(
+                                label: Text('Actions',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                            source: _ContactsDataSource(
+                              contacts: sorted,
+                              onView: (c) =>
+                                  _showContactDetailDialog(context, c),
+                              onDelete: (c) =>
+                                  _confirmDeleteContact(context, ref, c),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
         },
       ),
       bottomNavigationBar: ClayBottomNavigation(
@@ -76,50 +211,53 @@ class ContactsScreen extends ConsumerWidget {
     );
   }
 
+  List<ContactModel> _filterContacts(List<ContactModel> list) =>
+      list.where((c) {
+        if (_selectedType != 'all' && c.type != _selectedType) return false;
+        if (_searchQuery.isNotEmpty) {
+          final q = _searchQuery.toLowerCase();
+          if (!c.name.toLowerCase().contains(q) &&
+              !(c.primaryPhone?.contains(_searchQuery) ?? false) &&
+              !(c.email?.toLowerCase().contains(q) ?? false)) {
+            return false;
+          }
+        }
+        return c.isActive;
+      }).toList();
+
+  List<ContactModel> _sortContacts(List<ContactModel> list) {
+    list.sort((a, b) {
+      var cmp = 0;
+      switch (_sortColumnIndex) {
+        case 0:
+          cmp = a.name.compareTo(b.name);
+          break;
+        case 1:
+          cmp = (a.primaryPhone ?? '').compareTo(b.primaryPhone ?? '');
+          break;
+        case 2:
+          cmp = a.type.compareTo(b.type);
+          break;
+        case 3:
+          cmp = a.balance.compareTo(b.balance);
+          break;
+        case 4:
+          cmp = (a.isActive ? 1 : 0).compareTo(b.isActive ? 1 : 0);
+          break;
+      }
+      return _sortAscending ? cmp : -cmp;
+    });
+    return list;
+  }
+
   void _showSearchDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => ClayDialog(
         title: const Text('Search Contacts'),
-        content:
-            const ClaySearchInput(hintText: 'Search by name, phone, or email'),
-        actions: [
-          ClayButton.text(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showFilterDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => ClayDialog(
-        title: const Text('Filter Contacts'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ClayRadioListTile<String>(
-              title: const Text('All'),
-              value: 'all',
-              groupValue: 'all',
-              onChanged: (value) {},
-            ),
-            ClayRadioListTile<String>(
-              title: const Text('Customers'),
-              value: AppConstants.CONTACT_CUSTOMER,
-              groupValue: 'all',
-              onChanged: (value) {},
-            ),
-            ClayRadioListTile<String>(
-              title: const Text('Suppliers'),
-              value: AppConstants.CONTACT_SUPPLIER,
-              groupValue: 'all',
-              onChanged: (value) {},
-            ),
-          ],
+        content: ClaySearchInput(
+          hintText: 'Search by name, phone, or email',
+          onChanged: (v) => setState(() => _searchQuery = v),
         ),
         actions: [
           ClayButton.text(
@@ -128,6 +266,48 @@ class ContactsScreen extends ConsumerWidget {
           ),
           ClayButton(
             onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFilterDialog(BuildContext context) {
+    var selected = _selectedType;
+    showDialog(
+      context: context,
+      builder: (context) => ClayDialog(
+        title: const Text('Filter Contacts'),
+        content: SizedBox(
+          width: 300,
+          child: ClayDropdownInput<String>(
+            label: 'Type',
+            value: selected,
+            items: const [
+              DropdownMenuItem(value: 'all', child: Text('All')),
+              DropdownMenuItem(
+                  value: AppConstants.CONTACT_CUSTOMER,
+                  child: Text('Customers')),
+              DropdownMenuItem(
+                  value: AppConstants.CONTACT_SUPPLIER,
+                  child: Text('Suppliers')),
+              DropdownMenuItem(
+                  value: AppConstants.CONTACT_BOTH, child: Text('Both')),
+            ],
+            onChanged: (v) => selected = v!,
+          ),
+        ),
+        actions: [
+          ClayButton.text(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ClayButton(
+            onPressed: () {
+              setState(() => _selectedType = selected);
+              Navigator.pop(context);
+            },
             child: const Text('Apply'),
           ),
         ],
@@ -143,6 +323,180 @@ class ContactsScreen extends ConsumerWidget {
         child: _AddContactForm(),
       ),
     );
+  }
+}
+
+/// Table data source for contacts.
+class _ContactsDataSource extends DataTableSource {
+  _ContactsDataSource({
+    required this.contacts,
+    required this.onView,
+    required this.onDelete,
+  });
+  final List<ContactModel> contacts;
+  final void Function(ContactModel) onView;
+  final void Function(ContactModel) onDelete;
+
+  @override
+  DataRow? getRow(int index) {
+    final c = contacts[index];
+    return DataRow(
+      onSelectChanged: (_) => onView(c),
+      cells: [
+        DataCell(
+            Text(c.name, style: const TextStyle(fontWeight: FontWeight.bold))),
+        DataCell(Text(c.primaryPhone ?? '—')),
+        DataCell(
+          Chip(
+            label:
+                Text(c.typeDisplayName, style: const TextStyle(fontSize: 11)),
+            backgroundColor: _contactTypeColor(c.type).withValues(alpha: 0.1),
+            side: BorderSide(color: _contactTypeColor(c.type), width: 1),
+            visualDensity: VisualDensity.compact,
+          ),
+        ),
+        DataCell(Text(
+          'NPR ${c.balance.toStringAsFixed(2)}',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: c.balance >= 0 ? ClayColors.success : ClayColors.error,
+          ),
+        )),
+        DataCell(Text(
+          c.isActive ? 'Active' : 'Inactive',
+          style: TextStyle(
+            fontSize: 12,
+            color: c.isActive ? ClayColors.success : Colors.grey,
+          ),
+        )),
+        DataCell(Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.visibility, size: 18),
+              onPressed: () => onView(c),
+              tooltip: 'View',
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, size: 18),
+              color: Colors.red,
+              onPressed: () => onDelete(c),
+              tooltip: 'Delete',
+            ),
+          ],
+        )),
+      ],
+    );
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+  @override
+  int get rowCount => contacts.length;
+  @override
+  int get selectedRowCount => 0;
+}
+
+/// Shared contact helpers (used by cards + table).
+Color _contactTypeColor(String type) {
+  switch (type) {
+    case AppConstants.CONTACT_CUSTOMER:
+      return ClayColors.primary;
+    case AppConstants.CONTACT_SUPPLIER:
+      return ClayColors.secondary;
+    case AppConstants.CONTACT_BOTH:
+      return ClayColors.tertiary;
+    default:
+      return Colors.grey;
+  }
+}
+
+void _showContactDetailDialog(BuildContext context, ContactModel contact) {
+  showDialog(
+    context: context,
+    builder: (context) => ClayDialog(
+      title: Text(contact.name),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _ContactDetailRow(
+              icon: Icons.phone,
+              label: 'Phone',
+              value: contact.primaryPhone ?? 'N/A',
+            ),
+            const Divider(),
+            _ContactDetailRow(
+              icon: Icons.email,
+              label: 'Email',
+              value: contact.email ?? 'N/A',
+            ),
+            const Divider(),
+            _ContactDetailRow(
+              icon: Icons.location_on,
+              label: 'Address',
+              value: contact.fullAddress,
+            ),
+            const Divider(),
+            _ContactDetailRow(
+              icon: Icons.money,
+              label: 'Balance',
+              value: 'NPR ${contact.balance.toStringAsFixed(2)}',
+            ),
+            const Divider(),
+            _ContactDetailRow(
+              icon: Icons.category,
+              label: 'Type',
+              value: contact.typeDisplayName,
+            ),
+            const Divider(),
+            _ContactDetailRow(
+              icon: Icons.info,
+              label: 'VAT Number',
+              value: contact.vatNumber ?? 'N/A',
+            ),
+            const Divider(),
+            _ContactDetailRow(
+              icon: Icons.numbers,
+              label: 'PAN Number',
+              value: contact.panNumber ?? 'N/A',
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        ClayButton.text(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Close'),
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> _confirmDeleteContact(
+    BuildContext context, WidgetRef ref, ContactModel contact) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Delete contact?'),
+      content: Text(
+          'Delete ${contact.name}? Linked transactions keep their history.'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Delete'),
+        ),
+      ],
+    ),
+  );
+  if (confirmed ?? false) {
+    await hiveService.contactsBox.delete(contact.id);
+    ref.invalidate(contactsProvider);
   }
 }
 
@@ -184,22 +538,7 @@ class _EmptyContactsState extends StatelessWidget {
       );
 }
 
-/// Contacts List
-class _ContactsList extends ConsumerWidget {
-  const _ContactsList({required this.contacts});
-  final List<ContactModel> contacts;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) => ListView.builder(
-        itemCount: contacts.length,
-        itemBuilder: (context, index) {
-          final contact = contacts[index];
-          return _ContactItem(contact: contact);
-        },
-      );
-}
-
-/// Contact Item
+/// Contact Item (mobile card)
 class _ContactItem extends StatelessWidget {
   const _ContactItem({required this.contact});
   final ContactModel contact;

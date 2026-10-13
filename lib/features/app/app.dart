@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/database/database_initializer.dart';
+import '../../core/providers/theme_provider.dart';
 import '../../packages/design-system/design_system.dart';
 import '../dashboard/presentation/dashboard_screen.dart';
 import '../contacts/presentation/contacts_screen.dart';
@@ -67,35 +68,38 @@ class NKountApp extends ConsumerWidget {
   const NKountApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => MaterialApp.router(
-        title: AppConstants.appName,
-        debugShowCheckedModeBanner: false,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+    return MaterialApp.router(
+      title: AppConstants.appName,
+      debugShowCheckedModeBanner: false,
 
-        // Apply Claymorphism theme
-        theme: ClayTheme.lightTheme,
-        darkTheme: ClayTheme.darkTheme,
-        themeMode: ThemeMode.light,
+      // Apply Claymorphism theme
+      theme: ClayTheme.lightTheme,
+      darkTheme: ClayTheme.darkTheme,
+      themeMode: themeMode,
 
-        // Localization
-        locale: const Locale('en', 'NP'),
-        supportedLocales: const [
-          Locale('en', 'NP'),
-          Locale('ne', 'NP'),
-        ],
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
+      // Localization
+      locale: const Locale('en', 'NP'),
+      supportedLocales: const [
+        Locale('en', 'NP'),
+        Locale('ne', 'NP'),
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
 
-        // Router
-        routerConfig: _router,
+      // Router
+      routerConfig: _router,
 
-        // Builder with Claymorphism background
-        builder: (context, child) => ClayThemeBuilder(
-          child: child ?? const SizedBox(),
-        ),
-      );
+      // Builder with Claymorphism background
+      builder: (context, child) => ClayThemeBuilder(
+        child: child ?? const SizedBox(),
+      ),
+    );
+  }
 }
 
 /// Provider for database initializer status

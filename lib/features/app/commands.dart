@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/providers/theme_provider.dart';
 
 /// A single command-palette entry.
 class AppCommand {
@@ -26,6 +28,17 @@ List<AppCommand> appCommands() => [
       _go('Payments', Icons.payment, '/payments', 'G Y'),
       _go('Reports', Icons.assessment, '/reports', 'G R'),
       _go('Settings', Icons.settings, '/settings', 'G ,'),
+      AppCommand(
+        title: 'Toggle dark mode',
+        icon: Icons.brightness_6,
+        hint: 'G T',
+        run: (context) {
+          final container = ProviderScope.containerOf(context);
+          final current = container.read(themeModeProvider);
+          container.read(themeModeProvider.notifier).state =
+              current == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+        },
+      ),
     ];
 
 AppCommand _go(String title, IconData icon, String route, String hint) =>
