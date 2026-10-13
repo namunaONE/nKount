@@ -4,24 +4,38 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/database/hive_service.dart';
 import '../../../core/models/transaction_model.dart';
+import '../../../core/utils/theme/app_theme.dart';
 import '../../../packages/design-system/design_system.dart';
 
-/// Transactions Screen with Claymorphism Design
-class TransactionsScreen extends ConsumerWidget {
+/// Transactions Screen: dense, sortable, filterable table (desktop) + cards (mobile)
+class TransactionsScreen extends ConsumerStatefulWidget {
   const TransactionsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final transactions = ref.watch(transactionsProvider);
+  ConsumerState<TransactionsScreen> createState() => _TransactionsScreenState();
+}
+
+class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
+  String _searchQuery = '';
+  String _selectedStatus = 'all';
+  String _selectedType = 'all';
+  int _rowsPerPage = 25;
+  int _sortColumnIndex = 0;
+  bool _sortAscending = true;
+
+  @override
+  Widget build(BuildContext context) {
+    final transactionsAsync = ref.watch(transactionsProvider);
 
     return ClayScaffold(
       appBar: ClayAppBar(
         title: const Text('Transactions'),
+        subtitle: const Text('View, filter, and manage transactions'),
         actions: [
           ClayIconButton(
             icon: Icons.search,
             onPressed: () => _showSearchDialog(context),
-            tooltip: 'Search Transactions',
+            tooltip: 'Search (/)',
           ),
           ClayIconButton(
             icon: Icons.filter_list,
@@ -34,31 +48,179 @@ class TransactionsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: transactions.when(
+      body: transactionsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
         data: (transactionList) {
-          if (transactionList.isEmpty) {
-            return const _EmptyTransactionsState();
-          }
-          return _TransactionsList(transactions: transactionList);
+          final filtered = _filterTransactions(transactionList);
+          final sorted = _sortTransactions(filtered);
+
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              if (ClayBreakpoints.isCompact(constraints.maxWidth)) {
+                return _MobileCardList(transactions: sorted);
+              }
+              // Desktop: dense paginated table fills available height.
+              return SizedBox(
+                height: constraints.maxHeight,
+                child: Card(
+                  margin: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            const Text(
+                              'Transactions',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Spacer(),
+                            SizedBox(
+                              width: 280,
+                              child: ClaySearchInput(
+                                hintText: 'Search...',
+                                onChanged: (v) =>
+                                    setState(() => _searchQuery = v),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: PaginatedDataTable(
+                            header: const Text(
+                              'All transactions',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            rowsPerPage: _rowsPerPage,
+                            availableRowsPerPage: const [10, 25, 50, 100],
+                            onRowsPerPageChanged: (v) =>
+                                setState(() => _rowsPerPage = v!),
+                            sortColumnIndex: _sortColumnIndex,
+                            sortAscending: _sortAscending,
+                            showCheckboxColumn: false,
+                            columns: [
+                              DataColumn(
+                                label: const Text('Invoice',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = 0;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              DataColumn(
+                                label: const Text('Date',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = 1;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              DataColumn(
+                                label: const Text('Type',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = 2;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              DataColumn(
+                                label: const Text('Contact',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = 3;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              DataColumn(
+                                label: const Text('Total',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                numeric: true,
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = 4;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              DataColumn(
+                                label: const Text('Status',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = 5;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              DataColumn(
+                                label: const Text('Due',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                onSort: (col, asc) => setState(() {
+                                  _sortColumnIndex = 6;
+                                  _sortAscending = asc;
+                                }),
+                              ),
+                              const DataColumn(
+                                label: Text('Actions',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                            source: _TransactionDataSource(
+                              transactions: sorted,
+                              onView: (t) => _showDetailDialog(context, t),
+                              onEdit: (t) => _showEditDialog(context, t),
+                              onDelete: (t) => _confirmDelete(context, t),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
         },
       ),
       bottomNavigationBar: ClayBottomNavigation(
         currentIndex: 3,
         items: const [
           ClayBottomNavItem(
-              icon: Icons.dashboard, label: 'Dashboard', route: '/'),
+            icon: Icons.dashboard,
+            label: 'Dashboard',
+            route: '/',
+          ),
           ClayBottomNavItem(
-              icon: Icons.people, label: 'Contacts', route: '/contacts'),
+            icon: Icons.people,
+            label: 'Contacts',
+            route: '/contacts',
+          ),
           ClayBottomNavItem(
-              icon: Icons.inventory, label: 'Products', route: '/products'),
+            icon: Icons.inventory,
+            label: 'Products',
+            route: '/products',
+          ),
           ClayBottomNavItem(
-              icon: Icons.receipt,
-              label: 'Transactions',
-              route: '/transactions'),
+            icon: Icons.receipt,
+            label: 'Transactions',
+            route: '/transactions',
+          ),
           ClayBottomNavItem(
-              icon: Icons.payment, label: 'Payments', route: '/payments'),
+            icon: Icons.payment,
+            label: 'Payments',
+            route: '/payments',
+          ),
         ],
         onTap: (index) {
           final routes = [
@@ -76,17 +238,75 @@ class TransactionsScreen extends ConsumerWidget {
     );
   }
 
+  List<TransactionModel> _filterTransactions(List<TransactionModel> list) =>
+      list.where((t) {
+        if (t.isCancelled) return false;
+        if (_selectedStatus != 'all' && t.paymentStatus != _selectedStatus) {
+          return false;
+        }
+        if (_selectedType != 'all' && t.type != _selectedType) return false;
+        if (_searchQuery.isNotEmpty) {
+          final q = _searchQuery.toLowerCase();
+          if (!(t.invoiceNumber?.toLowerCase().contains(q) ?? false) &&
+              !t.contactId.toLowerCase().contains(q) &&
+              !(t.items?.any(
+                      (item) => item.productName.toLowerCase().contains(q)) ??
+                  false)) {
+            return false;
+          }
+        }
+        return true;
+      }).toList();
+
+  List<TransactionModel> _sortTransactions(List<TransactionModel> list) {
+    list.sort((a, b) {
+      var cmp = 0;
+      switch (_sortColumnIndex) {
+        case 0:
+          cmp = (a.invoiceNumber ?? '').compareTo(b.invoiceNumber ?? '');
+          break;
+        case 1:
+          cmp = (a.date ?? DateTime(1970)).compareTo(b.date ?? DateTime(1970));
+          break;
+        case 2:
+          cmp = a.typeDisplayName.compareTo(b.typeDisplayName);
+          break;
+        case 3:
+          cmp = a.contactId.compareTo(b.contactId);
+          break;
+        case 4:
+          cmp = a.total.compareTo(b.total);
+          break;
+        case 5:
+          cmp = a.paymentStatus.compareTo(b.paymentStatus);
+          break;
+        case 6:
+          cmp = (a.dueDate ?? DateTime(2099))
+              .compareTo(b.dueDate ?? DateTime(2099));
+          break;
+      }
+      return _sortAscending ? cmp : -cmp;
+    });
+    return list;
+  }
+
   void _showSearchDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => ClayDialog(
         title: const Text('Search Transactions'),
-        content: const ClaySearchInput(
-            hintText: 'Search by invoice number, contact, or amount'),
+        content: ClaySearchInput(
+          hintText: 'Search by invoice number, contact, or amount',
+          onChanged: (v) => setState(() => _searchQuery = v),
+        ),
         actions: [
           ClayButton.text(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
+          ),
+          ClayButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -98,40 +318,54 @@ class TransactionsScreen extends ConsumerWidget {
       context: context,
       builder: (context) => ClayDialog(
         title: const Text('Filter Transactions'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ClayRadioListTile<String>(
-              title: const Text('All'),
-              value: 'all',
-              groupValue: 'all',
-              onChanged: (value) {},
-            ),
-            ClayRadioListTile<String>(
-              title: const Text('Sales'),
-              value: AppConstants.TRANSACTION_SALE,
-              groupValue: 'all',
-              onChanged: (value) {},
-            ),
-            ClayRadioListTile<String>(
-              title: const Text('Purchases'),
-              value: AppConstants.TRANSACTION_PURCHASE,
-              groupValue: 'all',
-              onChanged: (value) {},
-            ),
-            ClayRadioListTile<String>(
-              title: const Text('Today'),
-              value: 'today',
-              groupValue: 'all',
-              onChanged: (value) {},
-            ),
-            ClayRadioListTile<String>(
-              title: const Text('This Month'),
-              value: 'this_month',
-              groupValue: 'all',
-              onChanged: (value) {},
-            ),
-          ],
+        content: SizedBox(
+          width: 300,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClayDropdownInput<String>(
+                label: 'Status',
+                value: _selectedStatus,
+                items: const [
+                  DropdownMenuItem(value: 'all', child: Text('All')),
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_STATUS_PAID,
+                      child: Text('Paid')),
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_STATUS_PARTIAL,
+                      child: Text('Partial')),
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_STATUS_PENDING,
+                      child: Text('Pending')),
+                  DropdownMenuItem(
+                      value: AppConstants.PAYMENT_STATUS_CANCELLED,
+                      child: Text('Cancelled')),
+                ],
+                onChanged: (v) => setState(() => _selectedStatus = v!),
+              ),
+              const SizedBox(height: 16),
+              ClayDropdownInput<String>(
+                label: 'Type',
+                value: _selectedType,
+                items: const [
+                  DropdownMenuItem(value: 'all', child: Text('All')),
+                  DropdownMenuItem(
+                      value: AppConstants.TRANSACTION_SALE,
+                      child: Text('Sale')),
+                  DropdownMenuItem(
+                      value: AppConstants.TRANSACTION_PURCHASE,
+                      child: Text('Purchase')),
+                  DropdownMenuItem(
+                      value: AppConstants.TRANSACTION_EXPENSE,
+                      child: Text('Expense')),
+                  DropdownMenuItem(
+                      value: AppConstants.TRANSACTION_INCOME,
+                      child: Text('Income')),
+                ],
+                onChanged: (v) => setState(() => _selectedType = v!),
+              ),
+            ],
+          ),
         ),
         actions: [
           ClayButton.text(
@@ -139,7 +373,10 @@ class TransactionsScreen extends ConsumerWidget {
             child: const Text('Cancel'),
           ),
           ClayButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() {});
+            },
             child: const Text('Apply'),
           ),
         ],
@@ -154,6 +391,269 @@ class TransactionsScreen extends ConsumerWidget {
         title: Text('Add New Transaction'),
         child: _AddTransactionForm(),
       ),
+    );
+  }
+
+  void _showDetailDialog(BuildContext context, TransactionModel t) =>
+      showDialog(
+          context: context,
+          builder: (c) => ClayDialog(
+                title:
+                    Text('${t.typeDisplayName} - ${t.invoiceNumber ?? 'N/A'}'),
+                content: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 500),
+                    child: SingleChildScrollView(
+                        child:
+                            Column(mainAxisSize: MainAxisSize.min, children: [
+                      _detailRow('Invoice', t.invoiceNumber ?? 'N/A'),
+                      _detailRow(
+                          'Date', t.date?.toString().split(' ').first ?? 'N/A'),
+                      _detailRow('Type', t.typeDisplayName),
+                      _detailRow('Contact', t.contactId),
+                      _detailRow(
+                          'Subtotal', AppTheme.formatCurrency(t.subtotal)),
+                      _detailRow(
+                          'Discount', AppTheme.formatCurrency(t.discount)),
+                      _detailRow('Tax (${t.vatRate}%)',
+                          AppTheme.formatCurrency(t.tax)),
+                      _detailRow('Total', AppTheme.formatCurrency(t.total),
+                          bold: true),
+                      _detailRow('Paid', AppTheme.formatCurrency(t.paidAmount)),
+                      _detailRow('Due', AppTheme.formatCurrency(t.dueAmount),
+                          bold: t.dueAmount > 0),
+                      _detailRow('Status', t.paymentStatus),
+                      if (t.notes != null && t.notes!.isNotEmpty)
+                        _detailRow('Notes', t.notes!),
+                    ]))),
+                actions: [
+                  ClayButton.text(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Close'))
+                ],
+              ));
+
+  void _showEditDialog(BuildContext context, TransactionModel t) {
+    // TODO: Implement edit dialog
+  }
+
+  void _confirmDelete(BuildContext context, TransactionModel t) {
+    showDialog(
+        context: context,
+        builder: (c) => AlertDialog(
+              title: const Text('Delete Transaction?'),
+              content:
+                  Text('Delete ${t.invoiceNumber}? This cannot be undone.'),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel')),
+                FilledButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    await hiveService.transactionsBox.delete(t.id);
+                    ref.invalidate(transactionsProvider);
+                  },
+                  child: const Text('Delete'),
+                ),
+              ],
+            ));
+  }
+
+  Widget _detailRow(String label, String value, {bool bold = false}) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child:
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Text(label, style: const TextStyle(color: Colors.grey)),
+          Text(value,
+              style: TextStyle(
+                  fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
+        ]),
+      );
+}
+
+/// Compact transaction card for mobile.
+class _TransactionCard extends StatelessWidget {
+  const _TransactionCard({required this.transaction});
+  final TransactionModel transaction;
+
+  @override
+  Widget build(BuildContext context) {
+    final isSale = transaction.type == AppConstants.TRANSACTION_SALE;
+    return ClayCard(
+      onTap: () => context.push('/transactions'),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: (isSale ? ClayColors.success : ClayColors.info)
+                  .withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              isSale ? Icons.arrow_upward : Icons.arrow_downward,
+              color: isSale ? ClayColors.success : ClayColors.info,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  transaction.invoiceNumber ?? transaction.typeDisplayName,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  transaction.date?.toString().split(' ').first ?? '',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                AppTheme.formatCurrency(transaction.total),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              _PaymentStatusChip(status: transaction.paymentStatus),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Mobile card list (compact breakpoint)
+class _MobileCardList extends StatelessWidget {
+  const _MobileCardList({required this.transactions});
+  final List<TransactionModel> transactions;
+
+  @override
+  Widget build(BuildContext context) {
+    if (transactions.isEmpty) return const _EmptyTransactionsState();
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: transactions.length,
+      itemBuilder: (context, index) =>
+          _TransactionCard(transaction: transactions[index]),
+    );
+  }
+}
+
+/// Desktop data table with sorting, pagination, row actions
+class _TransactionDataSource extends DataTableSource {
+  _TransactionDataSource({
+    required this.transactions,
+    required this.onView,
+    required this.onEdit,
+    required this.onDelete,
+  });
+  final List<TransactionModel> transactions;
+  final void Function(TransactionModel) onView;
+  final void Function(TransactionModel) onEdit;
+  final void Function(TransactionModel) onDelete;
+
+  @override
+  DataRow? getRow(int index) {
+    final t = transactions[index];
+    return DataRow(
+      onSelectChanged: (_) => onView(t),
+      cells: [
+        DataCell(Text(t.invoiceNumber ?? 'N/A')),
+        DataCell(Text(t.date?.toString().split(' ').first ?? 'N/A')),
+        DataCell(Chip(
+            label: Text(t.typeDisplayName),
+            backgroundColor: _getTypeColor(t.type).withValues(alpha: 0.1),
+            labelStyle: TextStyle(color: _getTypeColor(t.type)))),
+        DataCell(Text(t.contactId, overflow: TextOverflow.ellipsis)),
+        DataCell(Text('NPR ${t.total.toStringAsFixed(2)}',
+            style: const TextStyle(fontWeight: FontWeight.bold))),
+        DataCell(_PaymentStatusChip(status: t.paymentStatus)),
+        DataCell(Text(t.dueDate?.toString().split(' ').first ?? 'N/A')),
+        DataCell(Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+                icon: const Icon(Icons.visibility, size: 18),
+                onPressed: () => onView(transactions[index]),
+                tooltip: 'View'),
+            IconButton(
+                icon: const Icon(Icons.edit, size: 18),
+                onPressed: () => onEdit(transactions[index]),
+                tooltip: 'Edit'),
+            IconButton(
+                icon: const Icon(Icons.delete, size: 18),
+                color: Colors.red,
+                onPressed: () => onDelete(transactions[index]),
+                tooltip: 'Delete'),
+          ],
+        )),
+      ],
+    );
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+  @override
+  int get rowCount => transactions.length;
+  @override
+  int get selectedRowCount => 0;
+
+  Color _getTypeColor(String type) {
+    switch (type) {
+      case AppConstants.TRANSACTION_SALE:
+        return Colors.green;
+      case AppConstants.TRANSACTION_PURCHASE:
+        return Colors.blue;
+      case AppConstants.TRANSACTION_EXPENSE:
+        return Colors.red;
+      case AppConstants.TRANSACTION_INCOME:
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+}
+
+class _PaymentStatusChip extends StatelessWidget {
+  const _PaymentStatusChip({required this.status});
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    Color color;
+    String label;
+    switch (status) {
+      case AppConstants.PAYMENT_STATUS_PAID:
+        color = Colors.green;
+        label = 'Paid';
+        break;
+      case AppConstants.PAYMENT_STATUS_PARTIAL:
+        color = Colors.orange;
+        label = 'Partial';
+        break;
+      case AppConstants.PAYMENT_STATUS_PENDING:
+        color = Colors.red;
+        label = 'Pending';
+        break;
+      case AppConstants.PAYMENT_STATUS_CANCELLED:
+        color = Colors.grey;
+        label = 'Cancelled';
+        break;
+      default:
+        color = Colors.grey;
+        label = status;
+    }
+    return Chip(
+      label: Text(label, style: const TextStyle(fontSize: 11)),
+      backgroundColor: color.withValues(alpha: 0.1),
+      side: BorderSide(color: color, width: 1),
+      visualDensity: VisualDensity.compact,
     );
   }
 }
@@ -197,312 +697,6 @@ class _EmptyTransactionsState extends StatelessWidget {
 }
 
 /// Transactions List
-class _TransactionsList extends ConsumerWidget {
-  const _TransactionsList({required this.transactions});
-  final List<TransactionModel> transactions;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) => ListView.builder(
-        itemCount: transactions.length,
-        itemBuilder: (context, index) {
-          final transaction = transactions[index];
-          return _TransactionItem(transaction: transaction);
-        },
-      );
-}
-
-/// Transaction Item
-class _TransactionItem extends StatelessWidget {
-  const _TransactionItem({required this.transaction});
-  final TransactionModel transaction;
-
-  @override
-  Widget build(BuildContext context) => ClayCard(
-        onTap: () => _showTransactionDetailDialog(context, transaction),
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: _getTransactionTypeColor(transaction.type)
-                    .withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                _getTransactionTypeIcon(transaction.type),
-                color: _getTransactionTypeColor(transaction.type),
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    transaction.invoiceNumber ?? 'N/A',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    transaction.typeDisplayName,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: _getTransactionTypeColor(transaction.type),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Items: ${transaction.items?.length ?? 0}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  'NPR ${transaction.total.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: ClayColors.primary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                _PaymentStatusBadge(status: transaction.paymentStatus),
-              ],
-            ),
-          ],
-        ),
-      );
-
-  Color _getTransactionTypeColor(String type) {
-    switch (type) {
-      case AppConstants.TRANSACTION_SALE:
-        return ClayColors.success;
-      case AppConstants.TRANSACTION_PURCHASE:
-        return ClayColors.secondary;
-      case AppConstants.TRANSACTION_EXPENSE:
-        return ClayColors.error;
-      case AppConstants.TRANSACTION_INCOME:
-        return ClayColors.info;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  IconData _getTransactionTypeIcon(String type) {
-    switch (type) {
-      case AppConstants.TRANSACTION_SALE:
-        return Icons.arrow_upward;
-      case AppConstants.TRANSACTION_PURCHASE:
-        return Icons.arrow_downward;
-      case AppConstants.TRANSACTION_EXPENSE:
-        return Icons.money_off;
-      case AppConstants.TRANSACTION_INCOME:
-        return Icons.money;
-      default:
-        return Icons.receipt;
-    }
-  }
-
-  void _showTransactionDetailDialog(
-      BuildContext context, TransactionModel transaction) {
-    showDialog(
-      context: context,
-      builder: (context) => ClayDialog(
-        title: Text(
-            '${transaction.typeDisplayName} - ${transaction.invoiceNumber ?? 'N/A'}'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _TransactionDetailRow(
-                icon: Icons.receipt,
-                label: 'Invoice Number',
-                value: transaction.invoiceNumber ?? 'N/A',
-              ),
-              const Divider(),
-              _TransactionDetailRow(
-                icon: Icons.calendar_today,
-                label: 'Date',
-                value: transaction.date?.toString().substring(0, 10) ?? 'N/A',
-              ),
-              const Divider(),
-              _TransactionDetailRow(
-                icon: Icons.people,
-                label: 'Contact ID',
-                value: transaction.contactId,
-              ),
-              const Divider(),
-              _TransactionDetailRow(
-                icon: Icons.money,
-                label: 'Subtotal',
-                value: 'NPR ${transaction.subtotal.toStringAsFixed(2)}',
-              ),
-              const Divider(),
-              _TransactionDetailRow(
-                icon: Icons.discount,
-                label: 'Discount',
-                value: 'NPR ${transaction.discount.toStringAsFixed(2)}',
-              ),
-              const Divider(),
-              _TransactionDetailRow(
-                icon: Icons.percent,
-                label: 'VAT Rate',
-                value: '${transaction.vatRate}%',
-              ),
-              const Divider(),
-              _TransactionDetailRow(
-                icon: Icons.money,
-                label: 'Tax Amount',
-                value: 'NPR ${transaction.tax.toStringAsFixed(2)}',
-              ),
-              const Divider(),
-              _TransactionDetailRow(
-                icon: Icons.money,
-                label: 'Total',
-                value: 'NPR ${transaction.total.toStringAsFixed(2)}',
-              ),
-              const Divider(),
-              _TransactionDetailRow(
-                icon: Icons.payment,
-                label: 'Paid Amount',
-                value: 'NPR ${transaction.paidAmount.toStringAsFixed(2)}',
-              ),
-              const Divider(),
-              _TransactionDetailRow(
-                icon: Icons.money_off,
-                label: 'Due Amount',
-                value: 'NPR ${transaction.dueAmount.toStringAsFixed(2)}',
-              ),
-              const Divider(),
-              _TransactionDetailRow(
-                icon: Icons.info,
-                label: 'Payment Status',
-                value: transaction.paymentStatus,
-              ),
-              const Divider(),
-              _TransactionDetailRow(
-                icon: Icons.note,
-                label: 'Notes',
-                value: transaction.notes ?? 'N/A',
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          ClayButton.text(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-          ClayButton(
-            onPressed: () {},
-            child: const Text('Edit'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Transaction Detail Row
-class _TransactionDetailRow extends StatelessWidget {
-  const _TransactionDetailRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            Icon(icon, size: 20, color: Colors.grey),
-            const SizedBox(width: 16),
-            Text(
-              label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Text(': '),
-            Expanded(
-              child: Text(
-                value,
-                style: const TextStyle(fontWeight: FontWeight.w500),
-              ),
-            ),
-          ],
-        ),
-      );
-}
-
-/// Payment Status Badge
-class _PaymentStatusBadge extends StatelessWidget {
-  const _PaymentStatusBadge({required this.status});
-  final String status;
-
-  @override
-  Widget build(BuildContext context) {
-    Color color;
-    String label;
-
-    switch (status) {
-      case AppConstants.PAYMENT_STATUS_PAID:
-        color = ClayColors.success;
-        label = 'Paid';
-        break;
-      case AppConstants.PAYMENT_STATUS_PARTIAL:
-        color = ClayColors.warning;
-        label = 'Partial';
-        break;
-      case AppConstants.PAYMENT_STATUS_PENDING:
-        color = ClayColors.error;
-        label = 'Pending';
-        break;
-      case AppConstants.PAYMENT_STATUS_CANCELLED:
-        color = Colors.grey;
-        label = 'Cancelled';
-        break;
-      default:
-        color = Colors.grey;
-        label = status;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-          color: color,
-        ),
-      ),
-    );
-  }
-}
-
 /// Add Transaction Form
 class _AddTransactionForm extends ConsumerStatefulWidget {
   const _AddTransactionForm();
