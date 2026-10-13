@@ -93,8 +93,8 @@ Future<void> _render(String outPath, int size, {bool maskable = false}) async {
   final word = _text('nKount', 56, letterSpacing: 2);
   canvas.drawParagraph(word, const Offset(0, 366));
 
-  final tag = _text('by namunaONE', 30,
-      bold: false, color: const Color(0xFF7CFD8C));
+  final tag =
+      _text('by namunaONE', 30, bold: false, color: const Color(0xFF7CFD8C));
   canvas.drawParagraph(tag, const Offset(0, 434));
   canvas.restore();
 
@@ -110,9 +110,7 @@ void main() {
     await _loadFonts();
     await _render('assets/images/logo-512.png', 512);
     await _render('assets/images/logo-192.png', 192);
-    await _render('assets/images/logo-maskable-512.png', 512,
-        maskable: true);
-    await _render('assets/images/logo-maskable-192.png', 192,
-        maskable: true);
+    await _render('assets/images/logo-maskable-512.png', 512, maskable: true);
+    await _render('assets/images/logo-maskable-192.png', 192, maskable: true);
   });
 }

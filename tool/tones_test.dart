@@ -13,7 +13,24 @@ String hex(int argb) {
 void dump(String name, int seed) {
   final p = TonalPalette.fromHct(Hct.fromInt(seed));
   const tones = [
-    0, 5, 10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 95, 98, 99, 100
+    0,
+    5,
+    10,
+    15,
+    20,
+    25,
+    30,
+    35,
+    40,
+    50,
+    60,
+    70,
+    80,
+    90,
+    95,
+    98,
+    99,
+    100
   ];
   debugPrint('== $name seed ${hex(seed)} ==');
   for (final t in tones) {
