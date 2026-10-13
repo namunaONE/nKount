@@ -7,6 +7,7 @@ import '../../../core/models/product_model.dart';
 import '../../../core/models/transaction_model.dart';
 import '../../../core/providers/storage_providers.dart';
 import '../../../core/utils/theme/app_theme.dart';
+import '../../../packages/design-system/design_system.dart';
 
 /// Purchases Screen for managing purchase transactions
 class PurchasesScreen extends ConsumerStatefulWidget {
@@ -34,7 +35,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen> {
         title: const Text('Purchases'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.filter_list),
+            icon: const Icon(ClayIcons.filter),
             onPressed: _showFilterDialog,
           ),
         ],
@@ -47,7 +48,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen> {
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'Search purchases...',
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: const Icon(ClayIcons.search),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
@@ -73,7 +74,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen> {
                     AppTheme.formatCurrency(ref
                         .read(transactionRepositoryProvider)
                         .getTotalPurchaseAmount()),
-                    Colors.orange,
+                    ClayColors.warning,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -83,7 +84,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen> {
                     AppTheme.formatCurrency(purchases
                         .where((p) => p.isFullyPaid)
                         .fold(0.0, (sum, p) => sum + p.total)),
-                    Colors.blue,
+                    ClayColors.info,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -93,7 +94,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen> {
                     AppTheme.formatCurrency(ref
                         .read(transactionRepositoryProvider)
                         .getTotalOutstandingPayables()),
-                    Colors.red,
+                    ClayColors.error,
                   ),
                 ),
               ],
@@ -104,26 +105,35 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen> {
           // Purchases List
           Expanded(
             child: filteredPurchases.isEmpty
-                ? const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.shopping_basket,
-                              size: 64, color: Colors.grey),
-                          SizedBox(height: 16),
-                          Text(
-                            'No purchases found',
-                            style: TextStyle(color: Colors.grey),
+                ? Center(
+                    child: Builder(
+                      builder: (context) {
+                        final textTheme = Theme.of(context).textTheme;
+                        final scheme = Theme.of(context).colorScheme;
+                        return Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(ClayIcons.purchases,
+                                  size: 64,
+                                  color: scheme.onSurfaceVariant),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No purchases found',
+                                style: textTheme.bodyMedium?.copyWith(
+                                    color: scheme.onSurfaceVariant),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Create your first purchase to get started',
+                                style: textTheme.bodySmall?.copyWith(
+                                    color: scheme.onSurfaceVariant),
+                              ),
+                            ],
                           ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Create your first purchase to get started',
-                            style: TextStyle(color: Colors.grey, fontSize: 12),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
                   )
                 : ListView.separated(
@@ -141,7 +151,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddPurchaseDialog,
-        child: const Icon(Icons.add),
+        child: const Icon(ClayIcons.add),
       ),
     );
   }
@@ -182,50 +192,55 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen> {
   }
 
   /// Build summary card
-  Widget _buildSummaryCard(String title, String value, Color color) => Card(
-        elevation: 2,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+  Widget _buildSummaryCard(String title, String value, Color color) {
+    final textTheme = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              value,
+              style: ClayTypography.tabular(textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: color,
+              )),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: textTheme.labelSmall
+                  ?.copyWith(color: scheme.onSurfaceVariant),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
-      );
+      ),
+    );
+  }
 
   /// Build purchase item
   Widget _buildPurchaseItem(TransactionModel purchase) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final color = purchase.isFullyPaid
-        ? Colors.green
-        : (purchase.isPartiallyPaid ? Colors.orange : Colors.red);
+        ? ClayColors.success
+        : (purchase.isPartiallyPaid
+            ? ClayColors.warning
+            : ClayColors.error);
 
     return Card(
       elevation: 2,
-      color: purchase.isCancelled ? Colors.grey[100] : null,
+      color: purchase.isCancelled ? scheme.surfaceContainerHighest : null,
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: color.withValues(alpha: 0.2),
           child: Icon(
             purchase.isFullyPaid
-                ? Icons.check_circle
+                ? ClayIcons.check
                 : (purchase.isPartiallyPaid
                     ? Icons.remove_circle
                     : Icons.pending),
@@ -234,7 +249,7 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen> {
         ),
         title: Text(
           'Invoice: ${purchase.invoiceNumber ?? 'N/A'}',
-          style: TextStyle(
+          style: textTheme.bodyLarge?.copyWith(
             fontWeight: FontWeight.w500,
             decoration:
                 purchase.isCancelled ? TextDecoration.lineThrough : null,
@@ -245,12 +260,13 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen> {
           children: [
             Text(
               'Supplier: ${purchase.contactId}',
-              style: const TextStyle(fontSize: 12),
+              style: textTheme.bodySmall,
             ),
             if (purchase.items != null && purchase.items!.isNotEmpty)
               Text(
                 '${purchase.items!.length} items',
-                style: const TextStyle(fontSize: 11, color: Colors.grey),
+                style: textTheme.labelSmall
+                    ?.copyWith(color: scheme.onSurfaceVariant),
               ),
           ],
         ),
@@ -260,17 +276,19 @@ class _PurchasesScreenState extends ConsumerState<PurchasesScreen> {
           children: [
             Text(
               AppTheme.formatCurrency(purchase.total),
-              style: TextStyle(
+              style: ClayTypography.tabular(
+                  textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: purchase.isCancelled ? Colors.grey : color,
-              ),
+                color: purchase.isCancelled ? scheme.onSurfaceVariant : color,
+              )),
             ),
             const SizedBox(height: 4),
             Text(
               purchase.date != null
                   ? '${purchase.date!.day}/${purchase.date!.month}/${purchase.date!.year}'
                   : 'N/A',
-              style: const TextStyle(fontSize: 10, color: Colors.grey),
+              style: textTheme.labelSmall
+                  ?.copyWith(color: scheme.onSurfaceVariant),
             ),
           ],
         ),

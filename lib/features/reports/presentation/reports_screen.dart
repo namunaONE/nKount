@@ -12,17 +12,17 @@ class ReportsScreen extends ConsumerWidget {
           title: const Text('Reports'),
           actions: [
             ClayIconButton(
-              icon: Icons.date_range,
+              icon: ClayIcons.date,
               onPressed: () => _showDateRangeDialog(context),
               tooltip: 'Select Date Range',
             ),
             ClayIconButton(
-              icon: Icons.print,
+              icon: ClayIcons.print,
               onPressed: () => _showPrintDialog(context),
               tooltip: 'Print Report',
             ),
             ClayIconButton(
-              icon: Icons.download,
+              icon: ClayIcons.download,
               onPressed: () => _showExportDialog(context),
               tooltip: 'Export',
             ),
@@ -201,7 +201,7 @@ class _SummaryCards extends ConsumerWidget {
             child: ClayStatCard(
               title: 'Total Sales',
               value: 'NPR 0.00',
-              icon: Icons.arrow_upward,
+              icon: ClayIcons.receivables,
               iconColor: ClayColors.success,
               subtitle: 'This Month',
             ),
@@ -211,7 +211,7 @@ class _SummaryCards extends ConsumerWidget {
             child: ClayStatCard(
               title: 'Total Purchases',
               value: 'NPR 0.00',
-              icon: Icons.arrow_downward,
+              icon: ClayIcons.payables,
               iconColor: ClayColors.error,
               subtitle: 'This Month',
             ),
@@ -221,7 +221,7 @@ class _SummaryCards extends ConsumerWidget {
             child: ClayStatCard(
               title: 'Net Profit',
               value: 'NPR 0.00',
-              icon: Icons.trending_up,
+              icon: ClayIcons.profit,
               iconColor: ClayColors.info,
               subtitle: 'This Month',
             ),
@@ -236,13 +236,7 @@ class _SalesReportSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ClayCard(
-        title: const Text(
-          'Sales Report',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
+        title: const ClaySectionTitle('Sales Report'),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -287,13 +281,7 @@ class _PurchaseReportSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ClayCard(
-        title: const Text(
-          'Purchase Report',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
+        title: const ClaySectionTitle('Purchase Report'),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -338,13 +326,7 @@ class _PaymentReportSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ClayCard(
-        title: const Text(
-          'Payment Report',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
+        title: const ClaySectionTitle('Payment Report'),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -389,24 +371,12 @@ class _BalanceSheetSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const ClayCard(
-        title: Text(
-          'Balance Sheet',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
+        title: ClaySectionTitle('Balance Sheet'),
         child: Padding(
           padding: EdgeInsets.all(16),
           child: Column(
             children: [
-              Text(
-                'Assets',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
+              _BalanceSubhead('Assets'),
               SizedBox(height: 8),
               _ReportRow(
                 label: 'Cash',
@@ -426,13 +396,7 @@ class _BalanceSheetSection extends StatelessWidget {
                 color: ClayColors.warning,
               ),
               SizedBox(height: 12),
-              Text(
-                'Liabilities',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
+              _BalanceSubhead('Liabilities'),
               SizedBox(height: 8),
               _ReportRow(
                 label: 'Accounts Payable',
@@ -459,6 +423,16 @@ class _BalanceSheetSection extends StatelessWidget {
       );
 }
 
+/// Balance-sheet subhead (`titleMedium`, no hard-coded size).
+class _BalanceSubhead extends StatelessWidget {
+  const _BalanceSubhead(this.label);
+  final String label;
+
+  @override
+  Widget build(BuildContext context) =>
+      Text(label, style: Theme.of(context).textTheme.titleMedium);
+}
+
 /// Report Row
 class _ReportRow extends StatelessWidget {
   const _ReportRow({
@@ -473,27 +447,33 @@ class _ReportRow extends StatelessWidget {
   final bool isBold;
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-                  color: Colors.grey,
-                ),
-              ),
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: (isBold
+                      ? text.bodyMedium?.copyWith(fontWeight: FontWeight.w700)
+                      : text.bodyMedium)
+                  ?.copyWith(color: scheme.onSurfaceVariant),
             ),
-            Text(
-              value,
-              style: TextStyle(
-                fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
-                color: color,
-              ),
+          ),
+          Text(
+            value,
+            style: ClayTypography.tabular(
+              (isBold
+                      ? text.bodyMedium?.copyWith(fontWeight: FontWeight.w700)
+                      : text.bodyMedium?.copyWith(fontWeight: FontWeight.w500))
+                  ?.copyWith(color: color),
             ),
-          ],
-        ),
-      );
+          ),
+        ],
+      ),
+    );
+  }
 }

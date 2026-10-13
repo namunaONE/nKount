@@ -19,6 +19,8 @@ class ProfileScreen extends ConsumerWidget {
     final companyName =
         companies.isEmpty ? AppConstants.appName : companies.first.name;
     final companyEmail = companies.isEmpty ? null : companies.first.email;
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
 
     return ClayScaffold(
       appBar: const ClayAppBar(title: Text('Profile')),
@@ -62,19 +64,18 @@ class ProfileScreen extends ConsumerWidget {
                         children: [
                           Text(
                             companyName,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: text.titleLarge,
                           ),
                           if (companyEmail != null && companyEmail.isNotEmpty)
                             Text(
                               companyEmail,
-                              style: const TextStyle(color: Colors.grey),
+                              style: text.bodySmall?.copyWith(
+                                  color: scheme.onSurfaceVariant),
                             ),
-                          const Text(
+                          Text(
                             'Business account',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                            style: text.bodySmall?.copyWith(
+                                color: scheme.onSurfaceVariant),
                           ),
                         ],
                       ),
@@ -85,10 +86,7 @@ class ProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             ClayCard(
-              title: const Text(
-                'Appearance',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
+              title: const ClaySectionTitle('Appearance'),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: SegmentedButton<ThemeMode>(
@@ -112,21 +110,18 @@ class ProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             ClayCard(
-              title: const Text(
-                'Settings',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
+              title: const ClaySectionTitle('Settings'),
               child: Column(
                 children: [
                   ListTile(
-                    leading: const Icon(Icons.settings),
+                    leading: const Icon(ClayIcons.settings),
                     title: const Text('App settings'),
                     subtitle: const Text('Company, taxes, backup, preferences'),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => context.push('/settings'),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.assessment),
+                    leading: const Icon(ClayIcons.reports),
                     title: const Text('Reports'),
                     subtitle: const Text('Sales, purchases, tax summaries'),
                     trailing: const Icon(Icons.chevron_right),
@@ -136,30 +131,26 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const ClayCard(
-              title: Text(
-                'About',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
+            ClayCard(
+              title: const ClaySectionTitle('About'),
               child: Padding(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
                     Text(
                       '${AppConstants.appName} ${AppConstants.appVersion}',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: text.titleSmall,
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       AppConstants.maintainedBy,
-                      style: TextStyle(color: Colors.grey),
+                      style: text.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant),
                     ),
                     Text(
                       AppConstants.maintainerTeam,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: ClayColors.primary,
-                      ),
+                      style: text.labelLarge
+                          ?.copyWith(color: ClayColors.primary),
                     ),
                   ],
                 ),

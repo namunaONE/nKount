@@ -17,38 +17,26 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) => ClayScaffold(
         appBar: ClayAppBar(
-          title: const Text(
-            AppConstants.appName,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 24,
-            ),
-          ),
-          subtitle: const Text(
-            'Nepali Accounting Software',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
-          ),
+          title: const Text(AppConstants.appName),
+          subtitle: const Text('Nepali Accounting Software'),
           actions: [
             const Center(child: _FiscalChip()),
             Consumer(builder: (context, ref, _) {
               final dark = ref.watch(themeModeProvider) == ThemeMode.dark;
               return ClayIconButton(
-                icon: dark ? Icons.light_mode : Icons.dark_mode,
+                icon: dark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
                 onPressed: () => ref.read(themeModeProvider.notifier).state =
                     dark ? ThemeMode.light : ThemeMode.dark,
                 tooltip: 'Toggle dark mode',
               );
             }),
             ClayIconButton(
-              icon: Icons.search,
+              icon: ClayIcons.search,
               onPressed: () => context.push('/transactions'),
               tooltip: 'Search transactions (/)',
             ),
             ClayIconButton(
-              icon: Icons.settings,
+              icon: ClayIcons.settings,
               onPressed: () => context.push('/settings'),
               tooltip: 'Settings',
             ),
@@ -90,7 +78,7 @@ class _FiscalChip extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 4),
       child: Chip(
-        label: Text('FY $fy â€¢ $bs', style: const TextStyle(fontSize: 12)),
+        label: Text('FY $fy • $bs'),
         visualDensity: VisualDensity.compact,
       ),
     );
@@ -127,7 +115,7 @@ class _KpiCards extends ConsumerWidget {
         context,
         title: 'Revenue',
         value: AppTheme.formatCurrency(revenue),
-        icon: Icons.trending_up,
+        icon: ClayIcons.revenue,
         color: ClayColors.success,
         route: '/transactions',
       ),
@@ -135,7 +123,7 @@ class _KpiCards extends ConsumerWidget {
         context,
         title: 'Expenses',
         value: AppTheme.formatCurrency(expenses),
-        icon: Icons.trending_down,
+        icon: ClayIcons.expenses,
         color: ClayColors.error,
         route: '/transactions',
       ),
@@ -143,7 +131,7 @@ class _KpiCards extends ConsumerWidget {
         context,
         title: 'Receivables',
         value: AppTheme.formatCurrency(receivables),
-        icon: Icons.call_received,
+        icon: ClayIcons.receivables,
         color: ClayColors.info,
         route: '/contacts',
       ),
@@ -151,7 +139,7 @@ class _KpiCards extends ConsumerWidget {
         context,
         title: 'Payables',
         value: AppTheme.formatCurrency(payables),
-        icon: Icons.call_made,
+        icon: ClayIcons.payables,
         color: ClayColors.warning,
         route: '/contacts',
       ),
@@ -164,7 +152,8 @@ class _KpiCards extends ConsumerWidget {
             crossAxisCount: 2,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            childAspectRatio: 1.6,
+            // v2: roomier stat cards (icon container + tabular value).
+            childAspectRatio: 1.35,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
             children: cards,
@@ -244,10 +233,7 @@ class _CashflowChart extends ConsumerWidget {
     ];
 
     return ClayCard(
-      title: const Text(
-        'Cashflow â€” last 6 months',
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-      ),
+      title: const ClaySectionTitle('Cashflow — last 6 months'),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: SizedBox(
@@ -270,7 +256,6 @@ class _CashflowChart extends ConsumerWidget {
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
                         monthNames[months[value.toInt()].month - 1],
-                        style: const TextStyle(fontSize: 11),
                       ),
                     ),
                   ),
@@ -312,18 +297,15 @@ class _QuickActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const actions = [
-      (Icons.person_add, 'New Contact', '/contacts'),
-      (Icons.add_box, 'New Product', '/products'),
-      (Icons.point_of_sale, 'New Sale', '/sales'),
-      (Icons.shopping_bag, 'New Purchase', '/purchases'),
-      (Icons.payments, 'New Payment', '/payments'),
-      (Icons.assessment, 'Reports', '/reports'),
+      (ClayIcons.contacts, 'New Contact', '/contacts'),
+      (ClayIcons.products, 'New Product', '/products'),
+      (ClayIcons.sales, 'New Sale', '/sales'),
+      (ClayIcons.purchases, 'New Purchase', '/purchases'),
+      (ClayIcons.payments, 'New Payment', '/payments'),
+      (ClayIcons.reports, 'Reports', '/reports'),
     ];
     return ClayCard(
-      title: const Text(
-        'Quick Actions',
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-      ),
+      title: const ClaySectionTitle('Quick Actions'),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Wrap(
@@ -332,7 +314,7 @@ class _QuickActions extends StatelessWidget {
           children: [
             for (final action in actions)
               ActionChip(
-                avatar: Icon(action.$1, size: 18),
+                avatar: Icon(action.$1, size: ClayIconSize.dense),
                 label: Text(action.$2),
                 onPressed: () => context.push(action.$3),
               ),
@@ -368,9 +350,11 @@ class _AlertsSection extends ConsumerWidget {
           padding: EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(Icons.check_circle, color: ClayColors.success),
+              Icon(ClayIcons.check, color: ClayColors.success),
               SizedBox(width: 12),
-              Text('All clear â€” nothing overdue, stock is healthy.'),
+              Expanded(
+                  child:
+                      Text('All clear — nothing overdue, stock is healthy.')),
             ],
           ),
         ),
@@ -378,29 +362,27 @@ class _AlertsSection extends ConsumerWidget {
     }
 
     return ClayCard(
-      title: const Text(
-        'Needs attention',
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-      ),
+      title: const ClaySectionTitle('Needs attention'),
       child: Column(
         children: [
           if (overdue.isNotEmpty)
             ListTile(
-              leading: const Icon(Icons.warning, color: ClayColors.error),
+              leading: const Icon(ClayIcons.alert, color: ClayColors.error),
               title: Text('${overdue.length} overdue invoice(s)'),
               subtitle: Text(
                 AppTheme.formatCurrency(
                     overdue.fold(0.0, (total, t) => total + t.dueAmount)),
               ),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () => context.push('/transactions'),
             ),
           if (lowStock.isNotEmpty)
             ListTile(
-              leading: const Icon(Icons.inventory_2, color: ClayColors.warning),
+              leading:
+                  const Icon(ClayIcons.products, color: ClayColors.warning),
               title: Text('${lowStock.length} product(s) low on stock'),
               subtitle: Text(lowStock.take(3).map((p) => p.name).join(', ')),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () => context.push('/products'),
             ),
         ],
@@ -422,10 +404,7 @@ class _RecentTransactions extends ConsumerWidget {
     final items = recent.take(5).toList();
 
     return ClayCard(
-      title: const Text(
-        'Recent transactions',
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-      ),
+      title: const ClaySectionTitle('Recent transactions'),
       child: items.isEmpty
           ? Padding(
               padding: const EdgeInsets.all(16),
@@ -447,8 +426,8 @@ class _RecentTransactions extends ConsumerWidget {
                   ListTile(
                     leading: Icon(
                       t.type == AppConstants.TRANSACTION_SALE
-                          ? Icons.arrow_upward
-                          : Icons.arrow_downward,
+                          ? ClayIcons.receivables
+                          : ClayIcons.payables,
                       color: t.type == AppConstants.TRANSACTION_SALE
                           ? ClayColors.success
                           : ClayColors.error,
@@ -461,7 +440,6 @@ class _RecentTransactions extends ConsumerWidget {
                     ),
                     trailing: Text(
                       AppTheme.formatCurrency(t.total),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     onTap: () => context.push('/transactions'),
                   ),

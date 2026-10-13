@@ -16,6 +16,15 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="assets/images/logo.svg">
 
+  <!-- Design-system fonts: Inter (Latin) + Noto Sans Devanagari (ne-NP).
+       Flutter `google_fonts` loads these in-app; the CSS below makes
+       first-paint + Devanagari fallback consistent on web. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
   <title>nKount - Nepali Accounting Software</title>
 </head>
 <body>
