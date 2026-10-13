@@ -69,13 +69,13 @@ class ProfileScreen extends ConsumerWidget {
                           if (companyEmail != null && companyEmail.isNotEmpty)
                             Text(
                               companyEmail,
-                              style: text.bodySmall?.copyWith(
-                                  color: scheme.onSurfaceVariant),
+                              style: text.bodySmall
+                                  ?.copyWith(color: scheme.onSurfaceVariant),
                             ),
                           Text(
                             'Business account',
-                            style: text.bodySmall?.copyWith(
-                                color: scheme.onSurfaceVariant),
+                            style: text.bodySmall
+                                ?.copyWith(color: scheme.onSurfaceVariant),
                           ),
                         ],
                       ),
@@ -144,13 +144,13 @@ class ProfileScreen extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(
                       AppConstants.maintainedBy,
-                      style: text.bodySmall?.copyWith(
-                          color: scheme.onSurfaceVariant),
+                      style: text.bodySmall
+                          ?.copyWith(color: scheme.onSurfaceVariant),
                     ),
                     Text(
                       AppConstants.maintainerTeam,
-                      style: text.labelLarge
-                          ?.copyWith(color: ClayColors.primary),
+                      style:
+                          text.labelLarge?.copyWith(color: ClayColors.primary),
                     ),
                   ],
                 ),

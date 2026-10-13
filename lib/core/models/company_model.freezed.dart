@@ -506,7 +506,7 @@ class _$CompanyModelImpl extends _CompanyModel {
       @HiveField(10) this.panNumber,
       @HiveField(11) this.registrationNumber,
       @HiveField(12) this.logoPath,
-      @HiveField(13) this.currency = AppConstants.CURRENCY,
+      @HiveField(13) this.currency = AppConstants.currency,
       @HiveField(14) this.locale = 'en_NP',
       @HiveField(15) this.dateFormat = 'yyyy-MM-dd',
       @HiveField(16) this.useNepaliDate = false,

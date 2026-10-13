@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nkount/features/app/commands.dart';
+import 'package:nkount/app/commands.dart';
 
 void main() {
   testWidgets('command palette lists commands and filters by query',

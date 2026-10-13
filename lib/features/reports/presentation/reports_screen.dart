@@ -247,16 +247,16 @@ class _SalesReportSection extends StatelessWidget {
                 color: ClayColors.success,
               ),
               const Divider(),
-              const _ReportRow(
+              _ReportRow(
                 label: 'Total Items Sold',
                 value: '0',
-                color: Colors.grey,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               const Divider(),
-              const _ReportRow(
+              _ReportRow(
                 label: 'Average Sale',
                 value: 'NPR 0.00',
-                color: Colors.grey,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               const Divider(),
               const _ReportRow(
@@ -292,16 +292,16 @@ class _PurchaseReportSection extends StatelessWidget {
                 color: ClayColors.error,
               ),
               const Divider(),
-              const _ReportRow(
+              _ReportRow(
                 label: 'Total Items Purchased',
                 value: '0',
-                color: Colors.grey,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               const Divider(),
-              const _ReportRow(
+              _ReportRow(
                 label: 'Average Purchase',
                 value: 'NPR 0.00',
-                color: Colors.grey,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               const Divider(),
               const _ReportRow(

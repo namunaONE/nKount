@@ -7,7 +7,8 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/database/hive_service.dart';
 import '../../../core/models/transaction_model.dart';
 import '../../../core/providers/theme_provider.dart';
-import '../../../core/utils/theme/app_theme.dart';
+import '../../../core/utils/money.dart';
+import '../../../core/utils/dates.dart';
 import '../../../packages/design-system/design_system.dart';
 
 /// Dashboard Screen: answers "how is my business today" at a glance.
@@ -35,11 +36,6 @@ class DashboardScreen extends ConsumerWidget {
               onPressed: () => context.push('/transactions'),
               tooltip: 'Search transactions (/)',
             ),
-            ClayIconButton(
-              icon: ClayIcons.settings,
-              onPressed: () => context.push('/settings'),
-              tooltip: 'Settings',
-            ),
           ],
         ),
         body: const SingleChildScrollView(
@@ -47,15 +43,19 @@ class DashboardScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              _Header(),
+              SizedBox(height: 24),
               _KpiCards(),
               SizedBox(height: 24),
-              _CashflowChart(),
+              ClayTwoColumn(
+                main: _CashflowChart(),
+                side: _QuickActions(),
+              ),
               SizedBox(height: 24),
-              _QuickActions(),
-              SizedBox(height: 24),
-              _AlertsSection(),
-              SizedBox(height: 24),
-              _RecentTransactions(),
+              ClayTwoColumn(
+                main: _RecentTransactions(),
+                side: _AlertsSection(),
+              ),
               SizedBox(height: 24),
             ],
           ),
@@ -85,6 +85,39 @@ class _FiscalChip extends StatelessWidget {
   }
 }
 
+/// Greeting header with BS long date + FY context.
+class _Header extends StatelessWidget {
+  const _Header();
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    final hour = DateTime.now().hour;
+    final greeting = hour < 12
+        ? 'Good morning'
+        : hour < 17
+            ? 'Good afternoon'
+            : 'Good evening';
+    final bsNow = NepaliDateTime.now();
+    final startYear = bsNow.month >= 4 ? bsNow.year : bsNow.year - 1;
+    final fy = '$startYear/${(startYear + 1).toString().substring(2)}';
+    final bsLong =
+        '${ClayBsDate.months[bsNow.month - 1]} ${bsNow.day}, ${bsNow.year} BS';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(greeting, style: text.headlineSmall),
+        const SizedBox(height: 4),
+        Text(
+          '$bsLong • FY $fy',
+          style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+        ),
+      ],
+    );
+  }
+}
+
 /// KPI cards: revenue, expenses, receivables, payables from live boxes.
 class _KpiCards extends ConsumerWidget {
   const _KpiCards();
@@ -100,9 +133,9 @@ class _KpiCards extends ConsumerWidget {
         list.fold(0, (total, t) => total + t.total);
 
     final revenue =
-        sum(transactions.where((t) => t.type == AppConstants.TRANSACTION_SALE));
+        sum(transactions.where((t) => t.type == AppConstants.transactionSale));
     final expenses = sum(
-        transactions.where((t) => t.type == AppConstants.TRANSACTION_PURCHASE));
+        transactions.where((t) => t.type == AppConstants.transactionPurchase));
     final receivables = contacts
         .where((c) => c.balance > 0)
         .fold(0.0, (total, c) => total + c.balance);
@@ -110,50 +143,94 @@ class _KpiCards extends ConsumerWidget {
         .where((c) => c.balance < 0)
         .fold(0.0, (total, c) => total + c.balance.abs());
 
+    final now = DateTime.now();
+    final months = List.generate(
+      6,
+      (i) => DateTime(now.year, now.month - 5 + i),
+    );
+
+    double monthTotal(String type, DateTime month) =>
+        hive.transactionsBox.values
+            .where((t) =>
+                !t.isCancelled &&
+                t.type == type &&
+                t.date != null &&
+                t.date!.year == month.year &&
+                t.date!.month == month.month)
+            .fold(0.0, (total, t) => total + t.total);
+
+    final salesSpark = [
+      for (final m in months) monthTotal(AppConstants.transactionSale, m)
+    ];
+    final purchasesSpark = [
+      for (final m in months) monthTotal(AppConstants.transactionPurchase, m)
+    ];
+
+    final curMonth = DateTime(now.year, now.month);
+    final prevMonth = DateTime(now.year, now.month - 1);
+    final curRevenue = monthTotal(AppConstants.transactionSale, curMonth);
+    final prevRevenue = monthTotal(AppConstants.transactionSale, prevMonth);
+    final curExpenses = monthTotal(AppConstants.transactionPurchase, curMonth);
+    final prevExpenses =
+        monthTotal(AppConstants.transactionPurchase, prevMonth);
+
+    double pct(double cur, double prev) =>
+        prev == 0 ? (cur > 0 ? 100 : 0) : (cur - prev) / prev * 100;
+
+    final revenuePct = pct(curRevenue, prevRevenue);
+    final expensesPct = pct(curExpenses, prevExpenses);
+
     final cards = [
       _kpi(
         context,
         title: 'Revenue',
-        value: AppTheme.formatCurrency(revenue),
+        value: formatCurrency(revenue),
         icon: ClayIcons.revenue,
         color: ClayColors.success,
         route: '/transactions',
+        trend: ClayTrend(pct: revenuePct),
+        spark: salesSpark,
       ),
       _kpi(
         context,
         title: 'Expenses',
-        value: AppTheme.formatCurrency(expenses),
+        value: formatCurrency(expenses),
         icon: ClayIcons.expenses,
         color: ClayColors.error,
         route: '/transactions',
+        trend: ClayTrend(pct: expensesPct, invert: true),
+        spark: purchasesSpark,
       ),
       _kpi(
         context,
         title: 'Receivables',
-        value: AppTheme.formatCurrency(receivables),
+        value: formatCurrency(receivables),
         icon: ClayIcons.receivables,
         color: ClayColors.info,
         route: '/contacts',
+        subtitle: 'Outstanding',
       ),
       _kpi(
         context,
         title: 'Payables',
-        value: AppTheme.formatCurrency(payables),
+        value: formatCurrency(payables),
         icon: ClayIcons.payables,
         color: ClayColors.warning,
         route: '/contacts',
+        subtitle: 'Outstanding',
       ),
     ];
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth < 600) {
+        if (constraints.maxWidth < ClayBreakpoints.compactMax) {
           return GridView.count(
             crossAxisCount: 2,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            // v2: roomier stat cards (icon container + tabular value).
-            childAspectRatio: 1.35,
+            // v3: taller stat cards (trend chip + sparkline need ~190px
+            // at ~160px cell width; 1.0 overflowed in Edge testing).
+            childAspectRatio: 0.8,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
             children: cards,
@@ -178,6 +255,9 @@ class _KpiCards extends ConsumerWidget {
     required IconData icon,
     required Color color,
     required String route,
+    Widget? trend,
+    List<double>? spark,
+    String? subtitle,
   }) =>
       ClayStatCard(
         title: title,
@@ -185,6 +265,9 @@ class _KpiCards extends ConsumerWidget {
         icon: icon,
         iconColor: color,
         onTap: () => context.push(route),
+        trend: trend,
+        spark: spark,
+        subtitle: subtitle,
       );
 }
 
@@ -212,10 +295,10 @@ class _CashflowChart extends ConsumerWidget {
             .fold(0.0, (total, t) => total + t.total);
 
     final sales = [
-      for (final m in months) monthTotal(AppConstants.TRANSACTION_SALE, m)
+      for (final m in months) monthTotal(AppConstants.transactionSale, m)
     ];
     final purchases = [
-      for (final m in months) monthTotal(AppConstants.TRANSACTION_PURCHASE, m)
+      for (final m in months) monthTotal(AppConstants.transactionPurchase, m)
     ];
     const monthNames = [
       'Jan',
@@ -232,97 +315,176 @@ class _CashflowChart extends ConsumerWidget {
       'Dec'
     ];
 
+    final isEmpty = [...sales, ...purchases].every((v) => v == 0);
+
+    if (isEmpty) {
+      return ClayCard(
+        title: const ClaySectionTitle('Cashflow — last 6 months'),
+        child: ClayEmptyState(
+          title: 'No data yet',
+          subtitle: 'Record your first sale to see cashflow here.',
+          icon: ClayIcons.transactions,
+          action: ClayButton(
+            onPressed: () => context.push('/sales'),
+            child: const Text('New Sale'),
+          ),
+        ),
+      );
+    }
+
+    final text = Theme.of(context).textTheme;
+
     return ClayCard(
       title: const ClaySectionTitle('Cashflow — last 6 months'),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: SizedBox(
-          height: 220,
-          child: BarChart(
-            BarChartData(
-              maxY: [...sales, ...purchases, 100]
-                      .reduce((a, b) => a > b ? a : b) *
-                  1.2,
-              gridData: const FlGridData(show: false),
-              borderData: FlBorderData(show: false),
-              titlesData: FlTitlesData(
-                topTitles: const AxisTitles(),
-                rightTitles: const AxisTitles(),
-                leftTitles: const AxisTitles(),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    getTitlesWidget: (value, _) => Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        monthNames[months[value.toInt()].month - 1],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: ClayColors.success,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text('Sales', style: text.labelSmall),
+                const SizedBox(width: 16),
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: ClayColors.error,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text('Purchases', style: text.labelSmall),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 220,
+              child: BarChart(
+                BarChartData(
+                  maxY: [...sales, ...purchases, 100]
+                          .reduce((a, b) => a > b ? a : b) *
+                      1.2,
+                  gridData: const FlGridData(show: false),
+                  borderData: FlBorderData(show: false),
+                  titlesData: FlTitlesData(
+                    topTitles: const AxisTitles(),
+                    rightTitles: const AxisTitles(),
+                    leftTitles: const AxisTitles(),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, _) => Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            monthNames[months[value.toInt()].month - 1],
+                          ),
+                        ),
                       ),
                     ),
                   ),
+                  barGroups: [
+                    for (var i = 0; i < 6; i++)
+                      BarChartGroupData(
+                        x: i,
+                        barsSpace: 4,
+                        barRods: [
+                          BarChartRodData(
+                            toY: sales[i],
+                            color: ClayColors.success,
+                            width: 12,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          BarChartRodData(
+                            toY: purchases[i],
+                            color: ClayColors.error,
+                            width: 12,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ],
+                      ),
+                  ],
                 ),
               ),
-              barGroups: [
-                for (var i = 0; i < 6; i++)
-                  BarChartGroupData(
-                    x: i,
-                    barsSpace: 4,
-                    barRods: [
-                      BarChartRodData(
-                        toY: sales[i],
-                        color: ClayColors.success,
-                        width: 12,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      BarChartRodData(
-                        toY: purchases[i],
-                        color: ClayColors.error,
-                        width: 12,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ],
-                  ),
-              ],
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 }
 
-/// Compact quick actions (wrap, not giant tiles).
+/// Quick-action tiles in an adaptive grid.
 class _QuickActions extends StatelessWidget {
   const _QuickActions();
 
   @override
-  Widget build(BuildContext context) {
-    const actions = [
-      (ClayIcons.contacts, 'New Contact', '/contacts'),
-      (ClayIcons.products, 'New Product', '/products'),
-      (ClayIcons.sales, 'New Sale', '/sales'),
-      (ClayIcons.purchases, 'New Purchase', '/purchases'),
-      (ClayIcons.payments, 'New Payment', '/payments'),
-      (ClayIcons.reports, 'Reports', '/reports'),
-    ];
-    return ClayCard(
-      title: const ClaySectionTitle('Quick Actions'),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final action in actions)
-              ActionChip(
-                avatar: Icon(action.$1, size: ClayIconSize.dense),
-                label: Text(action.$2),
-                onPressed: () => context.push(action.$3),
+  Widget build(BuildContext context) => ClayCard(
+        title: const ClaySectionTitle('Quick Actions'),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          // Max-extent delegate (not a breakpoint count): tiles keep a
+          // fixed 150px height at ANY width, so side-column cells can
+          // never overflow (see Edge RenderFlex overflow reports).
+          child: GridView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 160,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              mainAxisExtent: 150,
+            ),
+            children: [
+              ClayActionTile(
+                icon: ClayIcons.contacts,
+                title: 'New Contact',
+                iconColor: ClayColors.info,
+                onTap: () => context.push('/contacts'),
               ),
-          ],
+              ClayActionTile(
+                icon: ClayIcons.products,
+                title: 'New Product',
+                iconColor: ClayColors.tertiary,
+                onTap: () => context.push('/products'),
+              ),
+              ClayActionTile(
+                icon: ClayIcons.sales,
+                title: 'New Sale',
+                iconColor: ClayColors.success,
+                onTap: () => context.push('/sales'),
+              ),
+              ClayActionTile(
+                icon: ClayIcons.purchases,
+                title: 'New Purchase',
+                iconColor: ClayColors.error,
+                onTap: () => context.push('/purchases'),
+              ),
+              ClayActionTile(
+                icon: ClayIcons.payments,
+                title: 'New Payment',
+                iconColor: ClayColors.primary,
+                onTap: () => context.push('/payments'),
+              ),
+              ClayActionTile(
+                icon: ClayIcons.reports,
+                title: 'Reports',
+                iconColor: ClayColors.warning,
+                onTap: () => context.push('/reports'),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 }
 
 /// Alerts: overdue invoices + low stock.
@@ -350,7 +512,8 @@ class _AlertsSection extends ConsumerWidget {
           padding: EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(ClayIcons.check, color: ClayColors.success),
+              Icon(ClayIcons.check,
+                  color: ClayColors.success, size: ClayIconSize.md),
               SizedBox(width: 12),
               Expanded(
                   child:
@@ -367,10 +530,11 @@ class _AlertsSection extends ConsumerWidget {
         children: [
           if (overdue.isNotEmpty)
             ListTile(
-              leading: const Icon(ClayIcons.alert, color: ClayColors.error),
+              leading: const Icon(ClayIcons.alert,
+                  color: ClayColors.error, size: ClayIconSize.md),
               title: Text('${overdue.length} overdue invoice(s)'),
               subtitle: Text(
-                AppTheme.formatCurrency(
+                formatCurrency(
                     overdue.fold(0.0, (total, t) => total + t.dueAmount)),
               ),
               trailing: const Icon(Icons.chevron_right_rounded),
@@ -378,8 +542,8 @@ class _AlertsSection extends ConsumerWidget {
             ),
           if (lowStock.isNotEmpty)
             ListTile(
-              leading:
-                  const Icon(ClayIcons.products, color: ClayColors.warning),
+              leading: const Icon(ClayIcons.products,
+                  color: ClayColors.warning, size: ClayIconSize.md),
               title: Text('${lowStock.length} product(s) low on stock'),
               subtitle: Text(lowStock.take(3).map((p) => p.name).join(', ')),
               trailing: const Icon(Icons.chevron_right_rounded),
@@ -425,21 +589,20 @@ class _RecentTransactions extends ConsumerWidget {
                 for (final t in items)
                   ListTile(
                     leading: Icon(
-                      t.type == AppConstants.TRANSACTION_SALE
+                      t.type == AppConstants.transactionSale
                           ? ClayIcons.receivables
                           : ClayIcons.payables,
-                      color: t.type == AppConstants.TRANSACTION_SALE
+                      color: t.type == AppConstants.transactionSale
                           ? ClayColors.success
                           : ClayColors.error,
+                      size: ClayIconSize.md,
                     ),
                     title: Text(t.invoiceNumber ?? t.type),
                     subtitle: Text(
-                      t.date == null
-                          ? ''
-                          : '${t.date!.day}/${t.date!.month}/${t.date!.year}',
+                      formatDate(t.date),
                     ),
                     trailing: Text(
-                      AppTheme.formatCurrency(t.total),
+                      formatCurrency(t.total),
                     ),
                     onTap: () => context.push('/transactions'),
                   ),
@@ -452,9 +615,3 @@ class _RecentTransactions extends ConsumerWidget {
     );
   }
 }
-
-/// Provider for dashboard statistics
-final dashboardStatsProvider = Provider<Map<String, dynamic>>((ref) {
-  final hiveService = ref.watch(hiveServiceProvider);
-  return hiveService.getBoxStats();
-});

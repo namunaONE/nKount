@@ -1,0 +1,10 @@
+# Binary assets must never get line-ending conversion (autocrlf is on).
+*.ttf binary
+*.otf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary
+*.ico binary
+*.sqlite binary
+*.db binary

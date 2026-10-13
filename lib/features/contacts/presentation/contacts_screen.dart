@@ -1,9 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/database/hive_service.dart';
 import '../../../core/models/contact_model.dart';
+import '../../../core/utils/money.dart';
 import '../../../packages/design-system/design_system.dart';
 
 /// Contacts Screen: dense sortable table (desktop) + cards (mobile).
@@ -55,7 +56,19 @@ class _ContactsScreenState extends ConsumerState<ContactsScreen> {
           return LayoutBuilder(
             builder: (context, constraints) {
               if (ClayBreakpoints.isCompact(constraints.maxWidth)) {
-                if (sorted.isEmpty) return const _EmptyContactsState();
+                if (sorted.isEmpty) {
+                  return Center(
+                    child: ClayEmptyState(
+                      icon: Icons.people_alt_outlined,
+                      title: 'No Contacts Found',
+                      subtitle: 'Add your first contact to get started',
+                      action: ClayButton(
+                        onPressed: () => context.push('/contacts'),
+                        child: const Text('Add Contact'),
+                      ),
+                    ),
+                  );
+                }
                 return ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: sorted.length,
@@ -63,116 +76,79 @@ class _ContactsScreenState extends ConsumerState<ContactsScreen> {
                       _ContactItem(contact: sorted[index]),
                 );
               }
-              if (sorted.isEmpty) return const _EmptyContactsState();
-              return SizedBox(
-                height: constraints.maxHeight,
-                child: Card(
-                  margin: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            Text(
-                              'Contacts (${sorted.length})',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Spacer(),
-                            SizedBox(
-                              width: 280,
-                              child: ClaySearchInput(
-                                hintText: 'Search...',
-                                onChanged: (v) =>
-                                    setState(() => _searchQuery = v),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Divider(height: 1),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: PaginatedDataTable(
-                            header: const Text(
-                              'All contacts',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            rowsPerPage: _rowsPerPage,
-                            availableRowsPerPage: const [10, 25, 50, 100],
-                            onRowsPerPageChanged: (v) =>
-                                setState(() => _rowsPerPage = v!),
-                            sortColumnIndex: _sortColumnIndex,
-                            sortAscending: _sortAscending,
-                            showCheckboxColumn: false,
-                            columns: [
-                              DataColumn(
-                                label: const Text('Name',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                onSort: (col, asc) => setState(() {
-                                  _sortColumnIndex = 0;
-                                  _sortAscending = asc;
-                                }),
-                              ),
-                              DataColumn(
-                                label: const Text('Phone',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                onSort: (col, asc) => setState(() {
-                                  _sortColumnIndex = 1;
-                                  _sortAscending = asc;
-                                }),
-                              ),
-                              DataColumn(
-                                label: const Text('Type',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                onSort: (col, asc) => setState(() {
-                                  _sortColumnIndex = 2;
-                                  _sortAscending = asc;
-                                }),
-                              ),
-                              DataColumn(
-                                label: const Text('Balance',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                numeric: true,
-                                onSort: (col, asc) => setState(() {
-                                  _sortColumnIndex = 3;
-                                  _sortAscending = asc;
-                                }),
-                              ),
-                              DataColumn(
-                                label: const Text('Status',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                onSort: (col, asc) => setState(() {
-                                  _sortColumnIndex = 4;
-                                  _sortAscending = asc;
-                                }),
-                              ),
-                              const DataColumn(
-                                label: Text('Actions',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                              ),
-                            ],
-                            source: _ContactsDataSource(
-                              contacts: sorted,
-                              onView: (c) =>
-                                  _showContactDetailDialog(context, c),
-                              onDelete: (c) =>
-                                  _confirmDeleteContact(context, ref, c),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+              if (sorted.isEmpty) {
+                return Center(
+                  child: ClayEmptyState(
+                    icon: Icons.people_alt_outlined,
+                    title: 'No Contacts Found',
+                    subtitle: 'Add your first contact to get started',
+                    action: ClayButton(
+                      onPressed: () => context.push('/contacts'),
+                      child: const Text('Add Contact'),
+                    ),
                   ),
+                );
+              }
+              return ClayTableCard(
+                title: 'Contacts (${sorted.length})',
+                tableTitle: 'All contacts',
+                searchHint: 'Search...',
+                onSearchChanged: (v) => setState(() => _searchQuery = v),
+                rowsPerPage: _rowsPerPage,
+                onRowsPerPageChanged: (v) => setState(() => _rowsPerPage = v!),
+                sortColumnIndex: _sortColumnIndex,
+                sortAscending: _sortAscending,
+                columns: [
+                  DataColumn(
+                    label: Text('Name',
+                        style: Theme.of(context).textTheme.labelLarge),
+                    onSort: (col, asc) => setState(() {
+                      _sortColumnIndex = 0;
+                      _sortAscending = asc;
+                    }),
+                  ),
+                  DataColumn(
+                    label: Text('Phone',
+                        style: Theme.of(context).textTheme.labelLarge),
+                    onSort: (col, asc) => setState(() {
+                      _sortColumnIndex = 1;
+                      _sortAscending = asc;
+                    }),
+                  ),
+                  DataColumn(
+                    label: Text('Type',
+                        style: Theme.of(context).textTheme.labelLarge),
+                    onSort: (col, asc) => setState(() {
+                      _sortColumnIndex = 2;
+                      _sortAscending = asc;
+                    }),
+                  ),
+                  DataColumn(
+                    label: Text('Balance',
+                        style: Theme.of(context).textTheme.labelLarge),
+                    numeric: true,
+                    onSort: (col, asc) => setState(() {
+                      _sortColumnIndex = 3;
+                      _sortAscending = asc;
+                    }),
+                  ),
+                  DataColumn(
+                    label: Text('Status',
+                        style: Theme.of(context).textTheme.labelLarge),
+                    onSort: (col, asc) => setState(() {
+                      _sortColumnIndex = 4;
+                      _sortAscending = asc;
+                    }),
+                  ),
+                  DataColumn(
+                    label: Text('Actions',
+                        style: Theme.of(context).textTheme.labelLarge),
+                  ),
+                ],
+                source: _ContactsDataSource(
+                  contacts: sorted,
+                  onView: (c) => _showContactDetailDialog(context, c),
+                  onDelete: (c) => _confirmDeleteContact(context, ref, c),
                 ),
               );
             },
@@ -223,25 +199,11 @@ class _ContactsScreenState extends ConsumerState<ContactsScreen> {
   }
 
   void _showSearchDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => ClayDialog(
-        title: const Text('Search Contacts'),
-        content: ClaySearchInput(
-          hintText: 'Search by name, phone, or email',
-          onChanged: (v) => setState(() => _searchQuery = v),
-        ),
-        actions: [
-          ClayButton.text(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ClayButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
+    showClaySearchDialog(
+      context,
+      title: 'Search Contacts',
+      hintText: 'Search by name, phone, or email',
+      onChanged: (v) => setState(() => _searchQuery = v),
     );
   }
 
@@ -259,13 +221,13 @@ class _ContactsScreenState extends ConsumerState<ContactsScreen> {
             items: const [
               DropdownMenuItem(value: 'all', child: Text('All')),
               DropdownMenuItem(
-                  value: AppConstants.CONTACT_CUSTOMER,
+                  value: AppConstants.contactCustomer,
                   child: Text('Customers')),
               DropdownMenuItem(
-                  value: AppConstants.CONTACT_SUPPLIER,
+                  value: AppConstants.contactSupplier,
                   child: Text('Suppliers')),
               DropdownMenuItem(
-                  value: AppConstants.CONTACT_BOTH, child: Text('Both')),
+                  value: AppConstants.contactBoth, child: Text('Both')),
             ],
             onChanged: (v) => selected = v!,
           ),
@@ -315,43 +277,49 @@ class _ContactsDataSource extends DataTableSource {
     return DataRow(
       onSelectChanged: (_) => onView(c),
       cells: [
-        DataCell(
-            Text(c.name, style: const TextStyle(fontWeight: FontWeight.bold))),
-        DataCell(Text(c.primaryPhone ?? 'â€”')),
+        DataCell(Text(c.name,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600))),
+        DataCell(Text(c.primaryPhone ?? '—')),
         DataCell(
           Chip(
-            label:
-                Text(c.typeDisplayName, style: const TextStyle(fontSize: 11)),
+            label: Text(c.typeDisplayName,
+                style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.5)),
             backgroundColor: _contactTypeColor(c.type).withValues(alpha: 0.1),
             side: BorderSide(color: _contactTypeColor(c.type), width: 1),
             visualDensity: VisualDensity.compact,
           ),
         ),
         DataCell(Text(
-          'NPR ${c.balance.toStringAsFixed(2)}',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
+          formatCurrency(c.balance),
+          style: ClayTypography.tabular(TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
             color: c.balance >= 0 ? ClayColors.success : ClayColors.error,
-          ),
+          )),
         )),
         DataCell(Text(
           c.isActive ? 'Active' : 'Inactive',
           style: TextStyle(
             fontSize: 12,
-            color: c.isActive ? ClayColors.success : Colors.grey,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.5,
+            color: c.isActive ? ClayColors.success : ClayColors.neutral,
           ),
         )),
         DataCell(Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: const Icon(Icons.visibility, size: 18),
+              icon: const Icon(ClayIcons.view, size: ClayIconSize.dense),
               onPressed: () => onView(c),
               tooltip: 'View',
             ),
             IconButton(
-              icon: const Icon(Icons.delete, size: 18),
-              color: Colors.red,
+              icon: const Icon(ClayIcons.delete, size: ClayIconSize.dense),
+              color: ClayColors.error,
               onPressed: () => onDelete(c),
               tooltip: 'Delete',
             ),
@@ -372,14 +340,14 @@ class _ContactsDataSource extends DataTableSource {
 /// Shared contact helpers (used by cards + table).
 Color _contactTypeColor(String type) {
   switch (type) {
-    case AppConstants.CONTACT_CUSTOMER:
+    case AppConstants.contactCustomer:
       return ClayColors.primary;
-    case AppConstants.CONTACT_SUPPLIER:
+    case AppConstants.contactSupplier:
       return ClayColors.secondary;
-    case AppConstants.CONTACT_BOTH:
+    case AppConstants.contactBoth:
       return ClayColors.tertiary;
     default:
-      return Colors.grey;
+      return ClayColors.neutral;
   }
 }
 
@@ -392,43 +360,43 @@ void _showContactDetailDialog(BuildContext context, ContactModel contact) {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _ContactDetailRow(
+            ClayDetailRow(
               icon: Icons.phone,
               label: 'Phone',
               value: contact.primaryPhone ?? 'N/A',
             ),
             const Divider(),
-            _ContactDetailRow(
+            ClayDetailRow(
               icon: Icons.email,
               label: 'Email',
               value: contact.email ?? 'N/A',
             ),
             const Divider(),
-            _ContactDetailRow(
+            ClayDetailRow(
               icon: Icons.location_on,
               label: 'Address',
               value: contact.fullAddress,
             ),
             const Divider(),
-            _ContactDetailRow(
+            ClayDetailRow(
               icon: Icons.money,
               label: 'Balance',
-              value: 'NPR ${contact.balance.toStringAsFixed(2)}',
+              value: formatCurrency(contact.balance),
             ),
             const Divider(),
-            _ContactDetailRow(
+            ClayDetailRow(
               icon: Icons.category,
               label: 'Type',
               value: contact.typeDisplayName,
             ),
             const Divider(),
-            _ContactDetailRow(
+            ClayDetailRow(
               icon: Icons.info,
               label: 'VAT Number',
               value: contact.vatNumber ?? 'N/A',
             ),
             const Divider(),
-            _ContactDetailRow(
+            ClayDetailRow(
               icon: Icons.numbers,
               label: 'PAN Number',
               value: contact.panNumber ?? 'N/A',
@@ -448,66 +416,14 @@ void _showContactDetailDialog(BuildContext context, ContactModel contact) {
 
 Future<void> _confirmDeleteContact(
     BuildContext context, WidgetRef ref, ContactModel contact) async {
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Delete contact?'),
-      content: Text(
-          'Delete ${contact.name}? Linked transactions keep their history.'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.pop(context, true),
-          child: const Text('Delete'),
-        ),
-      ],
-    ),
-  );
-  if (confirmed ?? false) {
+  if (await showClayConfirmDialog(
+    context,
+    title: 'Delete contact?',
+    message: 'Delete ${contact.name}? Linked transactions keep their history.',
+  )) {
     await hiveService.contactsBox.delete(contact.id);
     ref.invalidate(contactsProvider);
   }
-}
-
-/// Empty Contacts State
-class _EmptyContactsState extends StatelessWidget {
-  const _EmptyContactsState();
-
-  @override
-  Widget build(BuildContext context) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.people_alt_outlined,
-              size: 80,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'No Contacts Found',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Add your first contact to get started',
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 24),
-            ClayButton(
-              onPressed: () => context.push('/contacts'),
-              child: const Text('Add Contact'),
-            ),
-          ],
-        ),
-      );
 }
 
 /// Contact Item (mobile card)
@@ -524,13 +440,12 @@ class _ContactItem extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color:
-                    _getContactTypeColor(contact.type).withValues(alpha: 0.1),
+                color: _contactTypeColor(contact.type).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 _getContactTypeIcon(contact.type),
-                color: _getContactTypeColor(contact.type),
+                color: _contactTypeColor(contact.type),
                 size: 24,
               ),
             ),
@@ -541,26 +456,24 @@ class _ContactItem extends StatelessWidget {
                 children: [
                   Text(
                     contact.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyLarge
+                        ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     contact.primaryPhone ?? 'No phone',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     contact.typeDisplayName,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: _getContactTypeColor(contact.type),
-                    ),
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelMedium
+                        ?.copyWith(color: _contactTypeColor(contact.type)),
                   ),
                 ],
               ),
@@ -569,22 +482,22 @@ class _ContactItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  'NPR ${contact.balance.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: contact.balance >= 0
-                        ? ClayColors.success
-                        : ClayColors.error,
-                  ),
+                  formatCurrency(contact.balance),
+                  style: ClayTypography.tabular(
+                      Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: contact.balance >= 0
+                                ? ClayColors.success
+                                : ClayColors.error,
+                          )),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   contact.isActive ? 'Active' : 'Inactive',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: contact.isActive ? ClayColors.success : Colors.grey,
-                  ),
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: contact.isActive
+                          ? ClayColors.success
+                          : Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ],
             ),
@@ -592,26 +505,13 @@ class _ContactItem extends StatelessWidget {
         ),
       );
 
-  Color _getContactTypeColor(String type) {
-    switch (type) {
-      case AppConstants.CONTACT_CUSTOMER:
-        return ClayColors.primary;
-      case AppConstants.CONTACT_SUPPLIER:
-        return ClayColors.secondary;
-      case AppConstants.CONTACT_BOTH:
-        return ClayColors.tertiary;
-      default:
-        return Colors.grey;
-    }
-  }
-
   IconData _getContactTypeIcon(String type) {
     switch (type) {
-      case AppConstants.CONTACT_CUSTOMER:
+      case AppConstants.contactCustomer:
         return Icons.person;
-      case AppConstants.CONTACT_SUPPLIER:
+      case AppConstants.contactSupplier:
         return Icons.business;
-      case AppConstants.CONTACT_BOTH:
+      case AppConstants.contactBoth:
         return Icons.group;
       default:
         return Icons.people;
@@ -627,43 +527,43 @@ class _ContactItem extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _ContactDetailRow(
+              ClayDetailRow(
                 icon: Icons.phone,
                 label: 'Phone',
                 value: contact.primaryPhone ?? 'N/A',
               ),
               const Divider(),
-              _ContactDetailRow(
+              ClayDetailRow(
                 icon: Icons.email,
                 label: 'Email',
                 value: contact.email ?? 'N/A',
               ),
               const Divider(),
-              _ContactDetailRow(
+              ClayDetailRow(
                 icon: Icons.location_on,
                 label: 'Address',
                 value: contact.fullAddress,
               ),
               const Divider(),
-              _ContactDetailRow(
+              ClayDetailRow(
                 icon: Icons.money,
                 label: 'Balance',
-                value: 'NPR ${contact.balance.toStringAsFixed(2)}',
+                value: formatCurrency(contact.balance),
               ),
               const Divider(),
-              _ContactDetailRow(
+              ClayDetailRow(
                 icon: Icons.category,
                 label: 'Type',
                 value: contact.typeDisplayName,
               ),
               const Divider(),
-              _ContactDetailRow(
+              ClayDetailRow(
                 icon: Icons.info,
                 label: 'VAT Number',
                 value: contact.vatNumber ?? 'N/A',
               ),
               const Divider(),
-              _ContactDetailRow(
+              ClayDetailRow(
                 icon: Icons.numbers,
                 label: 'PAN Number',
                 value: contact.panNumber ?? 'N/A',
@@ -686,44 +586,6 @@ class _ContactItem extends StatelessWidget {
   }
 }
 
-/// Contact Detail Row
-class _ContactDetailRow extends StatelessWidget {
-  const _ContactDetailRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            Icon(icon, size: 20, color: Colors.grey),
-            const SizedBox(width: 16),
-            Text(
-              label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Text(': '),
-            Expanded(
-              child: Text(
-                value,
-                style: const TextStyle(fontWeight: FontWeight.w500),
-              ),
-            ),
-          ],
-        ),
-      );
-}
-
 /// Add Contact Form
 class _AddContactForm extends ConsumerStatefulWidget {
   const _AddContactForm();
@@ -743,7 +605,7 @@ class _AddContactFormState extends ConsumerState<_AddContactForm> {
   String _district = '';
   String _vatNumber = '';
   String _panNumber = '';
-  String _type = AppConstants.CONTACT_CUSTOMER;
+  String _type = AppConstants.contactCustomer;
   double? _openingBalance;
   bool _isActive = true;
   String _remarks = '';
@@ -859,13 +721,13 @@ class _AddContactFormState extends ConsumerState<_AddContactForm> {
                 value: _type,
                 items: const [
                   DropdownMenuItem(
-                      value: AppConstants.CONTACT_CUSTOMER,
+                      value: AppConstants.contactCustomer,
                       child: Text('Customer')),
                   DropdownMenuItem(
-                      value: AppConstants.CONTACT_SUPPLIER,
+                      value: AppConstants.contactSupplier,
                       child: Text('Supplier')),
                   DropdownMenuItem(
-                      value: AppConstants.CONTACT_BOTH, child: Text('Both')),
+                      value: AppConstants.contactBoth, child: Text('Both')),
                 ],
                 onChanged: (value) => setState(() => _type = value!),
               ),

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/database/database_initializer.dart';
@@ -91,13 +91,7 @@ class _CompanySettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ClayCard(
-        title: const Text(
-          'Company Settings',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
+        title: const ClaySectionTitle('Company Settings'),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -154,13 +148,7 @@ class _GeneralSettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ClayCard(
-        title: const Text(
-          'General Settings',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
+        title: const ClaySectionTitle('General Settings'),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -168,7 +156,7 @@ class _GeneralSettingsSection extends StatelessWidget {
               const _SettingItem(
                 icon: Icons.language,
                 label: 'Currency',
-                value: AppConstants.CURRENCY,
+                value: AppConstants.currency,
                 trailing: Text('NPR'),
               ),
               const Divider(),
@@ -211,13 +199,7 @@ class _TaxSettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ClayCard(
-        title: const Text(
-          'Tax Settings',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
+        title: const ClaySectionTitle('Tax Settings'),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -264,13 +246,7 @@ class _InvoicingSettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const ClayCard(
-        title: Text(
-          'Invoicing Settings',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
+        title: ClaySectionTitle('Invoicing Settings'),
         child: Padding(
           padding: EdgeInsets.all(16),
           child: Column(
@@ -317,13 +293,7 @@ class _DatabaseSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ClayCard(
-        title: const Text(
-          'Database',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
+        title: const ClaySectionTitle('Database'),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -464,9 +434,9 @@ class _DatabaseSection extends StatelessWidget {
                 const SnackBar(content: Text('Database reset completed')),
               );
             },
-            style: const ClayButtonStyle(
+            style: ClayButtonStyle(
               backgroundColor: ClayColors.error,
-              foregroundColor: Colors.white,
+              foregroundColor: Theme.of(context).colorScheme.onError,
             ),
             child: const Text('Reset'),
           ),
@@ -481,101 +451,85 @@ class _AboutSection extends StatelessWidget {
   const _AboutSection();
 
   @override
-  Widget build(BuildContext context) => const ClayCard(
-        title: Text(
-          'About nKount',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    return ClayCard(
+      title: const ClaySectionTitle('About nKount'),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            const CircleAvatar(
+              radius: 40,
+              backgroundColor: ClayColors.primary,
+              child: Icon(ClayIcons.profit, size: 40, color: Colors.white),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              AppConstants.appName,
+              style: text.titleLarge,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'by ${AppConstants.companyName}',
+              style: text.titleSmall?.copyWith(color: ClayColors.primary),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Version ${AppConstants.appVersion}',
+              style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              AppConstants.appDescription,
+              style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Developed by',
+              style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              AppConstants.companyName,
+              style: text.titleSmall?.copyWith(color: ClayColors.primary),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              AppConstants.companyWebsite,
+              style: text.bodyMedium?.copyWith(
+                color: ClayColors.primary,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              AppConstants.maintainedBy,
+              style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              AppConstants.maintainerTeam,
+              style: text.titleSmall?.copyWith(color: ClayColors.primary),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'IRD Compliant',
+              style: text.titleSmall?.copyWith(color: ClayColors.success),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Nepal Financial Reporting Standards (NFRS)',
+              style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            children: [
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: ClayColors.primary,
-                child:
-                    Icon(Icons.account_balance, size: 40, color: Colors.white),
-              ),
-              SizedBox(height: 16),
-              Text(
-                AppConstants.appName,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                'by ${AppConstants.companyName}',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: ClayColors.primary,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                'Version ${AppConstants.appVersion}',
-                style: TextStyle(color: Colors.grey),
-              ),
-              SizedBox(height: 8),
-              Text(
-                AppConstants.appDescription,
-                style: TextStyle(color: Colors.grey),
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Developed by',
-                style: TextStyle(color: Colors.grey),
-              ),
-              SizedBox(height: 4),
-              Text(
-                AppConstants.companyName,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: ClayColors.primary,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                AppConstants.companyWebsite,
-                style: TextStyle(
-                  color: ClayColors.primary,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                AppConstants.maintainedBy,
-                style: TextStyle(color: Colors.grey),
-              ),
-              SizedBox(height: 4),
-              Text(
-                AppConstants.maintainerTeam,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: ClayColors.primary,
-                ),
-              ),
-              SizedBox(height: 16),
-              Text(
-                'IRD Compliant',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: ClayColors.success,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                'Nepal Financial Reporting Standards (NFRS)',
-                style: TextStyle(color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      );
+      ),
+    );
+  }
 }
 
 /// Setting Item
@@ -592,34 +546,36 @@ class _SettingItem extends StatelessWidget {
   final Widget? trailing;
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            Icon(icon, size: 20, color: Colors.grey),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: ClayIconSize.dense, color: scheme.onSurfaceVariant),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              label,
+              style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
             ),
-            if (value.isNotEmpty) ...[
-              const SizedBox(width: 8),
-              Text(
-                value,
-                style: const TextStyle(color: Colors.grey),
-              ),
-            ],
-            if (trailing != null) ...[
-              const SizedBox(width: 16),
-              trailing!,
-            ],
+          ),
+          if (value.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Text(
+              value,
+              style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+            ),
           ],
-        ),
-      );
+          if (trailing != null) ...[
+            const SizedBox(width: 16),
+            trailing!,
+          ],
+        ],
+      ),
+    );
+  }
 }
 
 /// Provider for database stats (sync snapshot from local boxes)

@@ -8,7 +8,7 @@ void main() {
     test('VAT = (subtotal - discount) * rate / 100', () {
       const subtotal = 1000.0;
       const discount = 100.0;
-      const rate = AppConstants.DEFAULT_VAT_RATE;
+      const rate = AppConstants.defaultVatRate;
       final vat = (subtotal - discount) * rate / 100;
       expect(vat, 117.0);
       expect(subtotal - discount + vat, 1017.0);
@@ -16,7 +16,7 @@ void main() {
 
     test('TransactionModel.create computes totals with 13% VAT', () {
       final tx = TransactionModel.create(
-        type: AppConstants.TRANSACTION_SALE,
+        type: AppConstants.transactionSale,
         contactId: 'c1',
         items: [
           TransactionItem.create(
@@ -38,14 +38,14 @@ void main() {
     test('purchase increases balance, sale decreases it', () {
       var contact = ContactModel.create(name: 'Supplier A');
       contact = contact.copyWithTransaction(
-        transactionType: AppConstants.TRANSACTION_PURCHASE,
+        transactionType: AppConstants.transactionPurchase,
         amount: 500,
       );
       expect(contact.balance, 500);
       expect(contact.totalPurchases, 500);
 
       contact = contact.copyWithTransaction(
-        transactionType: AppConstants.TRANSACTION_SALE,
+        transactionType: AppConstants.transactionSale,
         amount: 200,
       );
       expect(contact.balance, 300);

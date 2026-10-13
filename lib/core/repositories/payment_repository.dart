@@ -120,7 +120,7 @@ class PaymentRepository {
   /// Get cash payments
   double getCashPayments() => _paymentsBox.values
       .where((payment) =>
-          payment.method == AppConstants.PAYMENT_CASH &&
+          payment.method == AppConstants.paymentCash &&
           !payment.isCancelled &&
           payment.isClearedPayment)
       .fold(0.0, (sum, payment) => sum + payment.amount);
@@ -128,7 +128,7 @@ class PaymentRepository {
   /// Get bank payments
   double getBankPayments() => _paymentsBox.values
       .where((payment) =>
-          payment.method == AppConstants.PAYMENT_BANK &&
+          payment.method == AppConstants.paymentBank &&
           !payment.isCancelled &&
           payment.isClearedPayment)
       .fold(0.0, (sum, payment) => sum + payment.amount);

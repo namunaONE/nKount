@@ -3,19 +3,22 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_constants.dart';
-import '../../core/database/database_initializer.dart';
 import '../../core/providers/theme_provider.dart';
 import '../../packages/design-system/design_system.dart';
-import '../dashboard/presentation/dashboard_screen.dart';
-import '../contacts/presentation/contacts_screen.dart';
-import '../products/presentation/products_screen.dart';
-import '../transactions/presentation/transactions_screen.dart';
-import '../sales/presentation/sales_screen.dart';
-import '../purchases/presentation/purchases_screen.dart';
-import '../payments/presentation/payments_screen.dart';
-import '../profile/presentation/profile_screen.dart';
-import '../reports/presentation/reports_screen.dart';
-import '../settings/presentation/settings_screen.dart';
+import '../features/dashboard/presentation/dashboard_screen.dart';
+import '../features/gallery/presentation/gallery_screen.dart';
+import '../features/contacts/presentation/contacts_screen.dart';
+import '../features/products/presentation/products_screen.dart';
+import '../features/transactions/presentation/transactions_screen.dart';
+import '../features/sales/presentation/sales_screen.dart';
+import '../features/purchases/presentation/purchases_screen.dart';
+import '../features/income/presentation/income_screen.dart';
+import '../features/expenses/presentation/expenses_screen.dart';
+import '../features/receipts/presentation/receipts_screen.dart';
+import '../features/payments/presentation/payments_screen.dart';
+import '../features/profile/presentation/profile_screen.dart';
+import '../features/reports/presentation/reports_screen.dart';
+import '../features/settings/presentation/settings_screen.dart';
 
 /// App Router Configuration
 final _router = GoRouter(
@@ -49,6 +52,18 @@ final _router = GoRouter(
       builder: (context, state) => const PaymentsScreen(),
     ),
     GoRoute(
+      path: '/income',
+      builder: (context, state) => const IncomeScreen(),
+    ),
+    GoRoute(
+      path: '/expenses',
+      builder: (context, state) => const ExpensesScreen(),
+    ),
+    GoRoute(
+      path: '/receipts',
+      builder: (context, state) => const ReceiptsScreen(),
+    ),
+    GoRoute(
       path: '/reports',
       builder: (context, state) => const ReportsScreen(),
     ),
@@ -59,6 +74,10 @@ final _router = GoRouter(
     GoRoute(
       path: '/profile',
       builder: (context, state) => const ProfileScreen(),
+    ),
+    GoRoute(
+      path: '/design-system',
+      builder: (context, state) => const GalleryScreen(),
     ),
   ],
   errorBuilder: (context, state) => Scaffold(
@@ -106,7 +125,3 @@ class NKountApp extends ConsumerWidget {
     );
   }
 }
-
-/// Provider for database initializer status
-final databaseInitializerProvider =
-    Provider<DatabaseInitializer>((ref) => databaseInitializer);

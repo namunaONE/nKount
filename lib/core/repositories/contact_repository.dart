@@ -62,13 +62,13 @@ class ContactRepository {
   /// Get customers with outstanding balance
   List<ContactModel> getCustomersWithOutstanding() => _contactsBox.values
       .where((contact) =>
-          contact.type == AppConstants.CONTACT_CUSTOMER && contact.balance > 0)
+          contact.type == AppConstants.contactCustomer && contact.balance > 0)
       .toList();
 
   /// Get suppliers with outstanding balance
   List<ContactModel> getSuppliersWithOutstanding() => _contactsBox.values
       .where((contact) =>
-          contact.type == AppConstants.CONTACT_SUPPLIER && contact.balance < 0)
+          contact.type == AppConstants.contactSupplier && contact.balance < 0)
       .toList();
 
   /// Get total receivables

@@ -116,7 +116,7 @@ _$ContactModelImpl _$$ContactModelImplFromJson(Map<String, dynamic> json) =>
       district: json['district'] as String?,
       vatNumber: json['vatNumber'] as String?,
       panNumber: json['panNumber'] as String?,
-      type: json['type'] as String? ?? AppConstants.CONTACT_CUSTOMER,
+      type: json['type'] as String? ?? AppConstants.contactCustomer,
       openingBalance: (json['openingBalance'] as num?)?.toDouble(),
       isActive: json['isActive'] as bool? ?? true,
       remarks: json['remarks'] as String?,

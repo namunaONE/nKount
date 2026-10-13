@@ -22,6 +22,28 @@ class PdfService {
   PdfService._internal();
   static final PdfService _instance = PdfService._internal();
 
+  /// Bundled Hind (static Devanagari+Latin TTFs in assets/fonts) so
+  /// Devanagari text (रू, Nepali names) prints instead of tofu. Falls
+  /// back to built-in Helvetica when the asset is missing or unparsable,
+  /// so generation never crashes (receipt/statement/report previously
+  /// pointed at non-existent Roboto assets).
+  ///
+  /// Note: the variable Noto Sans Devanagari used by the UI cannot be
+  /// used here — the pdf TTF parser requires static fonts (hmtx table).
+  static Future<({pw.Font regular, pw.Font bold})> _loadFonts() async {
+    try {
+      final regularBytes =
+          await rootBundle.load('assets/fonts/Hind-Regular.ttf');
+      final boldBytes = await rootBundle.load('assets/fonts/Hind-Bold.ttf');
+      return (regular: pw.Font.ttf(regularBytes), bold: pw.Font.ttf(boldBytes));
+      // Must catch everything (including Errors): a failed invoice print
+      // is worse than a fallback font.
+      // ignore: avoid_catches_without_on_clauses
+    } catch (_) {
+      return (regular: pw.Font.helvetica(), bold: pw.Font.helveticaBold());
+    }
+  }
+
   /// Generate an invoice PDF
   Future<Uint8List> generateInvoicePdf({
     required TransactionModel transaction,
@@ -33,9 +55,9 @@ class PdfService {
   }) async {
     final pdf = pw.Document();
 
-    // Built-in fonts (repo ships no font assets; Noto Sans Devanagari lands in P4)
-    final regularFont = pw.Font.helvetica();
-    final boldFont = pw.Font.helveticaBold();
+    final fonts = await _loadFonts();
+    final regularFont = fonts.regular;
+    final boldFont = fonts.bold;
 
     // Create invoice
     pdf.addPage(
@@ -341,7 +363,7 @@ class PdfService {
                   ),
                   pw.SizedBox(width: 16),
                   pw.Text(
-                    '${AppConstants.CURRENCY} ${_formatCurrency(subtotal)}',
+                    '${AppConstants.currency} ${_formatCurrency(subtotal)}',
                     style: pw.TextStyle(
                       font: regularFont,
                       fontSize: 12,
@@ -366,7 +388,7 @@ class PdfService {
                     ),
                     pw.SizedBox(width: 16),
                     pw.Text(
-                      '-${AppConstants.CURRENCY} ${_formatCurrency(discount)}',
+                      '-${AppConstants.currency} ${_formatCurrency(discount)}',
                       style: pw.TextStyle(
                         font: regularFont,
                         fontSize: 12,
@@ -391,7 +413,7 @@ class PdfService {
                     ),
                     pw.SizedBox(width: 16),
                     pw.Text(
-                      '+${AppConstants.CURRENCY} ${_formatCurrency(tax)}',
+                      '+${AppConstants.currency} ${_formatCurrency(tax)}',
                       style: pw.TextStyle(
                         font: regularFont,
                         fontSize: 12,
@@ -420,7 +442,7 @@ class PdfService {
                   ),
                   pw.SizedBox(width: 16),
                   pw.Text(
-                    '${AppConstants.CURRENCY} ${_formatCurrency(total)}',
+                    '${AppConstants.currency} ${_formatCurrency(total)}',
                     style: pw.TextStyle(
                       font: boldFont,
                       fontSize: 14,
@@ -445,7 +467,7 @@ class PdfService {
                     ),
                     pw.SizedBox(width: 16),
                     pw.Text(
-                      '${AppConstants.CURRENCY} ${_formatCurrency(paid)}',
+                      '${AppConstants.currency} ${_formatCurrency(paid)}',
                       style: pw.TextStyle(
                         font: regularFont,
                         fontSize: 12,
@@ -470,7 +492,7 @@ class PdfService {
                     ),
                     pw.SizedBox(width: 16),
                     pw.Text(
-                      '${AppConstants.CURRENCY} ${_formatCurrency(due)}',
+                      '${AppConstants.currency} ${_formatCurrency(due)}',
                       style: pw.TextStyle(
                         font: regularFont,
                         fontSize: 12,
@@ -565,12 +587,9 @@ class PdfService {
   }) async {
     final pdf = pw.Document();
 
-    final regularFont = pw.Font.ttf(
-      await rootBundle.load('assets/fonts/Roboto-Regular.ttf'),
-    );
-    final boldFont = pw.Font.ttf(
-      await rootBundle.load('assets/fonts/Roboto-Bold.ttf'),
-    );
+    final fonts = await _loadFonts();
+    final regularFont = fonts.regular;
+    final boldFont = fonts.bold;
 
     pdf.addPage(
       pw.Page(
@@ -658,7 +677,7 @@ class PdfService {
                   style: pw.TextStyle(font: boldFont, fontSize: 14),
                 ),
                 pw.Text(
-                  '${AppConstants.CURRENCY} ${_formatCurrency(amount)}',
+                  '${AppConstants.currency} ${_formatCurrency(amount)}',
                   style: pw.TextStyle(font: boldFont, fontSize: 16),
                 ),
               ],
@@ -703,12 +722,9 @@ class PdfService {
   }) async {
     final pdf = pw.Document();
 
-    final regularFont = pw.Font.ttf(
-      await rootBundle.load('assets/fonts/Roboto-Regular.ttf'),
-    );
-    final boldFont = pw.Font.ttf(
-      await rootBundle.load('assets/fonts/Roboto-Bold.ttf'),
-    );
+    final fonts = await _loadFonts();
+    final regularFont = fonts.regular;
+    final boldFont = fonts.bold;
 
     pdf.addPage(
       pw.Page(
@@ -821,7 +837,7 @@ class PdfService {
                 ),
                 pw.SizedBox(width: 16),
                 pw.Text(
-                  '${AppConstants.CURRENCY} ${_formatCurrency(closingBalance)}',
+                  '${AppConstants.currency} ${_formatCurrency(closingBalance)}',
                   style: pw.TextStyle(font: boldFont, fontSize: 14),
                 ),
               ],
@@ -876,8 +892,8 @@ class PdfService {
       double debit = 0;
       double credit = 0;
 
-      if (transaction.type == AppConstants.TRANSACTION_SALE ||
-          transaction.type == AppConstants.TRANSACTION_INCOME) {
+      if (transaction.type == AppConstants.transactionSale ||
+          transaction.type == AppConstants.transactionIncome) {
         credit = transaction.total;
       } else {
         debit = transaction.total;
@@ -914,12 +930,9 @@ class PdfService {
   }) async {
     final pdf = pw.Document();
 
-    final regularFont = pw.Font.ttf(
-      await rootBundle.load('assets/fonts/Roboto-Regular.ttf'),
-    );
-    final boldFont = pw.Font.ttf(
-      await rootBundle.load('assets/fonts/Roboto-Bold.ttf'),
-    );
+    final fonts = await _loadFonts();
+    final regularFont = fonts.regular;
+    final boldFont = fonts.bold;
 
     pdf.addPage(
       pw.Page(
@@ -971,7 +984,7 @@ class PdfService {
                   child: _buildSummaryCard(
                     title: 'Total Sales',
                     value:
-                        '${AppConstants.CURRENCY} ${_formatCurrency(totalSales)}',
+                        '${AppConstants.currency} ${_formatCurrency(totalSales)}',
                     color: PdfColors.green700,
                     boldFont: boldFont,
                     regularFont: regularFont,
@@ -982,7 +995,7 @@ class PdfService {
                   child: _buildSummaryCard(
                     title: 'Total Purchases',
                     value:
-                        '${AppConstants.CURRENCY} ${_formatCurrency(totalPurchases)}',
+                        '${AppConstants.currency} ${_formatCurrency(totalPurchases)}',
                     color: PdfColors.red700,
                     boldFont: boldFont,
                     regularFont: regularFont,
@@ -993,7 +1006,7 @@ class PdfService {
                   child: _buildSummaryCard(
                     title: 'Net Profit',
                     value:
-                        '${AppConstants.CURRENCY} ${_formatCurrency(netProfit)}',
+                        '${AppConstants.currency} ${_formatCurrency(netProfit)}',
                     color: PdfColors.blue700,
                     boldFont: boldFont,
                     regularFont: regularFont,
@@ -1055,24 +1068,24 @@ class PdfService {
               data: [
                 [
                   'Total Sales',
-                  '${AppConstants.CURRENCY} ${_formatCurrency(totalSales)}'
+                  '${AppConstants.currency} ${_formatCurrency(totalSales)}'
                 ],
                 [
                   'Total Purchases',
-                  '${AppConstants.CURRENCY} ${_formatCurrency(totalPurchases)}'
+                  '${AppConstants.currency} ${_formatCurrency(totalPurchases)}'
                 ],
                 [
                   'Total Payments',
-                  '${AppConstants.CURRENCY} ${_formatCurrency(totalPayments)}'
+                  '${AppConstants.currency} ${_formatCurrency(totalPayments)}'
                 ],
                 [
                   'Total Receipts',
-                  '${AppConstants.CURRENCY} ${_formatCurrency(totalReceipts)}'
+                  '${AppConstants.currency} ${_formatCurrency(totalReceipts)}'
                 ],
                 ['', ''],
                 [
                   'Net Profit',
-                  '${AppConstants.CURRENCY} ${_formatCurrency(netProfit)}'
+                  '${AppConstants.currency} ${_formatCurrency(netProfit)}'
                 ],
               ],
               border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),

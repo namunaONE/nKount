@@ -63,13 +63,4 @@ class TransactionItemModel with _$TransactionItemModel {
 
   /// Get amount with tax
   double get amountWithTax => amount + tax;
-
-  /// Get net amount (amount - discount)
-  double get netAmount => amount - discount;
-
-  /// Check if item has tax
-  bool get hasTax => tax > 0;
-
-  /// Check if item has discount
-  bool get hasDiscount => discount > 0;
 }

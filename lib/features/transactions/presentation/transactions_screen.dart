@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
@@ -6,7 +6,8 @@ import '../../../core/database/hive_service.dart';
 import '../../../core/models/transaction_model.dart';
 import '../../../core/models/contact_model.dart';
 import '../../../core/services/pdf_service.dart';
-import '../../../core/utils/theme/app_theme.dart';
+import '../../../core/utils/money.dart';
+import '../../../core/utils/dates.dart';
 import '../../../packages/design-system/design_system.dart';
 
 /// Transactions Screen: dense, sortable, filterable table (desktop) + cards (mobile)
@@ -35,12 +36,12 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
         subtitle: const Text('View, filter, and manage transactions'),
         actions: [
           ClayIconButton(
-            icon: Icons.search,
+            icon: ClayIcons.search,
             onPressed: () => _showSearchDialog(context),
             tooltip: 'Search (/)',
           ),
           ClayIconButton(
-            icon: Icons.filter_list,
+            icon: ClayIcons.filter,
             onPressed: () => _showFilterDialog(context),
             tooltip: 'Filter',
           ),
@@ -63,133 +64,108 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 return _MobileCardList(transactions: sorted);
               }
               // Desktop: dense paginated table fills available height.
-              return SizedBox(
-                height: constraints.maxHeight,
-                child: Card(
-                  margin: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            const Text(
-                              'Transactions',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Spacer(),
-                            SizedBox(
-                              width: 280,
-                              child: ClaySearchInput(
-                                hintText: 'Search...',
-                                onChanged: (v) =>
-                                    setState(() => _searchQuery = v),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Divider(height: 1),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: PaginatedDataTable(
-                            header: const Text(
-                              'All transactions',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            rowsPerPage: _rowsPerPage,
-                            availableRowsPerPage: const [10, 25, 50, 100],
-                            onRowsPerPageChanged: (v) =>
-                                setState(() => _rowsPerPage = v!),
-                            sortColumnIndex: _sortColumnIndex,
-                            sortAscending: _sortAscending,
-                            showCheckboxColumn: false,
-                            columns: [
-                              DataColumn(
-                                label: const Text('Invoice',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                onSort: (col, asc) => setState(() {
-                                  _sortColumnIndex = 0;
-                                  _sortAscending = asc;
-                                }),
-                              ),
-                              DataColumn(
-                                label: const Text('Date',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                onSort: (col, asc) => setState(() {
-                                  _sortColumnIndex = 1;
-                                  _sortAscending = asc;
-                                }),
-                              ),
-                              DataColumn(
-                                label: const Text('Type',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                onSort: (col, asc) => setState(() {
-                                  _sortColumnIndex = 2;
-                                  _sortAscending = asc;
-                                }),
-                              ),
-                              DataColumn(
-                                label: const Text('Contact',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                onSort: (col, asc) => setState(() {
-                                  _sortColumnIndex = 3;
-                                  _sortAscending = asc;
-                                }),
-                              ),
-                              DataColumn(
-                                label: const Text('Total',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                numeric: true,
-                                onSort: (col, asc) => setState(() {
-                                  _sortColumnIndex = 4;
-                                  _sortAscending = asc;
-                                }),
-                              ),
-                              DataColumn(
-                                label: const Text('Status',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                onSort: (col, asc) => setState(() {
-                                  _sortColumnIndex = 5;
-                                  _sortAscending = asc;
-                                }),
-                              ),
-                              DataColumn(
-                                label: const Text('Due',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                onSort: (col, asc) => setState(() {
-                                  _sortColumnIndex = 6;
-                                  _sortAscending = asc;
-                                }),
-                              ),
-                              const DataColumn(
-                                label: Text('Actions',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                              ),
-                            ],
-                            source: _TransactionDataSource(
-                              transactions: sorted,
-                              onView: (t) => _showDetailDialog(context, t),
-                              onEdit: (t) => _showEditDialog(context, t),
-                              onDelete: (t) => _confirmDelete(context, t),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+              return ClayTableCard(
+                title: 'Transactions',
+                tableTitle: 'All transactions',
+                searchHint: 'Search...',
+                onSearchChanged: (v) => setState(() => _searchQuery = v),
+                columns: [
+                  DataColumn(
+                    label: Text('Invoice',
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelLarge
+                            ?.copyWith(fontWeight: FontWeight.bold)),
+                    onSort: (col, asc) => setState(() {
+                      _sortColumnIndex = 0;
+                      _sortAscending = asc;
+                    }),
                   ),
+                  DataColumn(
+                    label: Text('Date',
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelLarge
+                            ?.copyWith(fontWeight: FontWeight.bold)),
+                    onSort: (col, asc) => setState(() {
+                      _sortColumnIndex = 1;
+                      _sortAscending = asc;
+                    }),
+                  ),
+                  DataColumn(
+                    label: Text('Type',
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelLarge
+                            ?.copyWith(fontWeight: FontWeight.bold)),
+                    onSort: (col, asc) => setState(() {
+                      _sortColumnIndex = 2;
+                      _sortAscending = asc;
+                    }),
+                  ),
+                  DataColumn(
+                    label: Text('Contact',
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelLarge
+                            ?.copyWith(fontWeight: FontWeight.bold)),
+                    onSort: (col, asc) => setState(() {
+                      _sortColumnIndex = 3;
+                      _sortAscending = asc;
+                    }),
+                  ),
+                  DataColumn(
+                    label: Text('Total',
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelLarge
+                            ?.copyWith(fontWeight: FontWeight.bold)),
+                    numeric: true,
+                    onSort: (col, asc) => setState(() {
+                      _sortColumnIndex = 4;
+                      _sortAscending = asc;
+                    }),
+                  ),
+                  DataColumn(
+                    label: Text('Status',
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelLarge
+                            ?.copyWith(fontWeight: FontWeight.bold)),
+                    onSort: (col, asc) => setState(() {
+                      _sortColumnIndex = 5;
+                      _sortAscending = asc;
+                    }),
+                  ),
+                  DataColumn(
+                    label: Text('Due',
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelLarge
+                            ?.copyWith(fontWeight: FontWeight.bold)),
+                    onSort: (col, asc) => setState(() {
+                      _sortColumnIndex = 6;
+                      _sortAscending = asc;
+                    }),
+                  ),
+                  DataColumn(
+                    label: Text('Actions',
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelLarge
+                            ?.copyWith(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+                source: _TransactionDataSource(
+                  transactions: sorted,
+                  onView: (t) => _showDetailDialog(context, t),
+                  onEdit: (t) => _showEditDialog(context, t),
+                  onDelete: (t) => _confirmDelete(context, t),
                 ),
+                rowsPerPage: _rowsPerPage,
+                onRowsPerPageChanged: (v) => setState(() => _rowsPerPage = v!),
+                sortColumnIndex: _sortColumnIndex,
+                sortAscending: _sortAscending,
               );
             },
           );
@@ -252,25 +228,11 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   }
 
   void _showSearchDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => ClayDialog(
-        title: const Text('Search Transactions'),
-        content: ClaySearchInput(
-          hintText: 'Search by invoice number, contact, or amount',
-          onChanged: (v) => setState(() => _searchQuery = v),
-        ),
-        actions: [
-          ClayButton.text(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ClayButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
+    showClaySearchDialog(
+      context,
+      title: 'Search Transactions',
+      hintText: 'Search by invoice number, contact, or amount',
+      onChanged: (v) => setState(() => _searchQuery = v),
     );
   }
 
@@ -290,16 +252,16 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 items: const [
                   DropdownMenuItem(value: 'all', child: Text('All')),
                   DropdownMenuItem(
-                      value: AppConstants.PAYMENT_STATUS_PAID,
+                      value: AppConstants.paymentStatusPaid,
                       child: Text('Paid')),
                   DropdownMenuItem(
-                      value: AppConstants.PAYMENT_STATUS_PARTIAL,
+                      value: AppConstants.paymentStatusPartial,
                       child: Text('Partial')),
                   DropdownMenuItem(
-                      value: AppConstants.PAYMENT_STATUS_PENDING,
+                      value: AppConstants.paymentStatusPending,
                       child: Text('Pending')),
                   DropdownMenuItem(
-                      value: AppConstants.PAYMENT_STATUS_CANCELLED,
+                      value: AppConstants.paymentStatusCancelled,
                       child: Text('Cancelled')),
                 ],
                 onChanged: (v) => setState(() => _selectedStatus = v!),
@@ -311,16 +273,15 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 items: const [
                   DropdownMenuItem(value: 'all', child: Text('All')),
                   DropdownMenuItem(
-                      value: AppConstants.TRANSACTION_SALE,
-                      child: Text('Sale')),
+                      value: AppConstants.transactionSale, child: Text('Sale')),
                   DropdownMenuItem(
-                      value: AppConstants.TRANSACTION_PURCHASE,
+                      value: AppConstants.transactionPurchase,
                       child: Text('Purchase')),
                   DropdownMenuItem(
-                      value: AppConstants.TRANSACTION_EXPENSE,
+                      value: AppConstants.transactionExpense,
                       child: Text('Expense')),
                   DropdownMenuItem(
-                      value: AppConstants.TRANSACTION_INCOME,
+                      value: AppConstants.transactionIncome,
                       child: Text('Income')),
                 ],
                 onChanged: (v) => setState(() => _selectedType = v!),
@@ -366,25 +327,33 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                     child: SingleChildScrollView(
                         child:
                             Column(mainAxisSize: MainAxisSize.min, children: [
-                      _detailRow('Invoice', t.invoiceNumber ?? 'N/A'),
-                      _detailRow(
-                          'Date', t.date?.toString().split(' ').first ?? 'N/A'),
-                      _detailRow('Type', t.typeDisplayName),
-                      _detailRow('Contact', t.contactId),
-                      _detailRow(
-                          'Subtotal', AppTheme.formatCurrency(t.subtotal)),
-                      _detailRow(
-                          'Discount', AppTheme.formatCurrency(t.discount)),
-                      _detailRow('Tax (${t.vatRate}%)',
-                          AppTheme.formatCurrency(t.tax)),
-                      _detailRow('Total', AppTheme.formatCurrency(t.total),
-                          bold: true),
-                      _detailRow('Paid', AppTheme.formatCurrency(t.paidAmount)),
-                      _detailRow('Due', AppTheme.formatCurrency(t.dueAmount),
-                          bold: t.dueAmount > 0),
-                      _detailRow('Status', t.paymentStatus),
+                      ClayDetailRow(
+                          label: 'Invoice', value: t.invoiceNumber ?? 'N/A'),
+                      ClayDetailRow(
+                          label: 'Date',
+                          value: t.date == null ? 'N/A' : formatDate(t.date)),
+                      ClayDetailRow(label: 'Type', value: t.typeDisplayName),
+                      ClayDetailRow(label: 'Contact', value: t.contactId),
+                      ClayDetailRow(
+                          label: 'Subtotal', value: formatCurrency(t.subtotal)),
+                      ClayDetailRow(
+                          label: 'Discount', value: formatCurrency(t.discount)),
+                      ClayDetailRow(
+                          label: 'Tax (${t.vatRate}%)',
+                          value: formatCurrency(t.tax)),
+                      ClayDetailRow(
+                          label: 'Total',
+                          value: formatCurrency(t.total),
+                          isBold: true),
+                      ClayDetailRow(
+                          label: 'Paid', value: formatCurrency(t.paidAmount)),
+                      ClayDetailRow(
+                          label: 'Due',
+                          value: formatCurrency(t.dueAmount),
+                          isBold: t.dueAmount > 0),
+                      ClayDetailRow(label: 'Status', value: t.paymentStatus),
                       if (t.notes != null && t.notes!.isNotEmpty)
-                        _detailRow('Notes', t.notes!),
+                        ClayDetailRow(label: 'Notes', value: t.notes!),
                     ]))),
                 actions: [
                   ClayButton.text(
@@ -438,39 +407,16 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     }
   }
 
-  void _confirmDelete(BuildContext context, TransactionModel t) {
-    showDialog(
-        context: context,
-        builder: (c) => AlertDialog(
-              title: const Text('Delete Transaction?'),
-              content:
-                  Text('Delete ${t.invoiceNumber}? This cannot be undone.'),
-              actions: [
-                TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel')),
-                FilledButton(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await hiveService.transactionsBox.delete(t.id);
-                    ref.invalidate(transactionsProvider);
-                  },
-                  child: const Text('Delete'),
-                ),
-              ],
-            ));
+  Future<void> _confirmDelete(BuildContext context, TransactionModel t) async {
+    if (await showClayConfirmDialog(
+      context,
+      title: 'Delete Transaction?',
+      message: 'Delete ${t.invoiceNumber}? This cannot be undone.',
+    )) {
+      await hiveService.transactionsBox.delete(t.id);
+      ref.invalidate(transactionsProvider);
+    }
   }
-
-  Widget _detailRow(String label, String value, {bool bold = false}) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child:
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text(label, style: const TextStyle(color: Colors.grey)),
-          Text(value,
-              style: TextStyle(
-                  fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
-        ]),
-      );
 }
 
 /// Compact transaction card for mobile.
@@ -480,7 +426,7 @@ class _TransactionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSale = transaction.type == AppConstants.TRANSACTION_SALE;
+    final isSale = transaction.type == AppConstants.transactionSale;
     return ClayCard(
       onTap: () => context.push('/transactions'),
       padding: const EdgeInsets.all(16),
@@ -494,7 +440,7 @@ class _TransactionCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
-              isSale ? Icons.arrow_upward : Icons.arrow_downward,
+              isSale ? ClayIcons.receivables : ClayIcons.payables,
               color: isSale ? ClayColors.success : ClayColors.info,
             ),
           ),
@@ -505,11 +451,12 @@ class _TransactionCard extends StatelessWidget {
               children: [
                 Text(
                   transaction.invoiceNumber ?? transaction.typeDisplayName,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Text(
-                  transaction.date?.toString().split(' ').first ?? '',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  formatDate(transaction.date),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ],
             ),
@@ -518,10 +465,13 @@ class _TransactionCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                AppTheme.formatCurrency(transaction.total),
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                formatCurrency(transaction.total),
+                style: ClayTypography.tabular(
+                    Theme.of(context).textTheme.titleMedium),
               ),
-              _PaymentStatusChip(status: transaction.paymentStatus),
+              ClayStatusBadge(
+                  label: _statusLabel(transaction.paymentStatus),
+                  color: _statusColor(transaction.paymentStatus)),
             ],
           ),
         ],
@@ -537,7 +487,19 @@ class _MobileCardList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (transactions.isEmpty) return const _EmptyTransactionsState();
+    if (transactions.isEmpty) {
+      return Center(
+        child: ClayEmptyState(
+          icon: ClayIcons.transactions,
+          title: 'No Transactions Found',
+          subtitle: 'Add your first transaction to get started',
+          action: ClayButton(
+            onPressed: () => context.push('/transactions'),
+            child: const Text('Add Transaction'),
+          ),
+        ),
+      );
+    }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: transactions.length,
@@ -567,30 +529,33 @@ class _TransactionDataSource extends DataTableSource {
       onSelectChanged: (_) => onView(t),
       cells: [
         DataCell(Text(t.invoiceNumber ?? 'N/A')),
-        DataCell(Text(t.date?.toString().split(' ').first ?? 'N/A')),
+        DataCell(Text(t.date == null ? 'N/A' : formatDate(t.date))),
         DataCell(Chip(
             label: Text(t.typeDisplayName),
             backgroundColor: _getTypeColor(t.type).withValues(alpha: 0.1),
             labelStyle: TextStyle(color: _getTypeColor(t.type)))),
         DataCell(Text(t.contactId, overflow: TextOverflow.ellipsis)),
-        DataCell(Text('NPR ${t.total.toStringAsFixed(2)}',
-            style: const TextStyle(fontWeight: FontWeight.bold))),
-        DataCell(_PaymentStatusChip(status: t.paymentStatus)),
-        DataCell(Text(t.dueDate?.toString().split(' ').first ?? 'N/A')),
+        DataCell(Text(formatCurrency(t.total),
+            style: ClayTypography.tabular(
+                const TextStyle(fontWeight: FontWeight.bold)))),
+        DataCell(ClayStatusBadge(
+            label: _statusLabel(t.paymentStatus),
+            color: _statusColor(t.paymentStatus))),
+        DataCell(Text(t.dueDate == null ? 'N/A' : formatDate(t.dueDate))),
         DataCell(Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-                icon: const Icon(Icons.visibility, size: 18),
+                icon: const Icon(ClayIcons.view, size: 18),
                 onPressed: () => onView(transactions[index]),
                 tooltip: 'View'),
             IconButton(
-                icon: const Icon(Icons.edit, size: 18),
+                icon: const Icon(ClayIcons.edit, size: 18),
                 onPressed: () => onEdit(transactions[index]),
                 tooltip: 'Edit'),
             IconButton(
-                icon: const Icon(Icons.delete, size: 18),
-                color: Colors.red,
+                icon: const Icon(ClayIcons.delete, size: 18),
+                color: ClayColors.error,
                 onPressed: () => onDelete(transactions[index]),
                 tooltip: 'Delete'),
           ],
@@ -608,94 +573,51 @@ class _TransactionDataSource extends DataTableSource {
 
   Color _getTypeColor(String type) {
     switch (type) {
-      case AppConstants.TRANSACTION_SALE:
-        return Colors.green;
-      case AppConstants.TRANSACTION_PURCHASE:
-        return Colors.blue;
-      case AppConstants.TRANSACTION_EXPENSE:
-        return Colors.red;
-      case AppConstants.TRANSACTION_INCOME:
-        return Colors.orange;
+      case AppConstants.transactionSale:
+        return ClayColors.success;
+      case AppConstants.transactionPurchase:
+        return ClayColors.info;
+      case AppConstants.transactionExpense:
+        return ClayColors.error;
+      case AppConstants.transactionIncome:
+        return ClayColors.secondary;
       default:
-        return Colors.grey;
+        return ClayColors.neutral;
     }
   }
 }
 
-class _PaymentStatusChip extends StatelessWidget {
-  const _PaymentStatusChip({required this.status});
-  final String status;
-
-  @override
-  Widget build(BuildContext context) {
-    Color color;
-    String label;
-    switch (status) {
-      case AppConstants.PAYMENT_STATUS_PAID:
-        color = Colors.green;
-        label = 'Paid';
-        break;
-      case AppConstants.PAYMENT_STATUS_PARTIAL:
-        color = Colors.orange;
-        label = 'Partial';
-        break;
-      case AppConstants.PAYMENT_STATUS_PENDING:
-        color = Colors.red;
-        label = 'Pending';
-        break;
-      case AppConstants.PAYMENT_STATUS_CANCELLED:
-        color = Colors.grey;
-        label = 'Cancelled';
-        break;
-      default:
-        color = Colors.grey;
-        label = status;
-    }
-    return Chip(
-      label: Text(label, style: const TextStyle(fontSize: 11)),
-      backgroundColor: color.withValues(alpha: 0.1),
-      side: BorderSide(color: color, width: 1),
-      visualDensity: VisualDensity.compact,
-    );
+/// Status → color mapping for payment badges (const-safe; neutral matches
+/// M3 onSurfaceVariant per [ClayColors.neutral]).
+Color _statusColor(String status) {
+  switch (status) {
+    case AppConstants.paymentStatusPaid:
+      return ClayColors.success;
+    case AppConstants.paymentStatusPartial:
+      return ClayColors.warning;
+    case AppConstants.paymentStatusPending:
+      return ClayColors.error;
+    case AppConstants.paymentStatusCancelled:
+      return ClayColors.neutral;
+    default:
+      return ClayColors.neutral;
   }
 }
 
-/// Empty Transactions State
-class _EmptyTransactionsState extends StatelessWidget {
-  const _EmptyTransactionsState();
-
-  @override
-  Widget build(BuildContext context) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.receipt_outlined,
-              size: 80,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'No Transactions Found',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Add your first transaction to get started',
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 24),
-            ClayButton(
-              onPressed: () => context.push('/transactions'),
-              child: const Text('Add Transaction'),
-            ),
-          ],
-        ),
-      );
+/// Status → label mapping for payment badges.
+String _statusLabel(String status) {
+  switch (status) {
+    case AppConstants.paymentStatusPaid:
+      return 'Paid';
+    case AppConstants.paymentStatusPartial:
+      return 'Partial';
+    case AppConstants.paymentStatusPending:
+      return 'Pending';
+    case AppConstants.paymentStatusCancelled:
+      return 'Cancelled';
+    default:
+      return status;
+  }
 }
 
 /// Transactions List
@@ -710,7 +632,7 @@ class _AddTransactionForm extends ConsumerStatefulWidget {
 
 class _AddTransactionFormState extends ConsumerState<_AddTransactionForm> {
   final _formKey = GlobalKey<FormState>();
-  String _type = AppConstants.TRANSACTION_SALE;
+  String _type = AppConstants.transactionSale;
   String _invoiceNumber = '';
   String _contactId = '';
   double _subtotal = 0.0;
@@ -718,8 +640,8 @@ class _AddTransactionFormState extends ConsumerState<_AddTransactionForm> {
   double _tax = 0.0;
   double _total = 0.0;
   double _paidAmount = 0.0;
-  String _paymentStatus = AppConstants.PAYMENT_STATUS_PENDING;
-  String _paymentMethod = AppConstants.PAYMENT_CASH;
+  String _paymentStatus = AppConstants.paymentStatusPending;
+  String _paymentMethod = AppConstants.paymentCash;
   String _referenceNumber = '';
   DateTime? _date;
   DateTime? _dueDate;
@@ -738,16 +660,15 @@ class _AddTransactionFormState extends ConsumerState<_AddTransactionForm> {
                 value: _type,
                 items: const [
                   DropdownMenuItem(
-                      value: AppConstants.TRANSACTION_SALE,
-                      child: Text('Sale')),
+                      value: AppConstants.transactionSale, child: Text('Sale')),
                   DropdownMenuItem(
-                      value: AppConstants.TRANSACTION_PURCHASE,
+                      value: AppConstants.transactionPurchase,
                       child: Text('Purchase')),
                   DropdownMenuItem(
-                      value: AppConstants.TRANSACTION_EXPENSE,
+                      value: AppConstants.transactionExpense,
                       child: Text('Expense')),
                   DropdownMenuItem(
-                      value: AppConstants.TRANSACTION_INCOME,
+                      value: AppConstants.transactionIncome,
                       child: Text('Income')),
                 ],
                 onChanged: (value) => setState(() => _type = value!),
@@ -846,13 +767,13 @@ class _AddTransactionFormState extends ConsumerState<_AddTransactionForm> {
                 value: _paymentStatus,
                 items: const [
                   DropdownMenuItem(
-                      value: AppConstants.PAYMENT_STATUS_PENDING,
+                      value: AppConstants.paymentStatusPending,
                       child: Text('Pending')),
                   DropdownMenuItem(
-                      value: AppConstants.PAYMENT_STATUS_PAID,
+                      value: AppConstants.paymentStatusPaid,
                       child: Text('Paid')),
                   DropdownMenuItem(
-                      value: AppConstants.PAYMENT_STATUS_PARTIAL,
+                      value: AppConstants.paymentStatusPartial,
                       child: Text('Partial')),
                 ],
                 onChanged: (value) => setState(() => _paymentStatus = value!),
@@ -863,18 +784,15 @@ class _AddTransactionFormState extends ConsumerState<_AddTransactionForm> {
                 value: _paymentMethod,
                 items: const [
                   DropdownMenuItem(
-                      value: AppConstants.PAYMENT_CASH, child: Text('Cash')),
+                      value: AppConstants.paymentCash, child: Text('Cash')),
                   DropdownMenuItem(
-                      value: AppConstants.PAYMENT_BANK, child: Text('Bank')),
+                      value: AppConstants.paymentBank, child: Text('Bank')),
                   DropdownMenuItem(
-                      value: AppConstants.PAYMENT_CHEQUE,
-                      child: Text('Cheque')),
+                      value: AppConstants.paymentCheque, child: Text('Cheque')),
                   DropdownMenuItem(
-                      value: AppConstants.PAYMENT_ONLINE,
-                      child: Text('Online')),
+                      value: AppConstants.paymentOnline, child: Text('Online')),
                   DropdownMenuItem(
-                      value: AppConstants.PAYMENT_CREDIT,
-                      child: Text('Credit')),
+                      value: AppConstants.paymentCredit, child: Text('Credit')),
                 ],
                 onChanged: (value) => setState(() => _paymentMethod = value!),
               ),

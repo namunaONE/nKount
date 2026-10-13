@@ -276,18 +276,6 @@ class DatabaseInitializer {
       rethrow;
     }
   }
-
-  /// Get database statistics
-  Future<Map<String, dynamic>> getDatabaseStats() async {
-    final stats = hiveService.getBoxStats();
-
-    return {
-      'boxes': stats,
-      'total_records': stats.values.fold(0, (sum, count) => sum + count),
-      'is_initialized': _isInitialized,
-      'timestamp': DateTime.now().toIso8601String(),
-    };
-  }
 }
 
 // Singleton instance

@@ -79,20 +79,8 @@ class TaxRateModel with _$TaxRateModel {
         updatedAt: DateTime.now(),
       );
 
-  /// Calculate tax amount
-  double calculateTax(double amount) =>
-      type == 'percentage' ? amount * rate / 100 : rate;
-
   /// Get display name with rate
   String get displayName => isVat ? '$name ($rate%)' : name;
-
-  /// Check if tax rate is currently effective
-  bool get isEffective {
-    final now = DateTime.now();
-    if (effectiveFrom != null && effectiveFrom!.isAfter(now)) return false;
-    if (effectiveTo != null && effectiveTo!.isBefore(now)) return false;
-    return isActive;
-  }
 
   /// Get tax type display name
   String get typeDisplayName {

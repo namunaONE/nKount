@@ -104,21 +104,21 @@ class TransactionRepository {
   /// Get total sales amount
   double getTotalSalesAmount() => _transactionsBox.values
       .where((transaction) =>
-          transaction.type == AppConstants.TRANSACTION_SALE &&
+          transaction.type == AppConstants.transactionSale &&
           !transaction.isCancelled)
       .fold(0.0, (sum, transaction) => sum + transaction.total);
 
   /// Get total purchase amount
   double getTotalPurchaseAmount() => _transactionsBox.values
       .where((transaction) =>
-          transaction.type == AppConstants.TRANSACTION_PURCHASE &&
+          transaction.type == AppConstants.transactionPurchase &&
           !transaction.isCancelled)
       .fold(0.0, (sum, transaction) => sum + transaction.total);
 
   /// Get total outstanding amount (receivables)
   double getTotalOutstandingReceivables() => _transactionsBox.values
       .where((transaction) =>
-          transaction.type == AppConstants.TRANSACTION_SALE &&
+          transaction.type == AppConstants.transactionSale &&
           !transaction.isCancelled &&
           transaction.dueAmount > 0)
       .fold(0.0, (sum, transaction) => sum + transaction.dueAmount);
@@ -126,7 +126,7 @@ class TransactionRepository {
   /// Get total outstanding amount (payables)
   double getTotalOutstandingPayables() => _transactionsBox.values
       .where((transaction) =>
-          transaction.type == AppConstants.TRANSACTION_PURCHASE &&
+          transaction.type == AppConstants.transactionPurchase &&
           !transaction.isCancelled &&
           transaction.dueAmount > 0)
       .fold(0.0, (sum, transaction) => sum + transaction.dueAmount);

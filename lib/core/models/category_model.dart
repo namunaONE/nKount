@@ -65,9 +65,6 @@ class CategoryModel with _$CategoryModel {
   /// Check if category is root level
   bool get isRoot => parentId == null || (parentId?.isEmpty ?? true);
 
-  /// Get full path display
-  String get fullPath => isRoot ? name : '$name ($path)';
-
   /// Get display name with hierarchy
   String get displayName => isRoot ? name : '  ' * level + name;
 }

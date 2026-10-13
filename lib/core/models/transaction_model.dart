@@ -23,7 +23,7 @@ class TransactionModel with _$TransactionModel {
     @HiveField(9) @Default(0.0) double paidAmount,
     @HiveField(10) @Default(0.0) double dueAmount,
     @HiveField(11)
-    @Default(AppConstants.PAYMENT_STATUS_PENDING)
+    @Default(AppConstants.paymentStatusPending)
     String paymentStatus,
     @HiveField(12) String? paymentMethod,
     @HiveField(13) String? referenceNumber,
@@ -57,7 +57,7 @@ class TransactionModel with _$TransactionModel {
     double? tax,
     double? total,
     double? paidAmount,
-    String paymentStatus = AppConstants.PAYMENT_STATUS_PENDING,
+    String paymentStatus = AppConstants.paymentStatusPending,
     String? paymentMethod,
     String? referenceNumber,
     DateTime? date,
@@ -94,7 +94,7 @@ class TransactionModel with _$TransactionModel {
       paidAmount: calculatedPaid,
       dueAmount: calculatedDue,
       paymentStatus:
-          calculatedDue <= 0 ? AppConstants.PAYMENT_STATUS_PAID : paymentStatus,
+          calculatedDue <= 0 ? AppConstants.paymentStatusPaid : paymentStatus,
       paymentMethod: paymentMethod,
       referenceNumber: referenceNumber,
       date: date ?? now,
@@ -110,7 +110,7 @@ class TransactionModel with _$TransactionModel {
 
   /// Generate invoice number
   static String _generateInvoiceNumber(String type) {
-    final prefix = type == AppConstants.TRANSACTION_PURCHASE ? 'PUR' : 'INV';
+    final prefix = type == AppConstants.transactionPurchase ? 'PUR' : 'INV';
     final timestamp =
         DateTime.now().millisecondsSinceEpoch.toString().substring(4);
     return '$prefix-$timestamp';
@@ -125,10 +125,10 @@ class TransactionModel with _$TransactionModel {
     final newPaid = paidAmount + amount;
     final newDue = total - newPaid;
     final newStatus = newDue <= 0
-        ? AppConstants.PAYMENT_STATUS_PAID
+        ? AppConstants.paymentStatusPaid
         : (newDue < total
-            ? AppConstants.PAYMENT_STATUS_PARTIAL
-            : AppConstants.PAYMENT_STATUS_PENDING);
+            ? AppConstants.paymentStatusPartial
+            : AppConstants.paymentStatusPending);
 
     return copyWith(
       paidAmount: newPaid,
@@ -152,25 +152,25 @@ class TransactionModel with _$TransactionModel {
       dueDate != null && dueDate!.isBefore(DateTime.now()) && dueAmount > 0;
 
   /// Check if transaction is fully paid
-  bool get isFullyPaid => paymentStatus == AppConstants.PAYMENT_STATUS_PAID;
+  bool get isFullyPaid => paymentStatus == AppConstants.paymentStatusPaid;
 
   /// Check if transaction is partially paid
   bool get isPartiallyPaid =>
-      paymentStatus == AppConstants.PAYMENT_STATUS_PARTIAL;
+      paymentStatus == AppConstants.paymentStatusPartial;
 
   /// Check if transaction is pending
-  bool get isPending => paymentStatus == AppConstants.PAYMENT_STATUS_PENDING;
+  bool get isPending => paymentStatus == AppConstants.paymentStatusPending;
 
   /// Get transaction type display name
   String get typeDisplayName {
     switch (type) {
-      case AppConstants.TRANSACTION_PURCHASE:
+      case AppConstants.transactionPurchase:
         return 'Purchase';
-      case AppConstants.TRANSACTION_SALE:
+      case AppConstants.transactionSale:
         return 'Sale';
-      case AppConstants.TRANSACTION_EXPENSE:
+      case AppConstants.transactionExpense:
         return 'Expense';
-      case AppConstants.TRANSACTION_INCOME:
+      case AppConstants.transactionIncome:
         return 'Income';
       default:
         return 'Unknown';

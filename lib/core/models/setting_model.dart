@@ -57,7 +57,7 @@ class SettingModel with _$SettingModel {
   static List<SettingModel> createDefaultSettings({String? companyId}) => [
         SettingModel.create(
           key: 'currency',
-          value: AppConstants.CURRENCY,
+          value: AppConstants.currency,
           description: 'Default currency for the application',
           category: 'general',
           isSystemSetting: true,
@@ -66,7 +66,7 @@ class SettingModel with _$SettingModel {
         ),
         SettingModel.create(
           key: 'currency_symbol',
-          value: AppConstants.CURRENCY_SYMBOL,
+          value: AppConstants.currencySymbol,
           description: 'Currency symbol for display',
           category: 'general',
           isSystemSetting: true,
@@ -75,7 +75,7 @@ class SettingModel with _$SettingModel {
         ),
         SettingModel.create(
           key: 'default_vat_rate',
-          value: AppConstants.DEFAULT_VAT_RATE,
+          value: AppConstants.defaultVatRate,
           description: 'Default VAT rate percentage',
           category: 'tax',
           isSystemSetting: false,
@@ -84,7 +84,7 @@ class SettingModel with _$SettingModel {
         ),
         SettingModel.create(
           key: 'date_format',
-          value: AppConstants.DATE_FORMAT_AD,
+          value: AppConstants.dateFormatAd,
           description: 'Date format for display',
           category: 'general',
           isSystemSetting: false,
@@ -174,7 +174,7 @@ class SettingModel with _$SettingModel {
         ),
         SettingModel.create(
           key: 'items_per_page',
-          value: AppConstants.ITEMS_PER_PAGE,
+          value: AppConstants.itemsPerPage,
           description: 'Number of items per page in lists',
           category: 'ui',
           isSystemSetting: false,
@@ -198,7 +198,4 @@ class SettingModel with _$SettingModel {
         value: newValue,
         updatedAt: DateTime.now(),
       );
-
-  /// Check if setting is for a specific company
-  bool get isCompanySetting => companyId != null && companyId!.isNotEmpty;
 }

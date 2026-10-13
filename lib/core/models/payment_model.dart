@@ -68,18 +68,11 @@ class PaymentModel with _$PaymentModel {
         chequeDate: chequeDate,
         date: date ?? DateTime.now(),
         notes: notes,
-        isCleared: method != AppConstants.PAYMENT_CHEQUE,
+        isCleared: method != AppConstants.paymentCheque,
         clearedDate:
-            method != AppConstants.PAYMENT_CHEQUE ? DateTime.now() : null,
+            method != AppConstants.paymentCheque ? DateTime.now() : null,
         createdBy: createdBy,
         createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-
-  /// Clear payment (for cheque clearance)
-  PaymentModel copyWithCleared() => copyWith(
-        isCleared: true,
-        clearedDate: DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
@@ -95,7 +88,7 @@ class PaymentModel with _$PaymentModel {
 
   /// Check if payment is pending clearance
   bool get isPendingClearance =>
-      method == AppConstants.PAYMENT_CHEQUE && !isCleared && !isCancelled;
+      method == AppConstants.paymentCheque && !isCleared && !isCancelled;
 
   /// Get payment type display name
   String get typeDisplayName {
@@ -112,15 +105,15 @@ class PaymentModel with _$PaymentModel {
   /// Get payment method display name
   String get methodDisplayName {
     switch (method) {
-      case AppConstants.PAYMENT_CASH:
+      case AppConstants.paymentCash:
         return 'Cash';
-      case AppConstants.PAYMENT_BANK:
+      case AppConstants.paymentBank:
         return 'Bank Transfer';
-      case AppConstants.PAYMENT_CHEQUE:
+      case AppConstants.paymentCheque:
         return 'Cheque';
-      case AppConstants.PAYMENT_ONLINE:
+      case AppConstants.paymentOnline:
         return 'Online Payment';
-      case AppConstants.PAYMENT_CREDIT:
+      case AppConstants.paymentCredit:
         return 'Credit';
       default:
         return 'Unknown';
@@ -129,7 +122,7 @@ class PaymentModel with _$PaymentModel {
 
   /// Get reference display
   String get referenceDisplay {
-    if (method == AppConstants.PAYMENT_CHEQUE && chequeNumber != null) {
+    if (method == AppConstants.paymentCheque && chequeNumber != null) {
       return 'Cheque #$chequeNumber';
     } else if (referenceNumber != null && referenceNumber!.isNotEmpty) {
       return referenceNumber!;

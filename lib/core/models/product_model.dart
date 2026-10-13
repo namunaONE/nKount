@@ -92,22 +92,6 @@ class ProductModel with _$ProductModel {
         updatedAt: DateTime.now(),
       );
 
-  /// Update product with purchase
-  ProductModel copyWithPurchase(double quantity, double price) => copyWith(
-        quantity: this.quantity + quantity,
-        purchasePrice: price,
-        totalPurchased: totalPurchased + (quantity * price),
-        updatedAt: DateTime.now(),
-      );
-
-  /// Update product with sale
-  ProductModel copyWithSale(double quantity, double price) => copyWith(
-        quantity: this.quantity - quantity,
-        salePrice: price,
-        totalSold: totalSold + (quantity * price),
-        updatedAt: DateTime.now(),
-      );
-
   /// Check if product is in stock
   bool get inStock => quantity > 0;
 
@@ -116,12 +100,6 @@ class ProductModel with _$ProductModel {
 
   /// Get tax amount for sale
   double get taxAmount => isTaxable ? (salePrice * taxRate / 100) : 0;
-
-  /// Get sale price with tax
-  double get salePriceWithTax => salePrice + taxAmount;
-
-  /// Get profit per unit
-  double get profitPerUnit => salePrice - costPrice;
 
   /// Get profit margin percentage
   double get profitMargin =>

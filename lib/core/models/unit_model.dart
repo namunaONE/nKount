@@ -73,20 +73,6 @@ class UnitModel with _$UnitModel {
         updatedAt: DateTime.now(),
       );
 
-  /// Check if unit can be converted to another unit
-  bool canConvertTo(UnitModel other) {
-    if (!isActive || !other.isActive) return false;
-    if (isBaseUnit && other.isBaseUnit) return id == other.id;
-    if (isBaseUnit) return baseUnitId == other.id;
-    if (other.isBaseUnit) return id == other.baseUnitId;
-    return baseUnitId == other.baseUnitId;
-  }
-
   /// Get display name with code
   String get displayName => '$name ($code)';
-
-  /// Get full display name
-  String get fullDisplayName => isBaseUnit
-      ? displayName
-      : '$displayName = ${baseUnitMultiplier}x $baseUnitId';
 }

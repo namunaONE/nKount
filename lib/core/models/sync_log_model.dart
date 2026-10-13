@@ -60,45 +60,11 @@ class SyncLogModel with _$SyncLogModel {
         updatedAt: DateTime.now(),
       );
 
-  /// Update sync status
-  SyncLogModel copyWithStatus(String newStatus,
-      {String? errorMessage, Map<String, dynamic>? responseData}) {
-    final now = DateTime.now();
-    return copyWith(
-      status: newStatus,
-      errorMessage: errorMessage,
-      responseData: responseData,
-      updatedAt: now,
-      completedAt:
-          newStatus == 'completed' || newStatus == 'failed' ? now : completedAt,
-    );
-  }
-
-  /// Increment retry count
-  SyncLogModel copyWithRetry() => copyWith(
-        retryCount: retryCount + 1,
-        updatedAt: DateTime.now(),
-      );
-
-  /// Mark as conflict
-  SyncLogModel copyWithConflict(String resolution) => copyWith(
-        isConflict: true,
-        conflictResolution: resolution,
-        conflictResolvedAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-
   /// Check if sync is pending
   bool get isPending => status == 'pending';
 
-  /// Check if sync is completed
-  bool get isCompleted => status == 'completed';
-
   /// Check if sync has failed
   bool get isFailed => status == 'failed';
-
-  /// Check if sync can be retried
-  bool get canRetry => isFailed && retryCount < maxRetries;
 
   /// Check if sync has conflict
   bool get hasConflict => isConflict;
@@ -118,24 +84,6 @@ class SyncLogModel with _$SyncLogModel {
         return 'Push';
       default:
         return action;
-    }
-  }
-
-  /// Get sync status display name
-  String get statusDisplayName {
-    switch (status) {
-      case 'pending':
-        return 'Pending';
-      case 'completed':
-        return 'Completed';
-      case 'failed':
-        return 'Failed';
-      case 'retrying':
-        return 'Retrying';
-      case 'conflict':
-        return 'Conflict';
-      default:
-        return status;
     }
   }
 }

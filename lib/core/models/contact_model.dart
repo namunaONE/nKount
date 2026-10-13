@@ -21,7 +21,7 @@ class ContactModel with _$ContactModel {
     @HiveField(7) String? district,
     @HiveField(8) String? vatNumber,
     @HiveField(9) String? panNumber,
-    @HiveField(10) @Default(AppConstants.CONTACT_CUSTOMER) String type,
+    @HiveField(10) @Default(AppConstants.contactCustomer) String type,
     @HiveField(11) double? openingBalance,
     @HiveField(12) @Default(true) bool isActive,
     @HiveField(13) String? remarks,
@@ -50,7 +50,7 @@ class ContactModel with _$ContactModel {
     String? district,
     String? vatNumber,
     String? panNumber,
-    String type = AppConstants.CONTACT_CUSTOMER,
+    String type = AppConstants.contactCustomer,
     double? openingBalance,
     bool isActive = true,
     String? remarks,
@@ -74,12 +74,6 @@ class ContactModel with _$ContactModel {
         updatedAt: DateTime.now(),
       );
 
-  /// Update contact balance
-  ContactModel copyWithUpdatedBalance(double newBalance) => copyWith(
-        balance: newBalance,
-        updatedAt: DateTime.now(),
-      );
-
   /// Update contact with new transaction
   ContactModel copyWithTransaction({
     required String transactionType,
@@ -91,10 +85,10 @@ class ContactModel with _$ContactModel {
     var newTotalPayments = totalPayments;
     var newTotalReceipts = totalReceipts;
 
-    if (transactionType == AppConstants.TRANSACTION_PURCHASE) {
+    if (transactionType == AppConstants.transactionPurchase) {
       newTotalPurchases += amount;
       newBalance += amount;
-    } else if (transactionType == AppConstants.TRANSACTION_SALE) {
+    } else if (transactionType == AppConstants.transactionSale) {
       newTotalSales += amount;
       newBalance -= amount;
     } else if (transactionType == 'payment') {
@@ -115,17 +109,14 @@ class ContactModel with _$ContactModel {
     );
   }
 
-  /// Check if contact has VAT registration
-  bool get hasVat => vatNumber != null && vatNumber!.isNotEmpty;
-
   /// Get contact type display name
   String get typeDisplayName {
     switch (type) {
-      case AppConstants.CONTACT_CUSTOMER:
+      case AppConstants.contactCustomer:
         return 'Customer';
-      case AppConstants.CONTACT_SUPPLIER:
+      case AppConstants.contactSupplier:
         return 'Supplier';
-      case AppConstants.CONTACT_BOTH:
+      case AppConstants.contactBoth:
         return 'Customer & Supplier';
       default:
         return 'Unknown';
@@ -141,7 +132,7 @@ class ContactModel with _$ContactModel {
       address,
       city,
       district,
-      AppConstants.COUNTRY,
+      AppConstants.country,
     ].where((element) => element != null && element.isNotEmpty);
     return parts.join(', ');
   }

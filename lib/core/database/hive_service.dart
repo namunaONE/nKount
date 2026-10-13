@@ -13,7 +13,6 @@ import '../models/unit_model.dart';
 import '../models/tax_rate_model.dart';
 import '../models/setting_model.dart';
 import '../models/sync_log_model.dart';
-import '../models/audit_log_model.dart';
 
 /// Hive Database Service for nKount
 /// Provides persistent storage for Flutter web using IndexedDB
@@ -39,7 +38,6 @@ class HiveService {
   static const String boxTaxRates = 'nkount_tax_rates';
   static const String boxSettings = 'nkount_settings';
   static const String boxSyncLogs = 'nkount_sync_logs';
-  static const String boxAuditLogs = 'nkount_audit_logs';
 
   // Box instances
   late final Box<CompanyModel> companiesBox;
@@ -54,7 +52,6 @@ class HiveService {
   late final Box<TaxRateModel> taxRatesBox;
   late final Box<SettingModel> settingsBox;
   late final Box<SyncLogModel> syncLogsBox;
-  late final Box<AuditLogModel> auditLogsBox;
 
   // Initialization flag
   bool _isInitialized = false;
@@ -114,8 +111,6 @@ class HiveService {
     Hive.registerAdapter(SettingModelAdapter());
     // Type ID 12
     Hive.registerAdapter(SyncLogModelAdapter());
-    // Type ID 13
-    Hive.registerAdapter(AuditLogModelAdapter());
 
     _logger.i('All Hive adapters registered');
   }
@@ -135,7 +130,6 @@ class HiveService {
     taxRatesBox = await Hive.openBox<TaxRateModel>(boxTaxRates);
     settingsBox = await Hive.openBox<SettingModel>(boxSettings);
     syncLogsBox = await Hive.openBox<SyncLogModel>(boxSyncLogs);
-    auditLogsBox = await Hive.openBox<AuditLogModel>(boxAuditLogs);
 
     _logger.i('All Hive boxes opened successfully');
   }
@@ -158,7 +152,6 @@ class HiveService {
       await taxRatesBox.close();
       await settingsBox.close();
       await syncLogsBox.close();
-      await auditLogsBox.close();
 
       _isInitialized = false;
       _logger.i('All Hive boxes closed');
@@ -183,7 +176,6 @@ class HiveService {
       await taxRatesBox.clear();
       await settingsBox.clear();
       await syncLogsBox.clear();
-      await auditLogsBox.clear();
 
       _logger.i('All Hive data cleared');
     } catch (e) {
@@ -232,9 +224,6 @@ class HiveService {
         case boxSyncLogs:
           await syncLogsBox.clear();
           break;
-        case boxAuditLogs:
-          await auditLogsBox.clear();
-          break;
         default:
           throw Exception('Unknown box: $boxName');
       }
@@ -260,7 +249,6 @@ class HiveService {
         'tax_rates': taxRatesBox.length,
         'settings': settingsBox.length,
         'sync_logs': syncLogsBox.length,
-        'audit_logs': auditLogsBox.length,
       };
 
   /// Export all data as JSON
@@ -282,8 +270,6 @@ class HiveService {
       data['tax_rates'] = taxRatesBox.values.map((tr) => tr.toJson()).toList();
       data['settings'] = settingsBox.values.map((s) => s.toJson()).toList();
       data['sync_logs'] = syncLogsBox.values.map((sl) => sl.toJson()).toList();
-      data['audit_logs'] =
-          auditLogsBox.values.map((al) => al.toJson()).toList();
 
       _logger.i('Hive data exported');
       return data;
@@ -380,13 +366,6 @@ class HiveService {
       if (data['sync_logs'] != null) {
         for (final json in data['sync_logs'] as List) {
           await syncLogsBox.add(SyncLogModel.fromJson(json));
-        }
-      }
-
-      // Import audit logs
-      if (data['audit_logs'] != null) {
-        for (final json in data['audit_logs'] as List) {
-          await auditLogsBox.add(AuditLogModel.fromJson(json));
         }
       }
 

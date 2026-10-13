@@ -143,7 +143,7 @@ _$CompanyModelImpl _$$CompanyModelImplFromJson(Map<String, dynamic> json) =>
       panNumber: json['panNumber'] as String?,
       registrationNumber: json['registrationNumber'] as String?,
       logoPath: json['logoPath'] as String?,
-      currency: json['currency'] as String? ?? AppConstants.CURRENCY,
+      currency: json['currency'] as String? ?? AppConstants.currency,
       locale: json['locale'] as String? ?? 'en_NP',
       dateFormat: json['dateFormat'] as String? ?? 'yyyy-MM-dd',
       useNepaliDate: json['useNepaliDate'] as bool? ?? false,

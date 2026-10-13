@@ -29,6 +29,9 @@ linter:
     
     # Error handling
     - avoid_catches_without_on_clauses
+
+    # Dependencies: every imported package must be a declared dependency
+    - depend_on_referenced_packages
     
     # Performance
     - avoid_function_literals_in_foreach_calls
@@ -135,7 +138,6 @@ analyzer:
     - lib/core/models/*.freezed.dart
     - lib/core/models/*.g.dart
     - lib/core/providers/*.g.dart
-    - lib/core/database/drift/*.g.dart
     - lib/*.g.dart
     - build/**
     - web/**

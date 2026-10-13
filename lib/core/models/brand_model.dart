@@ -57,13 +57,4 @@ class BrandModel with _$BrandModel {
         productCount: count,
         updatedAt: DateTime.now(),
       );
-
-  /// Check if brand has contact information
-  bool get hasContactInfo =>
-      contactPhone != null && contactPhone!.isNotEmpty ||
-      contactEmail != null && contactEmail!.isNotEmpty;
-
-  /// Get display name with product count
-  String get displayNameWithCount =>
-      productCount > 0 ? '$name ($productCount)' : name;
 }

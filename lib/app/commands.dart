@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/providers/theme_provider.dart';
+import '../../packages/design-system/design_system.dart';
 
 /// A single command-palette entry.
 class AppCommand {
@@ -19,16 +20,17 @@ class AppCommand {
 
 /// All palette commands: navigation + creation shortcuts.
 List<AppCommand> appCommands() => [
-      _go('Dashboard', Icons.dashboard, '/', 'G D'),
-      _go('Contacts', Icons.people, '/contacts', 'G C'),
-      _go('Products', Icons.inventory, '/products', 'G P'),
-      _go('Transactions', Icons.receipt, '/transactions', 'G T'),
-      _go('New Sale', Icons.point_of_sale, '/sales', 'G S'),
-      _go('New Purchase', Icons.shopping_bag, '/purchases', 'G B'),
-      _go('Payments', Icons.payment, '/payments', 'G Y'),
-      _go('Reports', Icons.assessment, '/reports', 'G R'),
-      _go('Settings', Icons.settings, '/settings', 'G ,'),
-      _go('Profile', Icons.person, '/profile', 'G .'),
+      _go('Dashboard', ClayIcons.dashboard, '/', 'G D'),
+      _go('Contacts', ClayIcons.contacts, '/contacts', 'G C'),
+      _go('Products', ClayIcons.products, '/products', 'G P'),
+      _go('Transactions', ClayIcons.transactions, '/transactions', 'G T'),
+      _go('New Sale', ClayIcons.sales, '/sales', 'G S'),
+      _go('New Purchase', ClayIcons.purchases, '/purchases', 'G B'),
+      _go('Payments', ClayIcons.payments, '/payments', 'G Y'),
+      _go('Reports', ClayIcons.reports, '/reports', 'G R'),
+      _go('Settings', ClayIcons.settings, '/settings', 'G ,'),
+      _go('Profile', ClayIcons.profile, '/profile', 'G .'),
+      _go('Design System', Icons.palette_rounded, '/design-system', 'G X'),
       AppCommand(
         title: 'Toggle dark mode',
         icon: Icons.brightness_6,
@@ -94,7 +96,7 @@ class _CommandPaletteDialogState extends State<_CommandPaletteDialog> {
                 autofocus: true,
                 decoration: const InputDecoration(
                   hintText: 'Type a command... (Esc to close)',
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: Icon(ClayIcons.search),
                   border: OutlineInputBorder(),
                 ),
                 onChanged: (v) => setState(() => _query = v),
@@ -123,10 +125,13 @@ class _CommandPaletteDialogState extends State<_CommandPaletteDialog> {
                           title: Text(cmd.title),
                           trailing: Text(
                             cmd.hint,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant),
                           ),
                           onTap: () {
                             Navigator.pop(context);

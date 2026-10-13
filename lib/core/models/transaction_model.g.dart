@@ -196,8 +196,8 @@ _$TransactionModelImpl _$$TransactionModelImplFromJson(
       total: (json['total'] as num?)?.toDouble() ?? 0.0,
       paidAmount: (json['paidAmount'] as num?)?.toDouble() ?? 0.0,
       dueAmount: (json['dueAmount'] as num?)?.toDouble() ?? 0.0,
-      paymentStatus: json['paymentStatus'] as String? ??
-          AppConstants.PAYMENT_STATUS_PENDING,
+      paymentStatus:
+          json['paymentStatus'] as String? ?? AppConstants.paymentStatusPending,
       paymentMethod: json['paymentMethod'] as String?,
       referenceNumber: json['referenceNumber'] as String?,
       date:

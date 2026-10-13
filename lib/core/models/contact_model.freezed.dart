@@ -391,7 +391,7 @@ class _$ContactModelImpl extends _ContactModel {
       @HiveField(7) this.district,
       @HiveField(8) this.vatNumber,
       @HiveField(9) this.panNumber,
-      @HiveField(10) this.type = AppConstants.CONTACT_CUSTOMER,
+      @HiveField(10) this.type = AppConstants.contactCustomer,
       @HiveField(11) this.openingBalance,
       @HiveField(12) this.isActive = true,
       @HiveField(13) this.remarks,

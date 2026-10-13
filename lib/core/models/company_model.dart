@@ -24,7 +24,7 @@ class CompanyModel with _$CompanyModel {
     @HiveField(10) String? panNumber,
     @HiveField(11) String? registrationNumber,
     @HiveField(12) String? logoPath,
-    @HiveField(13) @Default(AppConstants.CURRENCY) String currency,
+    @HiveField(13) @Default(AppConstants.currency) String currency,
     @HiveField(14) @Default('en_NP') String locale,
     @HiveField(15) @Default('yyyy-MM-dd') String dateFormat,
     @HiveField(16) @Default(false) bool useNepaliDate,
@@ -61,7 +61,7 @@ class CompanyModel with _$CompanyModel {
     String? panNumber,
     String? registrationNumber,
     String? logoPath,
-    String currency = AppConstants.CURRENCY,
+    String currency = AppConstants.currency,
     String locale = 'en_NP',
     String dateFormat = 'yyyy-MM-dd',
     bool useNepaliDate = false,
@@ -108,38 +108,14 @@ class CompanyModel with _$CompanyModel {
         updatedAt: DateTime.now(),
       );
 
-  /// Update invoice number
-  CompanyModel copyWithNextInvoiceNumber() => copyWith(
-        invoiceStartNumber: invoiceStartNumber + 1,
-        updatedAt: DateTime.now(),
-      );
-
-  /// Update purchase number
-  CompanyModel copyWithNextPurchaseNumber() => copyWith(
-        purchaseStartNumber: purchaseStartNumber + 1,
-        updatedAt: DateTime.now(),
-      );
-
   /// Get full address
   String get fullAddress {
     final parts = [
       address,
       city,
       district,
-      AppConstants.COUNTRY,
+      AppConstants.country,
     ].where((element) => element != null && element.isNotEmpty);
     return parts.join(', ');
   }
-
-  /// Get next invoice number
-  String get nextInvoiceNumber =>
-      '$invoicePrefix-${invoiceStartNumber.toString().padLeft(6, '0')}';
-
-  /// Get next purchase number
-  String get nextPurchaseNumber =>
-      'PUR-${purchaseStartNumber.toString().padLeft(6, '0')}';
-
-  /// Check if company is IRD compliant
-  bool get isCompliant =>
-      isIRDRegistered && vatNumber != null && vatNumber!.isNotEmpty;
 }

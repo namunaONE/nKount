@@ -3,8 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'core/database/database_initializer.dart';
-import 'core/services/sync_service.dart';
-import 'features/app/app.dart';
+import 'app/app.dart';
 
 /// Logger setup
 final logger = Logger(
@@ -42,9 +41,6 @@ void main() async {
 
     // Initialize database
     await databaseInitializer.initialize();
-
-    // Initialize sync service (offline-first)
-    syncService.initialize();
 
     logger.i('nKount initialized successfully');
 

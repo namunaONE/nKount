@@ -462,7 +462,7 @@ class _$TransactionModelImpl extends _TransactionModel {
       @HiveField(8) this.total = 0.0,
       @HiveField(9) this.paidAmount = 0.0,
       @HiveField(10) this.dueAmount = 0.0,
-      @HiveField(11) this.paymentStatus = AppConstants.PAYMENT_STATUS_PENDING,
+      @HiveField(11) this.paymentStatus = AppConstants.paymentStatusPending,
       @HiveField(12) this.paymentMethod,
       @HiveField(13) this.referenceNumber,
       @HiveField(14) this.date,
