@@ -13,6 +13,7 @@ import '../transactions/presentation/transactions_screen.dart';
 import '../sales/presentation/sales_screen.dart';
 import '../purchases/presentation/purchases_screen.dart';
 import '../payments/presentation/payments_screen.dart';
+import '../profile/presentation/profile_screen.dart';
 import '../reports/presentation/reports_screen.dart';
 import '../settings/presentation/settings_screen.dart';
 
@@ -54,6 +55,10 @@ final _router = GoRouter(
     GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsScreen(),
+    ),
+    GoRoute(
+      path: '/profile',
+      builder: (context, state) => const ProfileScreen(),
     ),
   ],
   errorBuilder: (context, state) => Scaffold(

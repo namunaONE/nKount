@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/database/hive_service.dart';
@@ -188,35 +188,7 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
           );
         },
       ),
-      bottomNavigationBar: ClayBottomNavigation(
-        currentIndex: 2,
-        items: const [
-          ClayBottomNavItem(
-              icon: Icons.dashboard, label: 'Dashboard', route: '/'),
-          ClayBottomNavItem(
-              icon: Icons.people, label: 'Contacts', route: '/contacts'),
-          ClayBottomNavItem(
-              icon: Icons.inventory, label: 'Products', route: '/products'),
-          ClayBottomNavItem(
-              icon: Icons.receipt,
-              label: 'Transactions',
-              route: '/transactions'),
-          ClayBottomNavItem(
-              icon: Icons.payment, label: 'Payments', route: '/payments'),
-        ],
-        onTap: (index) {
-          final routes = [
-            '/',
-            '/contacts',
-            '/products',
-            '/transactions',
-            '/payments'
-          ];
-          if (index < routes.length) {
-            context.go(routes[index]);
-          }
-        },
-      ),
+      bottomNavigationBar: mainNavBar(context, 2),
     );
   }
 
@@ -361,8 +333,8 @@ class _ProductsDataSource extends DataTableSource {
       cells: [
         DataCell(
             Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold))),
-        DataCell(Text(p.code ?? '—')),
-        DataCell(Text(p.category ?? '—')),
+        DataCell(Text(p.code ?? 'â€”')),
+        DataCell(Text(p.category ?? 'â€”')),
         DataCell(Text(
           '${p.quantity.toStringAsFixed(0)} ${p.unit ?? ''}',
           style: TextStyle(

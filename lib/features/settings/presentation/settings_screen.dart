@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/database/database_initializer.dart';
 import '../../../core/database/hive_service.dart';
@@ -55,35 +54,7 @@ class SettingsScreen extends ConsumerWidget {
           ],
         ),
       ),
-      bottomNavigationBar: ClayBottomNavigation(
-        currentIndex: 4,
-        items: const [
-          ClayBottomNavItem(
-              icon: Icons.dashboard, label: 'Dashboard', route: '/'),
-          ClayBottomNavItem(
-              icon: Icons.people, label: 'Contacts', route: '/contacts'),
-          ClayBottomNavItem(
-              icon: Icons.inventory, label: 'Products', route: '/products'),
-          ClayBottomNavItem(
-              icon: Icons.receipt,
-              label: 'Transactions',
-              route: '/transactions'),
-          ClayBottomNavItem(
-              icon: Icons.payment, label: 'Payments', route: '/payments'),
-        ],
-        onTap: (index) {
-          final routes = [
-            '/',
-            '/contacts',
-            '/products',
-            '/transactions',
-            '/payments'
-          ];
-          if (index < routes.length) {
-            context.go(routes[index]);
-          }
-        },
-      ),
+      bottomNavigationBar: mainNavBar(context, 5),
     );
   }
 

@@ -8,6 +8,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../features/app/commands.dart';
 
@@ -510,6 +511,30 @@ class ClayBottomNavItem {
   final String label;
   final String route;
 }
+
+/// App-wide main destinations (single source of truth for every shell).
+const kMainNavItems = [
+  ClayBottomNavItem(icon: Icons.dashboard, label: 'Dashboard', route: '/'),
+  ClayBottomNavItem(icon: Icons.people, label: 'Contacts', route: '/contacts'),
+  ClayBottomNavItem(
+      icon: Icons.inventory, label: 'Products', route: '/products'),
+  ClayBottomNavItem(
+      icon: Icons.receipt, label: 'Transactions', route: '/transactions'),
+  ClayBottomNavItem(icon: Icons.payment, label: 'Payments', route: '/payments'),
+  ClayBottomNavItem(icon: Icons.person, label: 'Profile', route: '/profile'),
+];
+
+/// Builds the shared bottom bar; rail/sidebar derive from the same items.
+ClayBottomNavigation mainNavBar(BuildContext context, int currentIndex) =>
+    ClayBottomNavigation(
+      currentIndex: currentIndex,
+      items: kMainNavItems,
+      onTap: (index) {
+        if (index < kMainNavItems.length) {
+          context.go(kMainNavItems[index].route);
+        }
+      },
+    );
 
 /// Bottom navigation backed by [BottomNavigationBar].
 class ClayBottomNavigation extends StatelessWidget {

@@ -72,48 +72,7 @@ class DashboardScreen extends ConsumerWidget {
             ],
           ),
         ),
-        bottomNavigationBar: ClayBottomNavigation(
-          currentIndex: 0,
-          items: const [
-            ClayBottomNavItem(
-              icon: Icons.dashboard,
-              label: 'Dashboard',
-              route: '/',
-            ),
-            ClayBottomNavItem(
-              icon: Icons.people,
-              label: 'Contacts',
-              route: '/contacts',
-            ),
-            ClayBottomNavItem(
-              icon: Icons.inventory,
-              label: 'Products',
-              route: '/products',
-            ),
-            ClayBottomNavItem(
-              icon: Icons.receipt,
-              label: 'Transactions',
-              route: '/transactions',
-            ),
-            ClayBottomNavItem(
-              icon: Icons.payment,
-              label: 'Payments',
-              route: '/payments',
-            ),
-          ],
-          onTap: (index) {
-            final routes = [
-              '/',
-              '/contacts',
-              '/products',
-              '/transactions',
-              '/payments'
-            ];
-            if (index < routes.length) {
-              context.go(routes[index]);
-            }
-          },
-        ),
+        bottomNavigationBar: mainNavBar(context, 0),
       );
 }
 
@@ -131,7 +90,7 @@ class _FiscalChip extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 4),
       child: Chip(
-        label: Text('FY $fy • $bs', style: const TextStyle(fontSize: 12)),
+        label: Text('FY $fy â€¢ $bs', style: const TextStyle(fontSize: 12)),
         visualDensity: VisualDensity.compact,
       ),
     );
@@ -286,7 +245,7 @@ class _CashflowChart extends ConsumerWidget {
 
     return ClayCard(
       title: const Text(
-        'Cashflow — last 6 months',
+        'Cashflow â€” last 6 months',
         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
       ),
       child: Padding(
@@ -411,7 +370,7 @@ class _AlertsSection extends ConsumerWidget {
             children: [
               Icon(Icons.check_circle, color: ClayColors.success),
               SizedBox(width: 12),
-              Text('All clear — nothing overdue, stock is healthy.'),
+              Text('All clear â€” nothing overdue, stock is healthy.'),
             ],
           ),
         ),

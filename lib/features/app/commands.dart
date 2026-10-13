@@ -28,6 +28,7 @@ List<AppCommand> appCommands() => [
       _go('Payments', Icons.payment, '/payments', 'G Y'),
       _go('Reports', Icons.assessment, '/reports', 'G R'),
       _go('Settings', Icons.settings, '/settings', 'G ,'),
+      _go('Profile', Icons.person, '/profile', 'G .'),
       AppCommand(
         title: 'Toggle dark mode',
         icon: Icons.brightness_6,

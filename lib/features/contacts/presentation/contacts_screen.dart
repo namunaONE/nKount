@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
@@ -179,35 +179,7 @@ class _ContactsScreenState extends ConsumerState<ContactsScreen> {
           );
         },
       ),
-      bottomNavigationBar: ClayBottomNavigation(
-        currentIndex: 1,
-        items: const [
-          ClayBottomNavItem(
-              icon: Icons.dashboard, label: 'Dashboard', route: '/'),
-          ClayBottomNavItem(
-              icon: Icons.people, label: 'Contacts', route: '/contacts'),
-          ClayBottomNavItem(
-              icon: Icons.inventory, label: 'Products', route: '/products'),
-          ClayBottomNavItem(
-              icon: Icons.receipt,
-              label: 'Transactions',
-              route: '/transactions'),
-          ClayBottomNavItem(
-              icon: Icons.payment, label: 'Payments', route: '/payments'),
-        ],
-        onTap: (index) {
-          final routes = [
-            '/',
-            '/contacts',
-            '/products',
-            '/transactions',
-            '/payments'
-          ];
-          if (index < routes.length) {
-            context.go(routes[index]);
-          }
-        },
-      ),
+      bottomNavigationBar: mainNavBar(context, 1),
     );
   }
 
@@ -345,7 +317,7 @@ class _ContactsDataSource extends DataTableSource {
       cells: [
         DataCell(
             Text(c.name, style: const TextStyle(fontWeight: FontWeight.bold))),
-        DataCell(Text(c.primaryPhone ?? '—')),
+        DataCell(Text(c.primaryPhone ?? 'â€”')),
         DataCell(
           Chip(
             label:
