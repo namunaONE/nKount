@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nepali_utils/nepali_utils.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/database/hive_service.dart';
 import '../../../core/models/transaction_model.dart';
@@ -30,6 +31,7 @@ class DashboardScreen extends ConsumerWidget {
             ),
           ),
           actions: [
+            const Center(child: _FiscalChip()),
             ClayIconButton(
               icon: Icons.search,
               onPressed: () => context.push('/transactions'),
@@ -103,6 +105,27 @@ class DashboardScreen extends ConsumerWidget {
           },
         ),
       );
+}
+
+/// Fiscal-year + BS date chip (Nepal FY starts Shrawan / month 4).
+class _FiscalChip extends StatelessWidget {
+  const _FiscalChip();
+
+  @override
+  Widget build(BuildContext context) {
+    final now = NepaliDateTime.now();
+    final startYear = now.month >= 4 ? now.year : now.year - 1;
+    final fy = '$startYear/${(startYear + 1).toString().substring(2)}';
+    final bs =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} BS';
+    return Padding(
+      padding: const EdgeInsets.only(right: 4),
+      child: Chip(
+        label: Text('FY $fy • $bs', style: const TextStyle(fontSize: 12)),
+        visualDensity: VisualDensity.compact,
+      ),
+    );
+  }
 }
 
 /// KPI cards: revenue, expenses, receivables, payables from live boxes.

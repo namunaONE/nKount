@@ -7,6 +7,9 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../../features/app/commands.dart';
 
 /// Brand palette (README color palette).
 abstract final class ClayColors {
@@ -221,74 +224,89 @@ class ClayScaffold extends StatelessWidget {
     );
   }
 
+  static void _openPalette(BuildContext context) {
+    // Don't hijack typing inside text fields.
+    if (FocusManager.instance.primaryFocus?.context?.widget is EditableText) {
+      return;
+    }
+    showCommandPalette(context);
+  }
+
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
-          final nav = _nav;
-          final content = _constrained(body);
-
-          // Expanded: sidebar + centered content, no bottom bar.
-          if (ClayBreakpoints.isExpanded(width) && nav != null) {
-            return Scaffold(
-              appBar: appBar,
-              floatingActionButton: floatingActionButton,
-              body: SafeArea(
-                top: false,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    sidebar ??
-                        ClaySidebar(
-                          items: nav.items,
-                          currentIndex: nav.currentIndex,
-                          onTap: nav.onTap,
-                        ),
-                    const VerticalDivider(width: 1),
-                    Expanded(child: content),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          // Medium: navigation rail + centered content, no bottom bar.
-          if (ClayBreakpoints.isMedium(width) && nav != null) {
-            return Scaffold(
-              appBar: appBar,
-              floatingActionButton: floatingActionButton,
-              body: SafeArea(
-                top: false,
-                child: Row(
-                  children: [
-                    NavigationRail(
-                      selectedIndex: nav.currentIndex,
-                      onDestinationSelected: nav.onTap,
-                      labelType: NavigationRailLabelType.all,
-                      destinations: [
-                        for (final item in nav.items)
-                          NavigationRailDestination(
-                            icon: Icon(item.icon),
-                            label: Text(item.label),
-                          ),
-                      ],
-                    ),
-                    const VerticalDivider(width: 1),
-                    Expanded(child: content),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          // Compact: classic bottom bar.
-          return Scaffold(
-            appBar: appBar,
-            body: SafeArea(top: false, child: body ?? const SizedBox.shrink()),
-            bottomNavigationBar: bottomNavigationBar,
-            floatingActionButton: floatingActionButton,
-          );
+  Widget build(BuildContext context) => CallbackShortcuts(
+        bindings: {
+          const SingleActivator(LogicalKeyboardKey.keyK, control: true): () =>
+              _openPalette(context),
         },
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final nav = _nav;
+            final content = _constrained(body);
+
+            // Expanded: sidebar + centered content, no bottom bar.
+            if (ClayBreakpoints.isExpanded(width) && nav != null) {
+              return Scaffold(
+                appBar: appBar,
+                floatingActionButton: floatingActionButton,
+                body: SafeArea(
+                  top: false,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      sidebar ??
+                          ClaySidebar(
+                            items: nav.items,
+                            currentIndex: nav.currentIndex,
+                            onTap: nav.onTap,
+                          ),
+                      const VerticalDivider(width: 1),
+                      Expanded(child: content),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            // Medium: navigation rail + centered content, no bottom bar.
+            if (ClayBreakpoints.isMedium(width) && nav != null) {
+              return Scaffold(
+                appBar: appBar,
+                floatingActionButton: floatingActionButton,
+                body: SafeArea(
+                  top: false,
+                  child: Row(
+                    children: [
+                      NavigationRail(
+                        selectedIndex: nav.currentIndex,
+                        onDestinationSelected: nav.onTap,
+                        labelType: NavigationRailLabelType.all,
+                        destinations: [
+                          for (final item in nav.items)
+                            NavigationRailDestination(
+                              icon: Icon(item.icon),
+                              label: Text(item.label),
+                            ),
+                        ],
+                      ),
+                      const VerticalDivider(width: 1),
+                      Expanded(child: content),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            // Compact: classic bottom bar.
+            return Scaffold(
+              appBar: appBar,
+              body:
+                  SafeArea(top: false, child: body ?? const SizedBox.shrink()),
+              bottomNavigationBar: bottomNavigationBar,
+              floatingActionButton: floatingActionButton,
+            );
+          },
+        ),
       );
 }
 
