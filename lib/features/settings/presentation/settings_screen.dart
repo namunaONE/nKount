@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/database/database_initializer.dart';
 import '../../../core/database/hive_service.dart';
+import '../../../core/utils/web_file.dart';
 import '../../../packages/design-system/design_system.dart';
 
 /// Settings Screen with Claymorphism Design
@@ -287,12 +290,12 @@ class _InvoicingSettingsSection extends StatelessWidget {
 }
 
 /// Database Section
-class _DatabaseSection extends StatelessWidget {
+class _DatabaseSection extends ConsumerWidget {
   const _DatabaseSection({required this.dbStats});
   final Map<String, dynamic> dbStats;
 
   @override
-  Widget build(BuildContext context) => ClayCard(
+  Widget build(BuildContext context, WidgetRef ref) => ClayCard(
         title: const ClaySectionTitle('Database'),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -339,7 +342,7 @@ class _DatabaseSection extends StatelessWidget {
                   const SizedBox(width: 16),
                   Expanded(
                     child: ClayButton.outlined(
-                      onPressed: () => _showRestoreDialog(context),
+                      onPressed: () => _showRestoreDialog(context, ref),
                       child: const Text('Restore'),
                     ),
                   ),
@@ -365,18 +368,34 @@ class _DatabaseSection extends StatelessWidget {
       builder: (context) => ClayDialog(
         title: const Text('Backup Database'),
         content: const Text(
-            'Would you like to backup your database? This will create a JSON file with all your data.'),
+            'Download a JSON file with all your data? Keep it somewhere safe — it restores everything.'),
         actions: [
           ClayButton.text(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
           ClayButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Backup completed successfully')),
-              );
+              final messenger = ScaffoldMessenger.of(context);
+              try {
+                final data = await hiveService.exportAllData();
+                final now = DateTime.now();
+                final stamp =
+                    '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+                await downloadJsonFile(
+                    'nkount-backup-$stamp.json', jsonEncode(data));
+                messenger.showSnackBar(
+                  const SnackBar(
+                      content: Text('Backup downloaded successfully')),
+                );
+              } on UnsupportedError catch (e) {
+                messenger.showSnackBar(SnackBar(content: Text('$e')));
+              } on Object catch (e) {
+                messenger.showSnackBar(
+                  SnackBar(content: Text('Backup failed: $e')),
+                );
+              }
             },
             child: const Text('Backup'),
           ),
@@ -385,25 +404,48 @@ class _DatabaseSection extends StatelessWidget {
     );
   }
 
-  void _showRestoreDialog(BuildContext context) {
+  void _showRestoreDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) => ClayDialog(
         title: const Text('Restore Database'),
         content: const Text(
-            'Would you like to restore your database from a backup file?'),
+            'Pick a backup file. This REPLACES all current data — back up first if unsure.'),
         actions: [
           ClayButton.text(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
           ClayButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Please select a backup file to restore')),
-              );
+              final messenger = ScaffoldMessenger.of(context);
+              try {
+                final text = await pickJsonFile();
+                if (text == null) return;
+                final decoded = jsonDecode(text);
+                if (decoded is! Map<String, dynamic> ||
+                    !decoded.containsKey('contacts') ||
+                    !decoded.containsKey('companies')) {
+                  throw const FormatException('Not an nKount backup file');
+                }
+                await hiveService.importData(decoded);
+                ref.invalidate(databaseStatsProvider);
+                messenger.showSnackBar(
+                  const SnackBar(
+                      content: Text('Restore completed successfully')),
+                );
+              } on UnsupportedError catch (e) {
+                messenger.showSnackBar(SnackBar(content: Text('$e')));
+              } on FormatException catch (e) {
+                messenger.showSnackBar(
+                  SnackBar(content: Text('Restore failed: $e')),
+                );
+              } on Object catch (e) {
+                messenger.showSnackBar(
+                  SnackBar(content: Text('Restore failed: $e')),
+                );
+              }
             },
             child: const Text('Restore'),
           ),

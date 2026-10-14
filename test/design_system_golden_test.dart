@@ -5,7 +5,9 @@ import 'package:nkount/packages/design-system/design_system.dart';
 
 /// P5 golden tests: pixel baselines for the core design-system surfaces.
 ///
-/// Regenerate with: `flutter test --update-goldens test/design_system_golden_test.dart`
+/// Goldens are Windows baselines and pixel-exact per platform: CI runs
+/// with `--exclude-tags golden` (see test.yml). Regenerate locally with:
+/// `flutter test --update-goldens test/design_system_golden_test.dart`
 /// Fonts are bundled (assets/fonts), so goldens are deterministic and
 /// offline-safe. Goldens are machine-specific; the committed PNGs are a
 /// Windows baseline — regenerate on your platform if they mismatch.
@@ -36,7 +38,7 @@ void main() {
     );
   }
 
-  testWidgets('preview, light', (tester) async {
+  testWidgets('preview, light', tags: 'golden', (tester) async {
     await pumpPreview(
       tester,
       theme: ClayTheme.lightTheme,
@@ -44,7 +46,7 @@ void main() {
     );
   });
 
-  testWidgets('preview, dark', (tester) async {
+  testWidgets('preview, dark', tags: 'golden', (tester) async {
     await pumpPreview(
       tester,
       theme: ClayTheme.darkTheme,

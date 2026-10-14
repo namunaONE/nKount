@@ -40,7 +40,6 @@ linter:
     # Documentation
     - always_declare_return_types
     - always_put_required_named_parameters_first
-    - always_require_non_null_named_parameters
     - avoid_annotating_with_dynamic
     - avoid_null_checks_in_equality_operators
     - avoid_positional_boolean_parameters
@@ -57,7 +56,6 @@ linter:
     - implementation_imports
     - library_names
     - library_prefixes
-    - list_remove_unrelated_type
     - literal_only_boolean_expressions
     - no_adjacent_strings_in_list
     - no_duplicate_case_values

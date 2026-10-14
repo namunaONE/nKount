@@ -46,9 +46,10 @@ jobs:
       - name: Run Dart analyzer
         run: flutter analyze --fatal-infos --fatal-warnings
       
-      # Run unit tests
+      # Run unit tests (goldens excluded: pixel baselines are platform-specific,
+      # see test/design_system_golden_test.dart — run them locally instead)
       - name: Run unit tests
-        run: flutter test --coverage
+        run: flutter test --coverage --exclude-tags golden
       
       # Upload coverage report (best-effort: never fails the build)
       - name: Upload coverage report

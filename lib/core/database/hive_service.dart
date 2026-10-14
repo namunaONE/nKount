@@ -289,95 +289,51 @@ class HiveService {
     }
   }
 
+  /// Import one box, preserving record ids as box keys.
+  ///
+  /// The app reads, updates, and deletes by id (`box.put(id, ...)`), so a
+  /// restore must restore keys too — plain `add()` would orphan every
+  /// delete/update issued after a restore. Records without an id fall
+  /// back to `add()`, matching previous behavior.
+  Future<void> _importBox<T>(
+    Box<T> box,
+    Object? list,
+    T Function(Map<String, dynamic>) fromJson,
+  ) async {
+    if (list == null) return;
+    for (final json in list as List) {
+      final map = json as Map<String, dynamic>;
+      final model = fromJson(map);
+      final id = map['id'];
+      if (id is String && id.isNotEmpty) {
+        await box.put(id, model);
+      } else {
+        await box.add(model);
+      }
+    }
+  }
+
   /// Import data from JSON
   Future<void> importData(Map<String, dynamic> data) async {
     try {
       // Clear existing data
       await clearAllData();
 
-      // Import companies
-      if (data['companies'] != null) {
-        for (final json in data['companies'] as List) {
-          await companiesBox.add(CompanyModel.fromJson(json));
-        }
-      }
-
-      // Import contacts
-      if (data['contacts'] != null) {
-        for (final json in data['contacts'] as List) {
-          await contactsBox.add(ContactModel.fromJson(json));
-        }
-      }
-
-      // Import products
-      if (data['products'] != null) {
-        for (final json in data['products'] as List) {
-          await productsBox.add(ProductModel.fromJson(json));
-        }
-      }
-
-      // Import transactions
-      if (data['transactions'] != null) {
-        for (final json in data['transactions'] as List) {
-          await transactionsBox.add(TransactionModel.fromJson(json));
-        }
-      }
-
-      // Import transaction items
-      if (data['transaction_items'] != null) {
-        for (final json in data['transaction_items'] as List) {
-          await transactionItemsBox.add(TransactionItemModel.fromJson(json));
-        }
-      }
-
-      // Import payments
-      if (data['payments'] != null) {
-        for (final json in data['payments'] as List) {
-          await paymentsBox.add(PaymentModel.fromJson(json));
-        }
-      }
-
-      // Import categories
-      if (data['categories'] != null) {
-        for (final json in data['categories'] as List) {
-          await categoriesBox.add(CategoryModel.fromJson(json));
-        }
-      }
-
-      // Import brands
-      if (data['brands'] != null) {
-        for (final json in data['brands'] as List) {
-          await brandsBox.add(BrandModel.fromJson(json));
-        }
-      }
-
-      // Import units
-      if (data['units'] != null) {
-        for (final json in data['units'] as List) {
-          await unitsBox.add(UnitModel.fromJson(json));
-        }
-      }
-
-      // Import tax rates
-      if (data['tax_rates'] != null) {
-        for (final json in data['tax_rates'] as List) {
-          await taxRatesBox.add(TaxRateModel.fromJson(json));
-        }
-      }
-
-      // Import settings
-      if (data['settings'] != null) {
-        for (final json in data['settings'] as List) {
-          await settingsBox.add(SettingModel.fromJson(json));
-        }
-      }
-
-      // Import sync logs
-      if (data['sync_logs'] != null) {
-        for (final json in data['sync_logs'] as List) {
-          await syncLogsBox.add(SyncLogModel.fromJson(json));
-        }
-      }
+      await _importBox(companiesBox, data['companies'], CompanyModel.fromJson);
+      await _importBox(contactsBox, data['contacts'], ContactModel.fromJson);
+      await _importBox(productsBox, data['products'], ProductModel.fromJson);
+      await _importBox(
+          transactionsBox, data['transactions'], TransactionModel.fromJson);
+      await _importBox(transactionItemsBox, data['transaction_items'],
+          TransactionItemModel.fromJson);
+      await _importBox(paymentsBox, data['payments'], PaymentModel.fromJson);
+      await _importBox(
+          categoriesBox, data['categories'], CategoryModel.fromJson);
+      await _importBox(brandsBox, data['brands'], BrandModel.fromJson);
+      await _importBox(unitsBox, data['units'], UnitModel.fromJson);
+      await _importBox(taxRatesBox, data['tax_rates'], TaxRateModel.fromJson);
+      await _importBox(settingsBox, data['settings'], SettingModel.fromJson);
+      await _importBox(syncLogsBox, data['sync_logs'], SyncLogModel.fromJson);
 
       _logger.i('Hive data imported');
     } catch (e) {

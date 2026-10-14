@@ -1,0 +1,6 @@
+# Declared tags (silences "tag wasn't specified" warnings and documents
+# intent). Goldens are Windows pixel baselines: CI excludes them
+# (`flutter test --coverage --exclude-tags golden` in test.yml) and they
+# run locally + on release validation instead.
+tags:
+  golden:
