@@ -249,7 +249,7 @@ class MoneyFlowScreenState extends ConsumerState<MoneyFlowScreen> {
         ],
       ),
       body: items.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const ClaySkeletonList(),
         error: (error, stack) => Center(child: Text('Error: $error')),
         data: (itemList) {
           final filtered = _filterItems(itemList);
@@ -266,7 +266,13 @@ class MoneyFlowScreenState extends ConsumerState<MoneyFlowScreen> {
               ),
             );
           }
-          return _MoneyFlowList(config: config, items: filtered);
+          return RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(moneyFlowProvider(config.type));
+              await ref.read(moneyFlowProvider(config.type).future);
+            },
+            child: _MoneyFlowList(config: config, items: filtered),
+          );
         },
       ),
       bottomNavigationBar: mainNavBar(context, config.navIndex),
@@ -346,7 +352,10 @@ class _MoneyFlowList extends ConsumerWidget {
         itemCount: items.length,
         itemBuilder: (context, index) {
           final item = items[index];
-          return _MoneyFlowItem(config: config, item: item);
+          return ClayEntrance(
+            delay: ClayMotion.stagger(index),
+            child: _MoneyFlowItem(config: config, item: item),
+          );
         },
       );
 }

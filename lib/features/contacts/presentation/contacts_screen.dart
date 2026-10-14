@@ -21,6 +21,74 @@ class _ContactsScreenState extends ConsumerState<ContactsScreen> {
   int _rowsPerPage = 25;
   int _sortColumnIndex = 0;
   bool _sortAscending = true;
+  String? _selectedId;
+  List<ContactModel> _visibleContacts = [];
+
+  /// Selected contact for the wide-window detail pane: the visible contact
+  /// matching [_selectedId], else the first visible contact, else null.
+  /// [_visibleContacts] is refreshed from `sorted` on every build, so a
+  /// deleted selection naturally falls back without explicit clearing.
+  ContactModel? get _selected {
+    if (_visibleContacts.isEmpty) return null;
+    for (final c in _visibleContacts) {
+      if (c.id == _selectedId) return c;
+    }
+    return _visibleContacts.first;
+  }
+
+  /// Wide windows select into the detail pane; narrow windows keep the dialog.
+  void _openOrSelect(BuildContext context, ContactModel contact) {
+    if (MediaQuery.sizeOf(context).width >= ClayBreakpoints.twoColumnMin) {
+      setState(() => _selectedId = contact.id);
+    } else {
+      _showContactDetailDialog(context, contact);
+    }
+  }
+
+  /// Detail pane reusing the dialog's rows and callbacks (Edit stub + Delete).
+  Widget _buildDetailPane(ContactModel? contact) {
+    if (contact == null) {
+      return const ClayCard(
+        child: ClayEmptyState(
+          title: 'Select a contact',
+          icon: ClayIcons.contacts,
+        ),
+      );
+    }
+    final c = contact;
+    return ClayCard(
+      title: ClaySectionTitle(c.name),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ..._contactDetailRows(c),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  // Same stub as the mobile detail dialog's Edit action.
+                  child: ClayButton(
+                    onPressed: () {},
+                    child: const Text('Edit'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ClayButton.text(
+                    onPressed: () => _confirmDeleteContact(context, ref, c),
+                    child: const Text('Delete'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,11 +116,12 @@ class _ContactsScreenState extends ConsumerState<ContactsScreen> {
         ],
       ),
       body: contacts.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const ClaySkeletonList(),
         error: (error, stack) => Center(child: Text('Error: $error')),
         data: (contactList) {
           final filtered = _filterContacts(contactList);
           final sorted = _sortContacts(filtered);
+          _visibleContacts = sorted;
           return LayoutBuilder(
             builder: (context, constraints) {
               if (ClayBreakpoints.isCompact(constraints.maxWidth)) {
@@ -69,11 +138,19 @@ class _ContactsScreenState extends ConsumerState<ContactsScreen> {
                     ),
                   );
                 }
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: sorted.length,
-                  itemBuilder: (context, index) =>
-                      _ContactItem(contact: sorted[index]),
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(contactsProvider);
+                    await ref.read(contactsProvider.future);
+                  },
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: sorted.length,
+                    itemBuilder: (context, index) => ClayEntrance(
+                      delay: ClayMotion.stagger(index),
+                      child: _ContactItem(contact: sorted[index]),
+                    ),
+                  ),
                 );
               }
               if (sorted.isEmpty) {
@@ -89,7 +166,7 @@ class _ContactsScreenState extends ConsumerState<ContactsScreen> {
                   ),
                 );
               }
-              return ClayTableCard(
+              final tableCard = ClayTableCard(
                 title: 'Contacts (${sorted.length})',
                 tableTitle: 'All contacts',
                 searchHint: 'Search...',
@@ -147,9 +224,24 @@ class _ContactsScreenState extends ConsumerState<ContactsScreen> {
                 ],
                 source: _ContactsDataSource(
                   contacts: sorted,
-                  onView: (c) => _showContactDetailDialog(context, c),
+                  onView: (c) => _openOrSelect(context, c),
                   onDelete: (c) => _confirmDeleteContact(context, ref, c),
                 ),
+              );
+              return LayoutBuilder(
+                builder: (context, wide) {
+                  if (wide.maxWidth >= ClayBreakpoints.twoColumnMin) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(flex: 2, child: tableCard),
+                        const SizedBox(width: 16),
+                        Expanded(flex: 1, child: _buildDetailPane(_selected)),
+                      ],
+                    );
+                  }
+                  return tableCard;
+                },
               );
             },
           );
@@ -351,6 +443,51 @@ Color _contactTypeColor(String type) {
   }
 }
 
+/// Shared detail rows for the contact dialog and the wide-window detail pane.
+List<Widget> _contactDetailRows(ContactModel contact) => [
+      ClayDetailRow(
+        icon: Icons.phone,
+        label: 'Phone',
+        value: contact.primaryPhone ?? 'N/A',
+      ),
+      const Divider(),
+      ClayDetailRow(
+        icon: Icons.email,
+        label: 'Email',
+        value: contact.email ?? 'N/A',
+      ),
+      const Divider(),
+      ClayDetailRow(
+        icon: Icons.location_on,
+        label: 'Address',
+        value: contact.fullAddress,
+      ),
+      const Divider(),
+      ClayDetailRow(
+        icon: Icons.money,
+        label: 'Balance',
+        value: formatCurrency(contact.balance),
+      ),
+      const Divider(),
+      ClayDetailRow(
+        icon: Icons.category,
+        label: 'Type',
+        value: contact.typeDisplayName,
+      ),
+      const Divider(),
+      ClayDetailRow(
+        icon: Icons.info,
+        label: 'VAT Number',
+        value: contact.vatNumber ?? 'N/A',
+      ),
+      const Divider(),
+      ClayDetailRow(
+        icon: Icons.numbers,
+        label: 'PAN Number',
+        value: contact.panNumber ?? 'N/A',
+      ),
+    ];
+
 void _showContactDetailDialog(BuildContext context, ContactModel contact) {
   showDialog(
     context: context,
@@ -359,49 +496,7 @@ void _showContactDetailDialog(BuildContext context, ContactModel contact) {
       content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClayDetailRow(
-              icon: Icons.phone,
-              label: 'Phone',
-              value: contact.primaryPhone ?? 'N/A',
-            ),
-            const Divider(),
-            ClayDetailRow(
-              icon: Icons.email,
-              label: 'Email',
-              value: contact.email ?? 'N/A',
-            ),
-            const Divider(),
-            ClayDetailRow(
-              icon: Icons.location_on,
-              label: 'Address',
-              value: contact.fullAddress,
-            ),
-            const Divider(),
-            ClayDetailRow(
-              icon: Icons.money,
-              label: 'Balance',
-              value: formatCurrency(contact.balance),
-            ),
-            const Divider(),
-            ClayDetailRow(
-              icon: Icons.category,
-              label: 'Type',
-              value: contact.typeDisplayName,
-            ),
-            const Divider(),
-            ClayDetailRow(
-              icon: Icons.info,
-              label: 'VAT Number',
-              value: contact.vatNumber ?? 'N/A',
-            ),
-            const Divider(),
-            ClayDetailRow(
-              icon: Icons.numbers,
-              label: 'PAN Number',
-              value: contact.panNumber ?? 'N/A',
-            ),
-          ],
+          children: _contactDetailRows(contact),
         ),
       ),
       actions: [
@@ -526,49 +621,7 @@ class _ContactItem extends StatelessWidget {
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClayDetailRow(
-                icon: Icons.phone,
-                label: 'Phone',
-                value: contact.primaryPhone ?? 'N/A',
-              ),
-              const Divider(),
-              ClayDetailRow(
-                icon: Icons.email,
-                label: 'Email',
-                value: contact.email ?? 'N/A',
-              ),
-              const Divider(),
-              ClayDetailRow(
-                icon: Icons.location_on,
-                label: 'Address',
-                value: contact.fullAddress,
-              ),
-              const Divider(),
-              ClayDetailRow(
-                icon: Icons.money,
-                label: 'Balance',
-                value: formatCurrency(contact.balance),
-              ),
-              const Divider(),
-              ClayDetailRow(
-                icon: Icons.category,
-                label: 'Type',
-                value: contact.typeDisplayName,
-              ),
-              const Divider(),
-              ClayDetailRow(
-                icon: Icons.info,
-                label: 'VAT Number',
-                value: contact.vatNumber ?? 'N/A',
-              ),
-              const Divider(),
-              ClayDetailRow(
-                icon: Icons.numbers,
-                label: 'PAN Number',
-                value: contact.panNumber ?? 'N/A',
-              ),
-            ],
+            children: _contactDetailRows(contact),
           ),
         ),
         actions: [

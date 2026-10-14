@@ -15,7 +15,7 @@ class ClayThemeBuilder extends StatelessWidget {
 }
 
 /// Sidebar navigation for expanded windows, built from bottom-nav items.
-class ClaySidebar extends StatelessWidget {
+class ClaySidebar extends ConsumerWidget {
   const ClaySidebar({
     required this.items,
     required this.currentIndex,
@@ -29,9 +29,10 @@ class ClaySidebar extends StatelessWidget {
   final Widget? header;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final badges = _navBadgeCounts(ref);
     return Container(
       width: 264,
       color: scheme.surface,
@@ -73,18 +74,23 @@ class ClaySidebar extends StatelessWidget {
                                   : scheme.onSurfaceVariant,
                             ),
                             const SizedBox(width: 16),
-                            Text(
-                              item.label,
-                              style: (selected
-                                      ? text.labelLarge?.copyWith(
-                                          fontWeight: FontWeight.w700)
-                                      : text.labelLarge)
-                                  ?.copyWith(
-                                color: selected
-                                    ? scheme.onPrimaryContainer
-                                    : scheme.onSurface,
+                            Expanded(
+                              child: Text(
+                                item.label,
+                                style: (selected
+                                        ? text.labelLarge?.copyWith(
+                                            fontWeight: FontWeight.w700)
+                                        : text.labelLarge)
+                                    ?.copyWith(
+                                  color: selected
+                                      ? scheme.onPrimaryContainer
+                                      : scheme.onSurface,
+                                ),
                               ),
                             ),
+                            if (i < badges.length &&
+                                badges[i] != null)
+                              _CountPill(count: badges[i]!),
                           ],
                         ),
                       ),
@@ -148,6 +154,9 @@ class ClayScaffold extends StatelessWidget {
         bindings: {
           const SingleActivator(LogicalKeyboardKey.keyK, control: true): () =>
               _openPalette(context),
+          // Ctrl+/ as an alternative where Ctrl+K is awkward.
+          const SingleActivator(LogicalKeyboardKey.slash, control: true):
+              () => _openPalette(context),
         },
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -432,6 +441,64 @@ const kMainNavItems = [
       icon: ClayIcons.profile, label: 'Profile', route: '/profile'),
 ];
 
+/// Attention counts aligned to [kMainNavItems] order.
+/// Index 2 (Products) = low-stock lines, index 3 (Transactions) = overdue
+/// invoices. Null = no badge. Computed from live boxes on every build
+/// (same freshness semantics as dashboard KPIs); capped at 99+ for display.
+List<int?> _navBadgeCounts(WidgetRef ref) {
+  final hive = ref.watch(hiveServiceProvider);
+  final now = DateTime.now();
+  final overdue = hive.transactionsBox.values
+      .where((t) =>
+          !t.isCancelled &&
+          t.dueAmount > 0 &&
+          t.dueDate != null &&
+          t.dueDate!.isBefore(now))
+      .length;
+  final lowStock = hive.productsBox.values
+      .where((p) => p.isActive && p.quantity <= p.minQuantity)
+      .length;
+  final lowStockBadge = lowStock == 0 ? null : lowStock;
+  final overdueBadge = overdue == 0 ? null : overdue;
+  return [
+    null,
+    null,
+    lowStockBadge,
+    overdueBadge,
+    null,
+    null,
+  ];
+}
+
+String _badgeLabel(int count) => count > 99 ? '99+' : '$count';
+
+/// Small count pill for sidebar rows (tertiary keeps it distinct from the
+/// selected-row primaryContainer background in both modes).
+class _CountPill extends StatelessWidget {
+  const _CountPill({required this.count});
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: scheme.tertiaryContainer,
+        borderRadius: ClayRadius.full,
+      ),
+      child: Text(
+        _badgeLabel(count),
+        style: text.labelSmall?.copyWith(
+          color: scheme.onTertiaryContainer,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
 /// Builds the shared bottom bar; rail/sidebar derive from the same items.
 ClayBottomNavigation mainNavBar(BuildContext context, int currentIndex) =>
     ClayBottomNavigation(
@@ -444,8 +511,9 @@ ClayBottomNavigation mainNavBar(BuildContext context, int currentIndex) =>
       },
     );
 
-/// Bottom navigation backed by [BottomNavigationBar].
-class ClayBottomNavigation extends StatelessWidget {
+/// Bottom navigation backed by M3 [NavigationBar] (pill indicator,
+/// tonal surface). Destinations 2/3 carry attention badges.
+class ClayBottomNavigation extends ConsumerWidget {
   const ClayBottomNavigation({
     required this.currentIndex,
     required this.items,
@@ -457,18 +525,171 @@ class ClayBottomNavigation extends StatelessWidget {
   final ValueChanged<int>? onTap;
 
   @override
-  Widget build(BuildContext context) => BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: onTap,
-        type: BottomNavigationBarType.fixed,
-        selectedLabelStyle: Theme.of(context).textTheme.labelSmall,
-        unselectedLabelStyle: Theme.of(context).textTheme.labelSmall,
-        items: [
-          for (final item in items)
-            BottomNavigationBarItem(
-              icon: Icon(item.icon),
-              label: item.label,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final badges = _navBadgeCounts(ref);
+    return NavigationBar(
+      selectedIndex: currentIndex,
+      onDestinationSelected: onTap,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      destinations: [
+        for (var i = 0; i < items.length; i++)
+          if (badges.length > i && badges[i] != null)
+            NavigationDestination(
+              icon: Badge(
+                label: Text(_badgeLabel(badges[i]!)),
+                child: Icon(items[i].icon),
+              ),
+              label: items[i].label,
+            )
+          else
+            NavigationDestination(
+              icon: Icon(items[i].icon),
+              label: items[i].label,
             ),
-        ],
+      ],
+    );
+  }
+}
+
+/// Command-palette search field: an icon button that opens an M3 search
+/// view with live command suggestions (same registry as Ctrl+K).
+class ClayCommandSearch extends StatelessWidget {
+  const ClayCommandSearch({
+    super.key,
+    this.tooltip = 'Search actions (Ctrl+K)',
+  });
+  final String? tooltip;
+
+  @override
+  Widget build(BuildContext context) => SearchAnchor(
+        builder: (context, controller) => ClayIconButton(
+          icon: ClayIcons.search,
+          tooltip: tooltip,
+          onPressed: () => controller.openView(),
+        ),
+        suggestionsBuilder: (context, controller) {
+          final matches = filterCommands(controller.text);
+          if (matches.isEmpty) {
+            return [
+              const ListTile(title: Text('No matching commands')),
+            ];
+          }
+          final text = Theme.of(context).textTheme;
+          final scheme = Theme.of(context).colorScheme;
+          return [
+            for (final cmd in matches)
+              ListTile(
+                leading: Icon(cmd.icon),
+                title: Text(cmd.title),
+                trailing: Text(
+                  cmd.hint,
+                  style: text.labelSmall
+                      ?.copyWith(color: scheme.onSurfaceVariant),
+                ),
+                onTap: () {
+                  controller.closeView(controller.text);
+                  cmd.run(context);
+                },
+              ),
+          ];
+        },
+      );
+}
+
+/// Entrance animation: fade + slight rise, plays once per element.
+/// Wrap list items as `ClayEntrance(delay: ClayMotion.stagger(index))`.
+/// Scrolling back reuses elements, so entrances don't replay.
+class ClayEntrance extends StatefulWidget {
+  const ClayEntrance({
+    required this.child,
+    super.key,
+    this.delay = Duration.zero,
+  });
+  final Widget child;
+  final Duration delay;
+
+  @override
+  State<ClayEntrance> createState() => _ClayEntranceState();
+}
+
+class _ClayEntranceState extends State<ClayEntrance>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: ClayMotion.medium,
+  );
+  late final Animation<double> _opacity = Tween<double>(begin: 0, end: 1)
+      .animate(CurvedAnimation(parent: _controller, curve: ClayMotion.easing));
+  late final Animation<Offset> _offset =
+      Tween<Offset>(begin: const Offset(0, 0.12), end: Offset.zero).animate(
+          CurvedAnimation(parent: _controller, curve: ClayMotion.easing));
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(widget.delay, () {
+      if (mounted) _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => FadeTransition(
+        opacity: _opacity,
+        child: SlideTransition(position: _offset, child: widget.child),
+      );
+}
+
+/// Skeleton loading list: shimmering tonal bars for list screens.
+class ClaySkeletonList extends StatelessWidget {
+  const ClaySkeletonList({super.key, this.rows = 6});
+  final int rows;
+
+  @override
+  Widget build(BuildContext context) => ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: rows,
+        itemBuilder: (context, index) => const _ShimmerBar(),
+      );
+}
+
+class _ShimmerBar extends StatefulWidget {
+  const _ShimmerBar();
+
+  @override
+  State<_ShimmerBar> createState() => _ShimmerBarState();
+}
+
+class _ShimmerBarState extends State<_ShimmerBar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: ClayMotion.long,
+  )..repeat(reverse: true);
+  late final Animation<double> _opacity = Tween<double>(begin: 0.45, end: 1)
+      .animate(CurvedAnimation(parent: _controller, curve: ClayMotion.easing));
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => FadeTransition(
+        opacity: _opacity,
+        child: Container(
+          height: 72,
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: ClayRadius.smallPlus,
+          ),
+        ),
       );
 }

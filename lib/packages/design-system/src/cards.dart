@@ -83,9 +83,13 @@ class ClayCard extends StatelessWidget {
 }
 
 /// Desktop data-table scaffold shared by contacts/products/transactions:
-/// titled card + search box + horizontally-guarded [PaginatedDataTable].
-/// Screens own [columns] (incl. sort callbacks) and [source]; this owns
-/// layout, pagination chrome, and the 720px minimum width.
+/// titled card + search box + [PaginatedDataTable].
+///
+/// The table scrolls internally (its own horizontal viewport); callers must
+/// NOT wrap it in another horizontal scroller — an unbounded ancestor
+/// makes its header/footer rows assert with infinite width. Screens own
+/// [columns] (incl. sort callbacks) and [source]; this owns layout and
+/// pagination chrome.
 class ClayTableCard extends StatelessWidget {
   const ClayTableCard({
     required this.title,
@@ -100,7 +104,6 @@ class ClayTableCard extends StatelessWidget {
     this.onRowsPerPageChanged,
     this.sortColumnIndex,
     this.sortAscending = true,
-    this.minWidth = 720,
   });
   final String title;
   final String tableTitle;
@@ -113,7 +116,6 @@ class ClayTableCard extends StatelessWidget {
   final ValueChanged<int?>? onRowsPerPageChanged;
   final int? sortColumnIndex;
   final bool sortAscending;
-  final double minWidth;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
@@ -148,38 +150,20 @@ class ClayTableCard extends StatelessWidget {
                   const Divider(height: 1),
                   Expanded(
                     child: SingleChildScrollView(
-                      child: LayoutBuilder(
-                        builder: (context, tableConstraints) {
-                          final tableMinWidth =
-                              tableConstraints.maxWidth < minWidth
-                                  ? minWidth
-                                  : tableConstraints.maxWidth;
-                          return Scrollbar(
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minWidth: tableMinWidth,
-                                ),
-                                child: PaginatedDataTable(
-                                  header: Text(
-                                    tableTitle,
-                                    style:
-                                        Theme.of(context).textTheme.labelLarge,
-                                  ),
-                                  rowsPerPage: rowsPerPage,
-                                  availableRowsPerPage: availableRowsPerPage,
-                                  onRowsPerPageChanged: onRowsPerPageChanged,
-                                  sortColumnIndex: sortColumnIndex,
-                                  sortAscending: sortAscending,
-                                  showCheckboxColumn: false,
-                                  columns: columns,
-                                  source: source,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
+                      child: PaginatedDataTable(
+                        header: Text(
+                          tableTitle,
+                          style:
+                              Theme.of(context).textTheme.labelLarge,
+                        ),
+                        rowsPerPage: rowsPerPage,
+                        availableRowsPerPage: availableRowsPerPage,
+                        onRowsPerPageChanged: onRowsPerPageChanged,
+                        sortColumnIndex: sortColumnIndex,
+                        sortAscending: sortAscending,
+                        showCheckboxColumn: false,
+                        columns: columns,
+                        source: source,
                       ),
                     ),
                   ),
@@ -506,7 +490,16 @@ class ClayDetailRow extends StatelessWidget {
               label,
               style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
             ),
-            Text(value, style: _valueStyle(context)),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
+                style: _valueStyle(context),
+              ),
+            ),
           ],
         ),
       );
@@ -561,12 +554,36 @@ class ClayStatusBadge extends StatelessWidget {
 }
 
 /// Destructive confirmation dialog. Returns true when confirmed.
+/// Cupertino style on iOS/macOS, Material elsewhere.
 Future<bool> showClayConfirmDialog(
   BuildContext context, {
   required String title,
   required String message,
   String confirmLabel = 'Delete',
 }) async {
+  if (defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.macOS) {
+    final confirmed = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(confirmLabel),
+          ),
+        ],
+      ),
+    );
+    return confirmed ?? false;
+  }
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -678,13 +695,18 @@ class ClayStatCard extends StatelessWidget {
               ],
             ),
           const SizedBox(height: ClaySpacing.sm),
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: ClayTypography.tabular(text.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            )),
+          AnimatedSwitcher(
+            duration: ClayMotion.medium,
+            switchInCurve: ClayMotion.easing,
+            child: Text(
+              value,
+              key: ValueKey(value),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: ClayTypography.tabular(text.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              )),
+            ),
           ),
           const SizedBox(height: 2),
           Text(

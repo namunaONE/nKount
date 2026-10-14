@@ -31,11 +31,7 @@ class DashboardScreen extends ConsumerWidget {
                 tooltip: 'Toggle dark mode',
               );
             }),
-            ClayIconButton(
-              icon: ClayIcons.search,
-              onPressed: () => context.push('/transactions'),
-              tooltip: 'Search transactions (/)',
-            ),
+            const ClayCommandSearch(),
           ],
         ),
         body: const SingleChildScrollView(
@@ -104,16 +100,33 @@ class _Header extends StatelessWidget {
     final fy = '$startYear/${(startYear + 1).toString().substring(2)}';
     final bsLong =
         '${ClayBsDate.months[bsNow.month - 1]} ${bsNow.day}, ${bsNow.year} BS';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(greeting, style: text.headlineSmall),
-        const SizedBox(height: 4),
-        Text(
-          '$bsLong • FY $fy',
-          style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [scheme.primary, scheme.tertiary],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-      ],
+        borderRadius: ClayRadius.large,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            greeting,
+            style: text.displaySmall
+                ?.copyWith(color: scheme.onPrimary),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$bsLong • FY $fy',
+            style: text.bodyMedium?.copyWith(
+              color: scheme.onPrimary.withValues(alpha: 0.8),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -333,6 +346,10 @@ class _CashflowChart extends ConsumerWidget {
     }
 
     final text = Theme.of(context).textTheme;
+    final dark =
+        Theme.of(context).brightness == Brightness.dark;
+    final salesColor = dark ? ClayColors.chartUpDark : ClayColors.success;
+    final purchColor = dark ? ClayColors.chartDownDark : ClayColors.error;
 
     return ClayCard(
       title: const ClaySectionTitle('Cashflow — last 6 months'),
@@ -346,8 +363,8 @@ class _CashflowChart extends ConsumerWidget {
                 Container(
                   width: 8,
                   height: 8,
-                  decoration: const BoxDecoration(
-                    color: ClayColors.success,
+                  decoration: BoxDecoration(
+                    color: salesColor,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -357,8 +374,8 @@ class _CashflowChart extends ConsumerWidget {
                 Container(
                   width: 8,
                   height: 8,
-                  decoration: const BoxDecoration(
-                    color: ClayColors.error,
+                  decoration: BoxDecoration(
+                    color: purchColor,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -367,52 +384,54 @@ class _CashflowChart extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              height: 220,
-              child: BarChart(
-                BarChartData(
-                  maxY: [...sales, ...purchases, 100]
-                          .reduce((a, b) => a > b ? a : b) *
-                      1.2,
-                  gridData: const FlGridData(show: false),
-                  borderData: FlBorderData(show: false),
-                  titlesData: FlTitlesData(
-                    topTitles: const AxisTitles(),
-                    rightTitles: const AxisTitles(),
-                    leftTitles: const AxisTitles(),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, _) => Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            monthNames[months[value.toInt()].month - 1],
+            RepaintBoundary(
+              child: SizedBox(
+                height: 220,
+                child: BarChart(
+                  BarChartData(
+                    maxY: [...sales, ...purchases, 100]
+                            .reduce((a, b) => a > b ? a : b) *
+                        1.2,
+                    gridData: const FlGridData(show: false),
+                    borderData: FlBorderData(show: false),
+                    titlesData: FlTitlesData(
+                      topTitles: const AxisTitles(),
+                      rightTitles: const AxisTitles(),
+                      leftTitles: const AxisTitles(),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (value, _) => Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              monthNames[months[value.toInt()].month - 1],
+                            ),
                           ),
                         ),
                       ),
                     ),
+                    barGroups: [
+                      for (var i = 0; i < 6; i++)
+                        BarChartGroupData(
+                          x: i,
+                          barsSpace: 4,
+                          barRods: [
+                            BarChartRodData(
+                              toY: sales[i],
+                              color: salesColor,
+                              width: 12,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            BarChartRodData(
+                              toY: purchases[i],
+                              color: purchColor,
+                              width: 12,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ],
+                        ),
+                    ],
                   ),
-                  barGroups: [
-                    for (var i = 0; i < 6; i++)
-                      BarChartGroupData(
-                        x: i,
-                        barsSpace: 4,
-                        barRods: [
-                          BarChartRodData(
-                            toY: sales[i],
-                            color: ClayColors.success,
-                            width: 12,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          BarChartRodData(
-                            toY: purchases[i],
-                            color: ClayColors.error,
-                            width: 12,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ],
-                      ),
-                  ],
                 ),
               ),
             ),
@@ -586,25 +605,28 @@ class _RecentTransactions extends ConsumerWidget {
             )
           : Column(
               children: [
-                for (final t in items)
-                  ListTile(
-                    leading: Icon(
-                      t.type == AppConstants.transactionSale
-                          ? ClayIcons.receivables
-                          : ClayIcons.payables,
-                      color: t.type == AppConstants.transactionSale
-                          ? ClayColors.success
-                          : ClayColors.error,
-                      size: ClayIconSize.md,
+                for (var i = 0; i < items.length; i++)
+                  ClayEntrance(
+                    delay: ClayMotion.stagger(i),
+                    child: ListTile(
+                      leading: Icon(
+                        items[i].type == AppConstants.transactionSale
+                            ? ClayIcons.receivables
+                            : ClayIcons.payables,
+                        color: items[i].type == AppConstants.transactionSale
+                            ? ClayColors.success
+                            : ClayColors.error,
+                        size: ClayIconSize.md,
+                      ),
+                      title: Text(items[i].invoiceNumber ?? items[i].type),
+                      subtitle: Text(
+                        formatDate(items[i].date),
+                      ),
+                      trailing: Text(
+                        formatCurrency(items[i].total),
+                      ),
+                      onTap: () => context.push('/transactions'),
                     ),
-                    title: Text(t.invoiceNumber ?? t.type),
-                    subtitle: Text(
-                      formatDate(t.date),
-                    ),
-                    trailing: Text(
-                      formatCurrency(t.total),
-                    ),
-                    onTap: () => context.push('/transactions'),
                   ),
                 ClayButton.text(
                   onPressed: () => context.push('/transactions'),

@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -103,9 +105,10 @@ void main() {
         return math.pow((s + 0.055) / 1.055, 2.4).toDouble();
       }
 
-      return 0.2126 * linear(c.red) +
-          0.7152 * linear(c.green) +
-          0.0722 * linear(c.blue);
+      final argb = c.toARGB32();
+      return 0.2126 * linear((argb >> 16) & 0xFF) +
+          0.7152 * linear((argb >> 8) & 0xFF) +
+          0.0722 * linear(argb & 0xFF);
     }
 
     double ratio(Color fg, Color bg) {
@@ -259,6 +262,124 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Poush 17, 2080 BS'), findsOneWidget);
+    });
+  });
+
+  group('motion', () {
+    Future<void> pumpThemed(WidgetTester tester, Widget child) async {
+      tester.view.physicalSize = const Size(800, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(theme: ClayTheme.lightTheme, home: Scaffold(body: child)),
+      );
+    }
+
+    testWidgets('skeleton shimmer pumps without exceptions', (tester) async {
+      await pumpThemed(tester, const ClaySkeletonList(rows: 3));
+      // Repeating controller: fixed frames, never pumpAndSettle.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('entrance plays once and settles', (tester) async {
+      await pumpThemed(
+        tester,
+        ClayEntrance(
+          delay: ClayMotion.stagger(2),
+          child: const Text('hello'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.text('hello'), findsOneWidget);
+    });
+
+    testWidgets('stat card value cross-fades on change', (tester) async {
+      await pumpThemed(
+        tester,
+        const ClayStatCard(
+          title: 'Revenue',
+          value: 'रू 1.00',
+          icon: ClayIcons.revenue,
+        ),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ClayTheme.lightTheme,
+          home: const Scaffold(
+            body: ClayStatCard(
+              title: 'Revenue',
+              value: 'रू 2.00',
+              icon: ClayIcons.revenue,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.text('रू 2.00'), findsOneWidget);
+    });
+
+    test('stagger caps at 320ms', () {
+      expect(ClayMotion.stagger(0), Duration.zero);
+      expect(ClayMotion.stagger(3), const Duration(milliseconds: 120));
+      expect(ClayMotion.stagger(99), const Duration(milliseconds: 320));
+    });
+  });
+
+  group('adaptive dialogs', () {
+    Future<void> openConfirm(
+      WidgetTester tester, {
+      required TargetPlatform platform,
+      required void Function(bool?) onResult,
+    }) async {
+      debugDefaultTargetPlatformOverride = platform;
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ClayTheme.lightTheme,
+          home: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () async {
+                onResult(await showClayConfirmDialog(
+                  context,
+                  title: 'Delete?',
+                  message: 'Sure?',
+                ));
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      // Clear before assertions: the framework verifies no debug variable
+      // changed when the test body completes. The dialog is already built.
+      debugDefaultTargetPlatformOverride = null;
+    }
+
+    testWidgets('Material branch resolves true on confirm', (tester) async {
+      bool? result;
+      await openConfirm(tester,
+          platform: TargetPlatform.android, onResult: (v) => result = v);
+      expect(find.byType(AlertDialog), findsOneWidget);
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+      expect(result, isTrue);
+    });
+
+    testWidgets('Cupertino branch on iOS resolves false on cancel',
+        (tester) async {
+      bool? result;
+      await openConfirm(tester,
+          platform: TargetPlatform.iOS, onResult: (v) => result = v);
+      expect(find.byType(CupertinoAlertDialog), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(result, isFalse);
     });
   });
 

@@ -269,6 +269,7 @@ class TransactionFlowScreenState extends ConsumerState<TransactionFlowScreen> {
           IconButton(
             icon: const Icon(ClayIcons.filter),
             onPressed: _showFilterDialog,
+            tooltip: 'Filter',
           ),
         ],
       ),
@@ -285,6 +286,7 @@ class TransactionFlowScreenState extends ConsumerState<TransactionFlowScreen> {
                     ? IconButton(
                         icon: Icon(_config.clearIcon),
                         onPressed: () => setState(() => _searchQuery = ''),
+                        tooltip: 'Clear search',
                       )
                     : null,
                 border: OutlineInputBorder(
@@ -928,6 +930,7 @@ class TransactionFlowScreenState extends ConsumerState<TransactionFlowScreen> {
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
                       icon: const Icon(ClayIcons.date),
+                      tooltip: 'Pick cheque date',
                       onPressed: () async {
                         final picked = await showDatePicker(
                           context: context,
@@ -1312,6 +1315,7 @@ class _TransactionFlowEditorState extends ConsumerState<TransactionFlowEditor> {
           border: const OutlineInputBorder(),
           suffixIcon: IconButton(
             icon: const Icon(ClayIcons.date),
+            tooltip: 'Pick date',
             onPressed: onPick,
           ),
         ),
@@ -1364,6 +1368,7 @@ class _TransactionFlowEditorState extends ConsumerState<TransactionFlowEditor> {
                 ClayIcons.delete,
                 color: Theme.of(context).colorScheme.error,
               ),
+              tooltip: 'Remove item',
               onPressed: () => _removeItem(item),
             ),
           ],

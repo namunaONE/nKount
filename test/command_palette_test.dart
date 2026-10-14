@@ -38,4 +38,22 @@ void main() {
           ['Dashboard', 'New Sale', 'New Purchase', 'Reports', 'Settings']),
     );
   });
+
+  group('filterCommands (shared by palette + search view)', () {
+    test('empty query returns everything', () {
+      expect(filterCommands(''), hasLength(appCommands().length));
+    });
+
+    test('matches case-insensitively', () {
+      final titles =
+          filterCommands('sale').map((c) => c.title).toList();
+      expect(titles, contains('New Sale'));
+      expect(filterCommands('SETTINGS').map((c) => c.title),
+          contains('Settings'));
+    });
+
+    test('no match returns empty', () {
+      expect(filterCommands('zzz-no-such-command'), isEmpty);
+    });
+  });
 }

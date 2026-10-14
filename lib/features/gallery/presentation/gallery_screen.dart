@@ -281,7 +281,8 @@ class _ButtonSection extends StatelessWidget {
               ClayButton.outlined(
                   onPressed: () {}, child: const Text('Outlined')),
               ClayButton.text(onPressed: () {}, child: const Text('Text')),
-              const ClayIconButton(icon: ClayIcons.search),
+              const ClayIconButton(
+                  icon: ClayIcons.search, tooltip: 'Search'),
             ],
           ),
         ),

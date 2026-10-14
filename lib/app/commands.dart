@@ -52,6 +52,16 @@ AppCommand _go(String title, IconData icon, String route, String hint) =>
       run: (context) => context.go(route),
     );
 
+/// Case-insensitive command filter shared by the palette dialog and the
+/// search view. Pure function — unit-tested.
+List<AppCommand> filterCommands(String query) {
+  final q = query.toLowerCase();
+  if (q.isEmpty) return appCommands();
+  return appCommands()
+      .where((c) => c.title.toLowerCase().contains(q))
+      .toList();
+}
+
 /// Shows the Ctrl+K command palette.
 Future<void> showCommandPalette(BuildContext context) => showDialog(
       context: context,
@@ -77,9 +87,7 @@ class _CommandPaletteDialogState extends State<_CommandPaletteDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final commands = appCommands()
-        .where((c) => c.title.toLowerCase().contains(_query.toLowerCase()))
-        .toList();
+    final commands = filterCommands(_query);
     return Dialog(
       insetPadding:
           const EdgeInsets.only(top: 120, left: 24, right: 24, bottom: 24),

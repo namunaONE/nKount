@@ -22,9 +22,89 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   String _searchQuery = '';
   String _selectedStatus = 'all';
   String _selectedType = 'all';
+  String? _selectedId;
   int _rowsPerPage = 25;
   int _sortColumnIndex = 0;
   bool _sortAscending = true;
+
+  TransactionModel? _selectedTransaction(List<TransactionModel> sorted) {
+    if (sorted.isEmpty) return null;
+    final id = _selectedId;
+    if (id != null) {
+      for (final t in sorted) {
+        if (t.id == id) return t;
+      }
+    }
+    return sorted.first;
+  }
+
+  List<Widget> _transactionDetailRows(TransactionModel t) => [
+        ClayDetailRow(label: 'Invoice', value: t.invoiceNumber ?? 'N/A'),
+        ClayDetailRow(
+            label: 'Date', value: t.date == null ? 'N/A' : formatDate(t.date)),
+        ClayDetailRow(label: 'Type', value: t.typeDisplayName),
+        ClayDetailRow(label: 'Contact', value: t.contactId),
+        ClayDetailRow(label: 'Subtotal', value: formatCurrency(t.subtotal)),
+        ClayDetailRow(label: 'Discount', value: formatCurrency(t.discount)),
+        ClayDetailRow(
+            label: 'Tax (${t.vatRate}%)', value: formatCurrency(t.tax)),
+        ClayDetailRow(
+            label: 'Total', value: formatCurrency(t.total), isBold: true),
+        ClayDetailRow(label: 'Paid', value: formatCurrency(t.paidAmount)),
+        ClayDetailRow(
+            label: 'Due',
+            value: formatCurrency(t.dueAmount),
+            isBold: t.dueAmount > 0),
+        ClayDetailRow(label: 'Status', value: t.paymentStatus),
+        if (t.notes != null && t.notes!.isNotEmpty)
+          ClayDetailRow(label: 'Notes', value: t.notes!),
+      ];
+
+  Widget _buildDetailPane(BuildContext context, TransactionModel? selected) {
+    if (selected == null) {
+      return const ClayCard(
+        child: Center(
+          child: ClayEmptyState(
+            title: 'Select a transaction',
+            icon: ClayIcons.transactions,
+          ),
+        ),
+      );
+    }
+    final t = selected;
+    return ClayCard(
+      title: ClaySectionTitle(t.invoiceNumber ?? t.id),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ..._transactionDetailRows(t),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ClayButton(
+                  onPressed: () => _printInvoice(context, t),
+                  child: const Text('Print / PDF'),
+                ),
+                ClayButton.text(
+                  onPressed: () => _showEditDialog(context, t),
+                  child: const Text('Edit'),
+                ),
+                ClayButton.text(
+                  onPressed: () => _confirmDelete(context, t),
+                  child: const Text('Delete'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,19 +132,23 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
         ],
       ),
       body: transactionsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const ClaySkeletonList(),
         error: (error, stack) => Center(child: Text('Error: $error')),
         data: (transactionList) {
           final filtered = _filterTransactions(transactionList);
           final sorted = _sortTransactions(filtered);
+          final selected = _selectedTransaction(sorted);
 
           return LayoutBuilder(
             builder: (context, constraints) {
               if (ClayBreakpoints.isCompact(constraints.maxWidth)) {
                 return _MobileCardList(transactions: sorted);
               }
-              // Desktop: dense paginated table fills available height.
-              return ClayTableCard(
+              // Non-compact: two-pane master-detail on wide windows,
+              // table alone on medium windows.
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final tableCard = ClayTableCard(
                 title: 'Transactions',
                 tableTitle: 'All transactions',
                 searchHint: 'Search...',
@@ -158,7 +242,14 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 ],
                 source: _TransactionDataSource(
                   transactions: sorted,
-                  onView: (t) => _showDetailDialog(context, t),
+                  onView: (t) {
+                    if (MediaQuery.sizeOf(context).width >=
+                        ClayBreakpoints.twoColumnMin) {
+                      setState(() => _selectedId = t.id);
+                    } else {
+                      _showDetailDialog(context, t);
+                    }
+                  },
                   onEdit: (t) => _showEditDialog(context, t),
                   onDelete: (t) => _confirmDelete(context, t),
                 ),
@@ -166,6 +257,21 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 onRowsPerPageChanged: (v) => setState(() => _rowsPerPage = v!),
                 sortColumnIndex: _sortColumnIndex,
                 sortAscending: _sortAscending,
+                  );
+                  if (constraints.maxWidth >= ClayBreakpoints.twoColumnMin) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(flex: 2, child: tableCard),
+                        const SizedBox(width: 16),
+                        Expanded(
+                            flex: 1,
+                            child: _buildDetailPane(context, selected)),
+                      ],
+                    );
+                  }
+                  return tableCard;
+                },
               );
             },
           );
@@ -325,36 +431,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                 content: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 500),
                     child: SingleChildScrollView(
-                        child:
-                            Column(mainAxisSize: MainAxisSize.min, children: [
-                      ClayDetailRow(
-                          label: 'Invoice', value: t.invoiceNumber ?? 'N/A'),
-                      ClayDetailRow(
-                          label: 'Date',
-                          value: t.date == null ? 'N/A' : formatDate(t.date)),
-                      ClayDetailRow(label: 'Type', value: t.typeDisplayName),
-                      ClayDetailRow(label: 'Contact', value: t.contactId),
-                      ClayDetailRow(
-                          label: 'Subtotal', value: formatCurrency(t.subtotal)),
-                      ClayDetailRow(
-                          label: 'Discount', value: formatCurrency(t.discount)),
-                      ClayDetailRow(
-                          label: 'Tax (${t.vatRate}%)',
-                          value: formatCurrency(t.tax)),
-                      ClayDetailRow(
-                          label: 'Total',
-                          value: formatCurrency(t.total),
-                          isBold: true),
-                      ClayDetailRow(
-                          label: 'Paid', value: formatCurrency(t.paidAmount)),
-                      ClayDetailRow(
-                          label: 'Due',
-                          value: formatCurrency(t.dueAmount),
-                          isBold: t.dueAmount > 0),
-                      ClayDetailRow(label: 'Status', value: t.paymentStatus),
-                      if (t.notes != null && t.notes!.isNotEmpty)
-                        ClayDetailRow(label: 'Notes', value: t.notes!),
-                    ]))),
+                        child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: _transactionDetailRows(t)))),
                 actions: [
                   ClayButton.text(
                       onPressed: () => Navigator.pop(context),
@@ -481,12 +560,12 @@ class _TransactionCard extends StatelessWidget {
 }
 
 /// Mobile card list (compact breakpoint)
-class _MobileCardList extends StatelessWidget {
+class _MobileCardList extends ConsumerWidget {
   const _MobileCardList({required this.transactions});
   final List<TransactionModel> transactions;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (transactions.isEmpty) {
       return Center(
         child: ClayEmptyState(
@@ -500,11 +579,19 @@ class _MobileCardList extends StatelessWidget {
         ),
       );
     }
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: transactions.length,
-      itemBuilder: (context, index) =>
-          _TransactionCard(transaction: transactions[index]),
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(transactionsProvider);
+        await ref.read(transactionsProvider.future);
+      },
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: transactions.length,
+        itemBuilder: (context, index) => ClayEntrance(
+          delay: ClayMotion.stagger(index),
+          child: _TransactionCard(transaction: transactions[index]),
+        ),
+      ),
     );
   }
 }

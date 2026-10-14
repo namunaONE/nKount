@@ -17,6 +17,7 @@ class ProductsScreen extends ConsumerStatefulWidget {
 class _ProductsScreenState extends ConsumerState<ProductsScreen> {
   String _searchQuery = '';
   String _selectedStock = 'all';
+  String? _selectedId;
   int _rowsPerPage = 25;
   int _sortColumnIndex = 0;
   bool _sortAscending = true;
@@ -47,7 +48,7 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
         ],
       ),
       body: products.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const ClaySkeletonList(),
         error: (error, stack) => Center(child: Text('Error: $error')),
         data: (productList) {
           final filtered = _filterProducts(productList);
@@ -68,11 +69,19 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                     ),
                   );
                 }
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: sorted.length,
-                  itemBuilder: (context, index) =>
-                      _ProductItem(product: sorted[index]),
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(productsProvider);
+                    await ref.read(productsProvider.future);
+                  },
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: sorted.length,
+                    itemBuilder: (context, index) => ClayEntrance(
+                      delay: ClayMotion.stagger(index),
+                      child: _ProductItem(product: sorted[index]),
+                    ),
+                  ),
                 );
               }
               if (sorted.isEmpty) {
@@ -88,7 +97,7 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                   ),
                 );
               }
-              return ClayTableCard(
+              final tableCard = ClayTableCard(
                 title: 'Products (${sorted.length})',
                 tableTitle: 'All products',
                 searchHint: 'Search...',
@@ -155,9 +164,66 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                 ],
                 source: _ProductsDataSource(
                   products: sorted,
-                  onView: (p) => _showProductDetailDialog(context, p),
+                  onView: (p) {
+                    if (MediaQuery.sizeOf(context).width >=
+                        ClayBreakpoints.twoColumnMin) {
+                      setState(() => _selectedId = p.id);
+                    } else {
+                      _showProductDetailDialog(context, p);
+                    }
+                  },
                   onDelete: (p) => _confirmDeleteProduct(context, ref, p),
                 ),
+              );
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth >= ClayBreakpoints.twoColumnMin) {
+                    final selected = _selectedProduct(sorted);
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(flex: 2, child: tableCard),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          flex: 1,
+                          child: SingleChildScrollView(
+                            child: selected == null
+                                ? const ClayCard(
+                                    child: ClayEmptyState(
+                                      title: 'Select a product',
+                                      icon: ClayIcons.products,
+                                    ),
+                                  )
+                                : ClayCard(
+                                    title:
+                                        ClaySectionTitle(selected.name),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          ..._productDetailRows(selected),
+                                          const SizedBox(height: 16),
+                                          Wrap(
+                                            spacing: 8,
+                                            children: _productDetailActions(
+                                              context,
+                                              onClose: () => setState(
+                                                  () => _selectedId = null),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  return tableCard;
+                },
               );
             },
           );
@@ -165,6 +231,19 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
       ),
       bottomNavigationBar: mainNavBar(context, 2),
     );
+  }
+
+  /// Product selected in the already-filtered+sorted list: the entry matching
+  /// [_selectedId], else the first entry, else null.
+  ProductModel? _selectedProduct(List<ProductModel> sorted) {
+    if (sorted.isEmpty) return null;
+    final id = _selectedId;
+    if (id != null) {
+      for (final p in sorted) {
+        if (p.id == id) return p;
+      }
+    }
+    return sorted.first;
   }
 
   List<ProductModel> _filterProducts(List<ProductModel> list) =>
@@ -361,6 +440,99 @@ class _ProductsDataSource extends DataTableSource {
   int get selectedRowCount => 0;
 }
 
+/// Shared product detail rows used by the detail dialog and the wide-window
+/// detail pane (single source; no duplicated row lists).
+List<Widget> _productDetailRows(ProductModel product) => [
+      ClayDetailRow(
+        icon: Icons.code,
+        label: 'Product Code',
+        value: product.code ?? 'N/A',
+      ),
+      const Divider(),
+      ClayDetailRow(
+        icon: Icons.qr_code,
+        label: 'Barcode',
+        value: product.barcode ?? 'N/A',
+      ),
+      const Divider(),
+      ClayDetailRow(
+        icon: Icons.category,
+        label: 'Category',
+        value: product.category ?? 'N/A',
+      ),
+      const Divider(),
+      ClayDetailRow(
+        icon: Icons.branding_watermark,
+        label: 'Brand',
+        value: product.brand ?? 'N/A',
+      ),
+      const Divider(),
+      ClayDetailRow(
+        icon: Icons.straighten,
+        label: 'Unit',
+        value: product.unit ?? 'N/A',
+      ),
+      const Divider(),
+      ClayDetailRow(
+        icon: Icons.money,
+        label: 'Purchase Price',
+        value: formatCurrency(product.purchasePrice),
+      ),
+      const Divider(),
+      ClayDetailRow(
+        icon: Icons.money,
+        label: 'Sale Price',
+        value: formatCurrency(product.salePrice),
+      ),
+      const Divider(),
+      ClayDetailRow(
+        icon: Icons.money,
+        label: 'Cost Price',
+        value: formatCurrency(product.costPrice),
+      ),
+      const Divider(),
+      ClayDetailRow(
+        icon: Icons.inventory,
+        label: 'Stock Quantity',
+        value:
+            '${product.quantity.toStringAsFixed(2)} ${product.unit ?? ''}',
+      ),
+      const Divider(),
+      ClayDetailRow(
+        icon: Icons.warning,
+        label: 'Minimum Quantity',
+        value: product.minQuantity.toStringAsFixed(2),
+      ),
+      const Divider(),
+      ClayDetailRow(
+        icon: Icons.percent,
+        label: 'Tax Rate',
+        value: '${product.taxRate}%',
+      ),
+      const Divider(),
+      ClayDetailRow(
+        icon: Icons.description,
+        label: 'Description',
+        value: product.description ?? 'N/A',
+      ),
+    ];
+
+/// Shared product detail actions used by the detail dialog and the
+/// wide-window detail pane (same callbacks in both places). The pane
+/// passes an [onClose] that deselects instead of popping the screen.
+List<Widget> _productDetailActions(BuildContext context,
+        {VoidCallback? onClose}) =>
+    [
+      ClayButton.text(
+        onPressed: onClose ?? () => Navigator.pop(context),
+        child: const Text('Close'),
+      ),
+      ClayButton(
+        onPressed: () {},
+        child: const Text('Edit'),
+      ),
+    ];
+
 void _showProductDetailDialog(BuildContext context, ProductModel product) {
   showDialog(
     context: context,
@@ -369,40 +541,10 @@ void _showProductDetailDialog(BuildContext context, ProductModel product) {
       content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClayDetailRow(
-              icon: Icons.code,
-              label: 'Product Code',
-              value: product.code ?? 'N/A',
-            ),
-            const Divider(),
-            ClayDetailRow(
-              icon: Icons.money,
-              label: 'Sale Price',
-              value: formatCurrency(product.salePrice),
-            ),
-            const Divider(),
-            ClayDetailRow(
-              icon: Icons.inventory,
-              label: 'Stock Quantity',
-              value:
-                  '${product.quantity.toStringAsFixed(2)} ${product.unit ?? ''}',
-            ),
-            const Divider(),
-            ClayDetailRow(
-              icon: Icons.description,
-              label: 'Description',
-              value: product.description ?? 'N/A',
-            ),
-          ],
+          children: _productDetailRows(product),
         ),
       ),
-      actions: [
-        ClayButton.text(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Close'),
-        ),
-      ],
+      actions: _productDetailActions(context),
     ),
   );
 }

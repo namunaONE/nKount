@@ -295,7 +295,7 @@ class SimpleFlowScreenState extends ConsumerState<SimpleFlowScreen> {
         ],
       ),
       body: items.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const ClaySkeletonList(),
         error: (error, stack) => Center(child: Text('Error: $error')),
         data: (itemList) {
           final filtered = _filterItems(itemList);
@@ -312,7 +312,13 @@ class SimpleFlowScreenState extends ConsumerState<SimpleFlowScreen> {
               ),
             );
           }
-          return _SimpleFlowList(items: filtered, config: config);
+          return RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(simpleFlowProvider(config.type));
+              await ref.read(simpleFlowProvider(config.type).future);
+            },
+            child: _SimpleFlowList(items: filtered, config: config),
+          );
         },
       ),
       bottomNavigationBar: mainNavBar(context, 3),
@@ -415,7 +421,10 @@ class _SimpleFlowList extends ConsumerWidget {
         itemCount: items.length,
         itemBuilder: (context, index) {
           final item = items[index];
-          return _SimpleFlowItem(item: item, config: config);
+          return ClayEntrance(
+            delay: ClayMotion.stagger(index),
+            child: _SimpleFlowItem(item: item, config: config),
+          );
         },
       );
 }

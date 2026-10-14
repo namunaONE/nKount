@@ -49,6 +49,10 @@ abstract final class ClayMotion {
   static const Duration medium = Duration(milliseconds: 250);
   static const Duration long = Duration(milliseconds: 400);
   static const Curve easing = Curves.easeOutCubic;
+
+  /// Stagger delay for list entrances: 40ms per index, capped at 320ms.
+  static Duration stagger(int index) =>
+      Duration(milliseconds: (index * 40).clamp(0, 320));
 }
 
 /// Brand palette: deep navy primary seed #002C6D, vivid green secondary.
@@ -78,6 +82,12 @@ abstract final class ClayColors {
   /// Neutral fallback for const contexts without a BuildContext
   /// (e.g. DataTableSource helpers). Matches M3 onSurfaceVariant.
   static const Color neutral = Color(0xFF49454F);
+
+  /// Chart rods on dark surfaces. [success]/[error] are tuned for light
+  /// backgrounds; these carry the same semantics dark-mode-legibly
+  /// (green T80 from the brand palette, M3 baseline error-80).
+  static const Color chartUpDark = Color(0xFF5EE072);
+  static const Color chartDownDark = Color(0xFFFFB4AB);
 }
 
 /// Icon sizes. Default tap target stays 48×48 (see [ClayIconButton]).

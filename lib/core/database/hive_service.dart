@@ -56,8 +56,12 @@ class HiveService {
   // Initialization flag
   bool _isInitialized = false;
 
-  /// Initialize Hive database
-  Future<void> initialize() async {
+  /// Initialize Hive database.
+  ///
+  /// [testPath] is test-only: when given, Hive opens [testPath] on disk
+  /// instead of `Hive.initFlutter()` (path_provider has no test binding).
+  /// Production callers must omit it.
+  Future<void> initialize({String? testPath}) async {
     if (_isInitialized) {
       _logger.i('Hive database already initialized');
       return;
@@ -66,8 +70,12 @@ class HiveService {
     try {
       _logger.i('Initializing Hive database...');
 
-      // Initialize Hive for Flutter
-      await Hive.initFlutter();
+      // Initialize Hive for Flutter (or a scratch dir in tests).
+      if (testPath == null) {
+        await Hive.initFlutter();
+      } else {
+        Hive.init(testPath);
+      }
 
       // Register adapters
       _registerAdapters();
@@ -93,7 +101,9 @@ class HiveService {
     Hive.registerAdapter(ProductModelAdapter());
     // Type ID 3
     Hive.registerAdapter(TransactionModelAdapter());
-    // Type ID 4
+    // Type ID 4 (embedded items inside TransactionModel)
+    Hive.registerAdapter(TransactionItemAdapter());
+    // Type ID 14 (separate transaction_items box)
     Hive.registerAdapter(TransactionItemModelAdapter());
     // Type ID 5
     Hive.registerAdapter(PaymentModelAdapter());
