@@ -46,13 +46,14 @@ class CompanyModelAdapter extends TypeAdapter<CompanyModel> {
       financialYearEnd: fields[26] as DateTime?,
       createdAt: fields[27] as DateTime?,
       updatedAt: fields[28] as DateTime?,
+      ownerName: fields[29] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, CompanyModel obj) {
     writer
-      ..writeByte(29)
+      ..writeByte(30)
       ..writeByte(1)
       ..write(obj.name)
       ..writeByte(0)
@@ -110,7 +111,9 @@ class CompanyModelAdapter extends TypeAdapter<CompanyModel> {
       ..writeByte(27)
       ..write(obj.createdAt)
       ..writeByte(28)
-      ..write(obj.updatedAt);
+      ..write(obj.updatedAt)
+      ..writeByte(29)
+      ..write(obj.ownerName);
   }
 
   @override
@@ -167,6 +170,7 @@ _$CompanyModelImpl _$$CompanyModelImplFromJson(Map<String, dynamic> json) =>
       updatedAt: json['updatedAt'] == null
           ? null
           : DateTime.parse(json['updatedAt'] as String),
+      ownerName: json['ownerName'] as String?,
     );
 
 Map<String, dynamic> _$$CompanyModelImplToJson(_$CompanyModelImpl instance) =>
@@ -200,4 +204,5 @@ Map<String, dynamic> _$$CompanyModelImplToJson(_$CompanyModelImpl instance) =>
       'financialYearEnd': instance.financialYearEnd?.toIso8601String(),
       'createdAt': instance.createdAt?.toIso8601String(),
       'updatedAt': instance.updatedAt?.toIso8601String(),
+      'ownerName': instance.ownerName,
     };

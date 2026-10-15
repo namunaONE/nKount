@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/database/hive_service.dart';
 import '../../core/providers/theme_provider.dart';
 import '../../packages/design-system/design_system.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
@@ -17,12 +18,30 @@ import '../features/expenses/presentation/expenses_screen.dart';
 import '../features/receipts/presentation/receipts_screen.dart';
 import '../features/payments/presentation/payments_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
+import '../features/onboarding/presentation/onboarding_screen.dart';
 import '../features/reports/presentation/reports_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 
+/// First-run gate: no company profile means the user hasn't registered
+/// yet, so every location (except onboarding itself) redirects there.
+/// Once registered, visiting onboarding bounces back to the dashboard.
+/// Top-level for widget-test coverage without pumping the router.
+String? onboardingRedirect(GoRouterState state) {
+  final registered = hiveService.companiesBox.isNotEmpty;
+  final here = state.matchedLocation == '/onboarding';
+  if (!registered && !here) return '/onboarding';
+  if (registered && here) return '/';
+  return null;
+}
+
 /// App Router Configuration
 final _router = GoRouter(
+  redirect: (context, state) => onboardingRedirect(state),
   routes: [
+    GoRoute(
+      path: '/onboarding',
+      builder: (context, state) => const OnboardingScreen(),
+    ),
     GoRoute(
       path: '/',
       builder: (context, state) => const DashboardScreen(),

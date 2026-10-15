@@ -40,6 +40,7 @@ class CompanyModel with _$CompanyModel {
     @HiveField(26) DateTime? financialYearEnd,
     @HiveField(27) DateTime? createdAt,
     @HiveField(28) DateTime? updatedAt,
+    @HiveField(29) String? ownerName,
   }) = _CompanyModel;
 
   factory CompanyModel.fromJson(Map<String, dynamic> json) =>
@@ -50,6 +51,7 @@ class CompanyModel with _$CompanyModel {
   /// Create a new company profile
   factory CompanyModel.create({
     required String name,
+    String? ownerName,
     String? address,
     String? city,
     String? district,
@@ -79,6 +81,7 @@ class CompanyModel with _$CompanyModel {
       CompanyModel(
         id: const Uuid().v4(),
         name: name,
+        ownerName: ownerName,
         address: address,
         city: city,
         district: district,
