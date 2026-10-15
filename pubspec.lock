@@ -573,6 +573,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  nepal_admin_api:
+    dependency: "direct main"
+    description:
+      name: nepal_admin_api
+      sha256: "7fae363bd5ad8cb5352da63937b1d264654bd523a3d42ae4bc3fdfaf76d5fdfe"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.7.3"
   nepali_utils:
     dependency: "direct main"
     description:

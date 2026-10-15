@@ -80,6 +80,10 @@ mixin _$CompanyModel {
   DateTime? get updatedAt => throw _privateConstructorUsedError;
   @HiveField(29)
   String? get ownerName => throw _privateConstructorUsedError;
+  @HiveField(30)
+  String? get province => throw _privateConstructorUsedError;
+  @HiveField(31)
+  String? get palika => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -123,7 +127,9 @@ abstract class $CompanyModelCopyWith<$Res> {
       @HiveField(26) DateTime? financialYearEnd,
       @HiveField(27) DateTime? createdAt,
       @HiveField(28) DateTime? updatedAt,
-      @HiveField(29) String? ownerName});
+      @HiveField(29) String? ownerName,
+      @HiveField(30) String? province,
+      @HiveField(31) String? palika});
 }
 
 /// @nodoc
@@ -169,6 +175,8 @@ class _$CompanyModelCopyWithImpl<$Res, $Val extends CompanyModel>
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? ownerName = freezed,
+    Object? province = freezed,
+    Object? palika = freezed,
   }) {
     return _then(_value.copyWith(
       name: null == name
@@ -291,6 +299,14 @@ class _$CompanyModelCopyWithImpl<$Res, $Val extends CompanyModel>
           ? _value.ownerName
           : ownerName // ignore: cast_nullable_to_non_nullable
               as String?,
+      province: freezed == province
+          ? _value.province
+          : province // ignore: cast_nullable_to_non_nullable
+              as String?,
+      palika: freezed == palika
+          ? _value.palika
+          : palika // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -333,7 +349,9 @@ abstract class _$$CompanyModelImplCopyWith<$Res>
       @HiveField(26) DateTime? financialYearEnd,
       @HiveField(27) DateTime? createdAt,
       @HiveField(28) DateTime? updatedAt,
-      @HiveField(29) String? ownerName});
+      @HiveField(29) String? ownerName,
+      @HiveField(30) String? province,
+      @HiveField(31) String? palika});
 }
 
 /// @nodoc
@@ -377,6 +395,8 @@ class __$$CompanyModelImplCopyWithImpl<$Res>
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? ownerName = freezed,
+    Object? province = freezed,
+    Object? palika = freezed,
   }) {
     return _then(_$CompanyModelImpl(
       name: null == name
@@ -499,6 +519,14 @@ class __$$CompanyModelImplCopyWithImpl<$Res>
           ? _value.ownerName
           : ownerName // ignore: cast_nullable_to_non_nullable
               as String?,
+      province: freezed == province
+          ? _value.province
+          : province // ignore: cast_nullable_to_non_nullable
+              as String?,
+      palika: freezed == palika
+          ? _value.palika
+          : palika // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -536,7 +564,9 @@ class _$CompanyModelImpl extends _CompanyModel {
       @HiveField(26) this.financialYearEnd,
       @HiveField(27) this.createdAt,
       @HiveField(28) this.updatedAt,
-      @HiveField(29) this.ownerName})
+      @HiveField(29) this.ownerName,
+      @HiveField(30) this.province,
+      @HiveField(31) this.palika})
       : super._();
 
   factory _$CompanyModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -644,10 +674,16 @@ class _$CompanyModelImpl extends _CompanyModel {
   @override
   @HiveField(29)
   final String? ownerName;
+  @override
+  @HiveField(30)
+  final String? province;
+  @override
+  @HiveField(31)
+  final String? palika;
 
   @override
   String toString() {
-    return 'CompanyModel(name: $name, id: $id, address: $address, city: $city, district: $district, phone: $phone, mobile: $mobile, email: $email, website: $website, vatNumber: $vatNumber, panNumber: $panNumber, registrationNumber: $registrationNumber, logoPath: $logoPath, currency: $currency, locale: $locale, dateFormat: $dateFormat, useNepaliDate: $useNepaliDate, defaultVatRate: $defaultVatRate, invoicePrefix: $invoicePrefix, invoiceStartNumber: $invoiceStartNumber, purchaseStartNumber: $purchaseStartNumber, footerText: $footerText, showTaxOnInvoice: $showTaxOnInvoice, showVatNumber: $showVatNumber, isIRDRegistered: $isIRDRegistered, financialYearStart: $financialYearStart, financialYearEnd: $financialYearEnd, createdAt: $createdAt, updatedAt: $updatedAt, ownerName: $ownerName)';
+    return 'CompanyModel(name: $name, id: $id, address: $address, city: $city, district: $district, phone: $phone, mobile: $mobile, email: $email, website: $website, vatNumber: $vatNumber, panNumber: $panNumber, registrationNumber: $registrationNumber, logoPath: $logoPath, currency: $currency, locale: $locale, dateFormat: $dateFormat, useNepaliDate: $useNepaliDate, defaultVatRate: $defaultVatRate, invoicePrefix: $invoicePrefix, invoiceStartNumber: $invoiceStartNumber, purchaseStartNumber: $purchaseStartNumber, footerText: $footerText, showTaxOnInvoice: $showTaxOnInvoice, showVatNumber: $showVatNumber, isIRDRegistered: $isIRDRegistered, financialYearStart: $financialYearStart, financialYearEnd: $financialYearEnd, createdAt: $createdAt, updatedAt: $updatedAt, ownerName: $ownerName, province: $province, palika: $palika)';
   }
 
   @override
@@ -705,7 +741,10 @@ class _$CompanyModelImpl extends _CompanyModel {
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
             (identical(other.ownerName, ownerName) ||
-                other.ownerName == ownerName));
+                other.ownerName == ownerName) &&
+            (identical(other.province, province) ||
+                other.province == province) &&
+            (identical(other.palika, palika) || other.palika == palika));
   }
 
   @JsonKey(ignore: true)
@@ -741,7 +780,9 @@ class _$CompanyModelImpl extends _CompanyModel {
         financialYearEnd,
         createdAt,
         updatedAt,
-        ownerName
+        ownerName,
+        province,
+        palika
       ]);
 
   @JsonKey(ignore: true)
@@ -789,7 +830,9 @@ abstract class _CompanyModel extends CompanyModel {
       @HiveField(26) final DateTime? financialYearEnd,
       @HiveField(27) final DateTime? createdAt,
       @HiveField(28) final DateTime? updatedAt,
-      @HiveField(29) final String? ownerName}) = _$CompanyModelImpl;
+      @HiveField(29) final String? ownerName,
+      @HiveField(30) final String? province,
+      @HiveField(31) final String? palika}) = _$CompanyModelImpl;
   const _CompanyModel._() : super._();
 
   factory _CompanyModel.fromJson(Map<String, dynamic> json) =
@@ -885,6 +928,12 @@ abstract class _CompanyModel extends CompanyModel {
   @override
   @HiveField(29)
   String? get ownerName;
+  @override
+  @HiveField(30)
+  String? get province;
+  @override
+  @HiveField(31)
+  String? get palika;
   @override
   @JsonKey(ignore: true)
   _$$CompanyModelImplCopyWith<_$CompanyModelImpl> get copyWith =>

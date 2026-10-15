@@ -73,6 +73,26 @@ void main() {
     expect(hiveService.companiesBox.isEmpty, isTrue);
   });
 
+  Future<void> pickLocation(WidgetTester tester) async {
+    Future<void> pick(String key, String contains) async {
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(ValueKey(key)),
+          matching: find.byType(DropdownButtonFormField<String>),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final match = find.textContaining(contains);
+      expect(match, findsOneWidget);
+      await tester.tap(match);
+      await tester.pumpAndSettle();
+    }
+
+    await pick('nepal-province', 'Bagmati');
+    await pick('nepal-district', 'Chitwan');
+    await pick('nepal-palika', 'Bharatpur');
+  }
+
   testWidgets('full registration saves and enters the app', (tester) async {
     // Tall viewport: the contact step holds six fields; no scrolling
     // needed to reach every input and action.
@@ -93,9 +113,9 @@ void main() {
     final step1 = find.byType(TextFormField);
     await tester.enterText(step1.at(0), 'Ward 5, New Road');
     await tester.enterText(step1.at(1), 'Kathmandu');
-    await tester.enterText(step1.at(2), 'Kathmandu');
-    await tester.enterText(step1.at(3), '+977 1 4444444');
-    await tester.enterText(step1.at(5), 'info@shree.com.np');
+    await tester.enterText(step1.at(2), '+977 1 4444444');
+    await tester.enterText(step1.at(4), 'info@shree.com.np');
+    await pickLocation(tester);
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
 
@@ -118,6 +138,9 @@ void main() {
     expect(saved.registrationNumber, 'REG-42');
     expect(saved.phone, '+977 1 4444444');
     expect(saved.email, 'info@shree.com.np');
+    expect(saved.province, 'Bagmati');
+    expect(saved.district, 'Chitwan');
+    expect(saved.palika, 'Bharatpur');
     expect(saved.panNumber, '123456789');
     expect(saved.vatNumber, '600000000');
   });

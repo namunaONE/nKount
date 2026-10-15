@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nepal_admin_api/nepal_admin_api.dart';
 import '../../../core/database/hive_service.dart';
 import '../../../core/models/company_model.dart';
 import '../../../packages/design-system/design_system.dart';
@@ -37,7 +38,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   String _regNo = '';
   String _address = '';
   String _city = '';
+  String _provinceId = '';
   String _district = '';
+  String _palika = '';
   String _phone = '';
   String _mobile = '';
   String _email = '';
@@ -102,7 +105,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         registrationNumber: _regNo.trim(),
         address: _address.trim(),
         city: _city.trim().isEmpty ? null : _city.trim(),
+        province: _provinceId.isEmpty
+            ? null
+            : NepalAdminApi.getProvinceById(_provinceId)?.name,
         district: _district.trim().isEmpty ? null : _district.trim(),
+        palika: _palika.trim().isEmpty ? null : _palika.trim(),
         phone: _phone.trim(),
         mobile: _mobile.trim().isEmpty ? null : _mobile.trim(),
         email: _email.trim(),
@@ -293,11 +300,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               onChanged: (v) => _city = v,
             ),
             const SizedBox(height: ClaySpacing.lg),
-            ClayInputWithLabel(
-              label: 'District',
-              hintText: 'e.g. Kathmandu',
-              textInputAction: TextInputAction.next,
-              onChanged: (v) => _district = v,
+            ClayNepalLocationPicker(
+              provinceId: _provinceId.isEmpty ? null : _provinceId,
+              districtName: _district.isEmpty ? null : _district,
+              palikaName: _palika.isEmpty ? null : _palika,
+              onProvinceChanged: (v) => setState(() {
+                _provinceId = v ?? '';
+                _district = '';
+                _palika = '';
+              }),
+              onDistrictChanged: (v) => setState(() {
+                _district = v ?? '';
+                _palika = '';
+              }),
+              onPalikaChanged: (v) => setState(() => _palika = v ?? ''),
+              isRequired: true,
             ),
             const SizedBox(height: ClaySpacing.lg),
             ClayInputWithLabel(

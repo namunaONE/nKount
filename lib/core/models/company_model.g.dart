@@ -47,13 +47,15 @@ class CompanyModelAdapter extends TypeAdapter<CompanyModel> {
       createdAt: fields[27] as DateTime?,
       updatedAt: fields[28] as DateTime?,
       ownerName: fields[29] as String?,
+      province: fields[30] as String?,
+      palika: fields[31] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, CompanyModel obj) {
     writer
-      ..writeByte(30)
+      ..writeByte(32)
       ..writeByte(1)
       ..write(obj.name)
       ..writeByte(0)
@@ -113,7 +115,11 @@ class CompanyModelAdapter extends TypeAdapter<CompanyModel> {
       ..writeByte(28)
       ..write(obj.updatedAt)
       ..writeByte(29)
-      ..write(obj.ownerName);
+      ..write(obj.ownerName)
+      ..writeByte(30)
+      ..write(obj.province)
+      ..writeByte(31)
+      ..write(obj.palika);
   }
 
   @override
@@ -171,6 +177,8 @@ _$CompanyModelImpl _$$CompanyModelImplFromJson(Map<String, dynamic> json) =>
           ? null
           : DateTime.parse(json['updatedAt'] as String),
       ownerName: json['ownerName'] as String?,
+      province: json['province'] as String?,
+      palika: json['palika'] as String?,
     );
 
 Map<String, dynamic> _$$CompanyModelImplToJson(_$CompanyModelImpl instance) =>
@@ -205,4 +213,6 @@ Map<String, dynamic> _$$CompanyModelImplToJson(_$CompanyModelImpl instance) =>
       'createdAt': instance.createdAt?.toIso8601String(),
       'updatedAt': instance.updatedAt?.toIso8601String(),
       'ownerName': instance.ownerName,
+      'province': instance.province,
+      'palika': instance.palika,
     };

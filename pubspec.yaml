@@ -30,6 +30,10 @@ dependencies:
   # Date & Time (Bikram Sambat)
   nepali_utils: ^3.0.8
 
+  # Nepal administrative divisions (offline: 7 provinces, 77 districts,
+  # 753 palikas) for the location picker
+  nepal_admin_api: ^2.7.3
+
   # PDF & Printing
   printing: ^5.11.1
   pdf: ^3.10.7
