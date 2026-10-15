@@ -7,6 +7,7 @@ import '../../../core/models/contact_model.dart';
 import '../../../core/repositories/transaction_repository.dart';
 import '../../../core/services/pdf_service.dart';
 import '../../../core/utils/money.dart';
+import '../../../core/utils/tax_rates.dart';
 import '../../../core/utils/dates.dart';
 import '../../../packages/design-system/design_system.dart';
 
@@ -62,45 +63,51 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
 
   Widget _buildDetailPane(BuildContext context, TransactionModel? selected) {
     if (selected == null) {
-      return const ClayCard(
-        child: Center(
-          child: ClayEmptyState(
-            title: 'Select a transaction',
-            icon: ClayIcons.transactions,
+      return ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: const ClayCard(
+          child: Center(
+            child: ClayEmptyState(
+              title: 'Select a transaction',
+              icon: ClayIcons.transactions,
+            ),
           ),
         ),
       );
     }
     final t = selected;
-    return ClayCard(
-      title: ClaySectionTitle(t.invoiceNumber ?? t.id),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ..._transactionDetailRows(t),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                ClayButton(
-                  onPressed: () => _printInvoice(context, t),
-                  child: const Text('Print / PDF'),
-                ),
-                ClayButton.text(
-                  onPressed: () => _showEditDialog(context, t),
-                  child: const Text('Edit'),
-                ),
-                ClayButton.text(
-                  onPressed: () => _confirmDelete(context, t, ref),
-                  child: const Text('Delete'),
-                ),
-              ],
-            ),
-          ],
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 420),
+      child: ClayCard(
+        title: ClaySectionTitle(t.invoiceNumber ?? t.id),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ..._transactionDetailRows(t),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ClayButton(
+                    onPressed: () => _printInvoice(context, t),
+                    child: const Text('Print / PDF'),
+                  ),
+                  ClayButton.text(
+                    onPressed: () => _showEditDialog(context, t),
+                    child: const Text('Edit'),
+                  ),
+                  ClayButton.text(
+                    onPressed: () => _confirmDelete(context, t, ref),
+                    child: const Text('Delete'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -419,9 +426,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   void _showDetailDialog(BuildContext context, TransactionModel t) =>
       _showTransactionDetailDialog(context, t);
 
-  void _showEditDialog(BuildContext context, TransactionModel t) {
-    // TODO: Implement edit dialog
-  }
+  void _showEditDialog(BuildContext context, TransactionModel t) =>
+      _AddTransactionForm.showEdit(context, t);
 }
 
 /// Transaction detail dialog (top-level so both the screen and the
@@ -722,9 +728,11 @@ String _statusLabel(String status) {
 }
 
 /// Transactions List
-/// Add Transaction Form
+/// Add/Edit Transaction Form: pre-fills from [existing] when editing and
+/// preserves the record identity (id, creation time, line items) on save.
 class _AddTransactionForm extends ConsumerStatefulWidget {
-  const _AddTransactionForm({super.key});
+  const _AddTransactionForm({super.key, this.existing});
+  final TransactionModel? existing;
 
   /// Shows the add-transaction dialog. The form owns validation + saving
   /// and reports success; this pops the dialog and confirms on the caller's
@@ -747,6 +755,32 @@ class _AddTransactionForm extends ConsumerStatefulWidget {
             }
           },
           child: _AddTransactionForm(key: key),
+        );
+      },
+    );
+  }
+
+  /// Shows the edit-transaction dialog for [transaction].
+  static Future<void> showEdit(
+      BuildContext context, TransactionModel transaction) {
+    final key = GlobalKey<_AddTransactionFormState>();
+    return showDialog(
+      context: context,
+      builder: (dialogContext) {
+        final navigator = Navigator.of(dialogContext);
+        final messenger = ScaffoldMessenger.of(context);
+        return ClayFormDialog(
+          title: const Text('Edit Transaction'),
+          onSave: () async {
+            if (await key.currentState?.save() ?? false) {
+              navigator.pop();
+              messenger.showSnackBar(
+                const SnackBar(
+                    content: Text('Transaction updated successfully')),
+              );
+            }
+          },
+          child: _AddTransactionForm(key: key, existing: transaction),
         );
       },
     );
@@ -776,31 +810,68 @@ class _AddTransactionFormState extends ConsumerState<_AddTransactionForm> {
   bool _isVatIncluded = true;
   double _vatRate = 13.0;
 
+  @override
+  void initState() {
+    super.initState();
+    _vatRate = defaultVatRate(ref.read(hiveServiceProvider).taxRatesBox);
+    final existing = widget.existing;
+    if (existing == null) return;
+    _type = existing.type;
+    _invoiceNumber = existing.invoiceNumber ?? '';
+    _contactId = existing.contactId;
+    _subtotal = existing.subtotal;
+    _discount = existing.discount;
+    _tax = existing.tax;
+    _total = existing.total;
+    _paidAmount = existing.paidAmount;
+    _paymentStatus = existing.paymentStatus;
+    _paymentMethod = existing.paymentMethod ?? AppConstants.paymentCash;
+    _referenceNumber = existing.referenceNumber ?? '';
+    _date = existing.date;
+    _dueDate = existing.dueDate;
+    _notes = existing.notes ?? '';
+    _isVatIncluded = existing.isVatIncluded;
+    _vatRate = existing.vatRate;
+  }
+
   Future<bool> save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return false;
     final hive = ref.read(hiveServiceProvider);
-    await TransactionRepository(hive.transactionsBox).saveTransaction(
-      TransactionModel.create(
-        type: _type,
-        contactId: _contactId.trim(),
-        invoiceNumber:
-            _invoiceNumber.trim().isEmpty ? null : _invoiceNumber.trim(),
-        subtotal: _subtotal,
-        discount: _discount,
-        tax: _tax,
-        total: _total,
-        paidAmount: _paidAmount,
-        paymentStatus: _paymentStatus,
-        paymentMethod: _paymentMethod,
-        referenceNumber:
-            _referenceNumber.trim().isEmpty ? null : _referenceNumber.trim(),
-        date: _date,
-        dueDate: _dueDate,
-        notes: _notes.trim().isEmpty ? null : _notes.trim(),
-        isVatIncluded: _isVatIncluded,
-        vatRate: _vatRate,
-      ),
+    final created = TransactionModel.create(
+      type: _type,
+      contactId: _contactId.trim(),
+      invoiceNumber:
+          _invoiceNumber.trim().isEmpty ? null : _invoiceNumber.trim(),
+      items: widget.existing?.items,
+      subtotal: _subtotal,
+      discount: _discount,
+      tax: _tax,
+      total: _total,
+      paidAmount: _paidAmount,
+      paymentStatus: _paymentStatus,
+      paymentMethod: _paymentMethod,
+      referenceNumber:
+          _referenceNumber.trim().isEmpty ? null : _referenceNumber.trim(),
+      date: _date,
+      dueDate: _dueDate,
+      notes: _notes.trim().isEmpty ? null : _notes.trim(),
+      isVatIncluded: _isVatIncluded,
+      vatRate: _vatRate,
     );
+    final existing = widget.existing;
+    if (existing == null) {
+      await TransactionRepository(hive.transactionsBox)
+          .saveTransaction(created);
+    } else {
+      // Rebuild recalculates totals/due from the edited inputs; identity
+      // (id, creation time) carries over to the updated record.
+      await TransactionRepository(hive.transactionsBox).updateTransaction(
+        created.copyWith(
+          id: existing.id,
+          createdAt: existing.createdAt,
+        ),
+      );
+    }
     ref.invalidate(transactionsProvider);
     return true;
   }
@@ -976,8 +1047,9 @@ class _AddTransactionFormState extends ConsumerState<_AddTransactionForm> {
                       label: 'VAT Rate %',
                       hintText: 'VAT rate',
                       value: _vatRate.toString(),
-                      onChanged: (value) =>
-                          _vatRate = double.tryParse(value) ?? 13.0,
+                      onChanged: (value) => setState(
+                        () => _vatRate = double.tryParse(value) ?? _vatRate,
+                      ),
                       keyboardType: TextInputType.number,
                     ),
                   ),

@@ -1,4 +1,4 @@
-// Dialogs, inputs, and the BS date picker.
+﻿// Dialogs, inputs, and the BS date picker.
 part of '../design_system.dart';
 
 /// Dialog wrapper.
@@ -383,7 +383,7 @@ class ClayDateInput extends StatelessWidget {
   }
 }
 
-/// Currency/amount input with tabular figures and रू prefix.
+/// Currency/amount input with tabular figures and à¤°à¥‚ prefix.
 class ClayCurrencyInput extends StatelessWidget {
   const ClayCurrencyInput({
     required this.label,
@@ -433,7 +433,7 @@ class ClayCurrencyInput extends StatelessWidget {
             enabled: enabled,
             decoration: InputDecoration(
               hintText: hintText,
-              prefixText: 'रू ',
+              prefixText: 'à¤°à¥‚ ',
             ),
           ),
         ],
@@ -807,5 +807,220 @@ class _BsMonthGrid extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+enum ToastVariant { success, error, info, warning }
+
+class ClayToast {
+  ClayToast._();
+
+  static ClayToastController show(
+    BuildContext context,
+    String message, {
+    ToastVariant variant = ToastVariant.info,
+    Duration duration = const Duration(seconds: 4),
+  }) {
+    final controller = ClayToastController._();
+    _ClayToastOverlay.insert(
+      context,
+      _ToastEntry(
+        message: message,
+        variant: variant,
+        duration: duration,
+        controller: controller,
+      ),
+    );
+    return controller;
+  }
+
+  static void success(BuildContext context, String message) =>
+      show(context, message, variant: ToastVariant.success);
+
+  static void error(BuildContext context, String message) =>
+      show(context, message, variant: ToastVariant.error);
+
+  static void info(BuildContext context, String message) =>
+      show(context, message, variant: ToastVariant.info);
+
+  static void warning(BuildContext context, String message) =>
+      show(context, message, variant: ToastVariant.warning);
+}
+
+class ClayToastController {
+  ClayToastController._();
+  void dismiss() => _ClayToastOverlay.dismiss(this);
+}
+
+class _ToastEntry {
+  const _ToastEntry({
+    required this.message,
+    required this.variant,
+    required this.duration,
+    required this.controller,
+  });
+  final String message;
+  final ToastVariant variant;
+  final Duration duration;
+  final ClayToastController controller;
+}
+
+class _ClayToastOverlay {
+  static final List<_ToastEntry> _stack = [];
+  static final Map<ClayToastController, _ToastEntry> _byController = {};
+
+  static void insert(BuildContext context, _ToastEntry entry) {
+    final overlay = Overlay.of(context);
+    if (_stack.isEmpty) {
+      _stack.add(entry);
+      _byController[entry.controller] = entry;
+      _showNext(overlay);
+    } else {
+      _stack.add(entry);
+    }
+  }
+
+  static void _showNext(OverlayState overlay) {
+    if (_stack.isEmpty) return;
+    final entry = _stack.first;
+    late OverlayEntry overlayEntry;
+    overlayEntry = OverlayEntry(
+      builder: (context) => _ToastWidget(
+        entry: entry,
+        onDismiss: () {
+          _stack.remove(entry);
+          _byController.remove(entry.controller);
+          overlayEntry.remove();
+          _showNext(overlay);
+        },
+      ),
+    );
+    overlay.insert(overlayEntry);
+    Future.delayed(entry.duration, () {
+      if (_stack.isNotEmpty && _stack.first == entry) {
+        overlayEntry.remove();
+        _stack.remove(entry);
+        _byController.remove(entry.controller);
+        _showNext(overlay);
+      }
+    });
+  }
+
+  static void dismiss(ClayToastController controller) {
+    final entry = _byController[controller];
+    if (entry != null) {
+      _stack.remove(entry);
+      _byController.remove(controller);
+    }
+  }
+}
+
+class _ToastWidget extends StatefulWidget {
+  const _ToastWidget({
+    required this.entry,
+    required this.onDismiss,
+  });
+  final _ToastEntry entry;
+  final VoidCallback onDismiss;
+
+  @override
+  State<_ToastWidget> createState() => _ToastWidgetState();
+}
+
+class _ToastWidgetState extends State<_ToastWidget>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: ClayMotion.short,
+  );
+  late final Animation<Offset> _slide = Tween<Offset>(
+    begin: const Offset(0, 1),
+    end: Offset.zero,
+  ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+  late final Animation<double> _fade = Tween<double>(
+    begin: 0,
+    end: 1,
+  ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final (bg, fg, icon) = switch (widget.entry.variant) {
+      ToastVariant.success => (
+          scheme.secondaryContainer,
+          scheme.onSecondaryContainer,
+          Icons.check_circle_rounded
+        ),
+      ToastVariant.error => (
+          scheme.errorContainer,
+          scheme.onErrorContainer,
+          Icons.error_rounded
+        ),
+      ToastVariant.warning => (
+          scheme.tertiaryContainer,
+          scheme.onTertiaryContainer,
+          Icons.warning_amber_rounded
+        ),
+      ToastVariant.info => (
+          scheme.primaryContainer,
+          scheme.onPrimaryContainer,
+          Icons.info_rounded
+        ),
+    };
+    return SlideTransition(
+        position: _slide,
+        child: FadeTransition(
+          opacity: _fade,
+          child: SafeArea(
+            minimum: const EdgeInsets.all(16),
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Dismissible(
+                key: ValueKey(widget.entry),
+                direction: DismissDirection.horizontal,
+                onDismissed: (_) => widget.onDismiss(),
+                child: Material(
+                  color: bg,
+                  elevation: ClayElevation.level3,
+                  borderRadius: ClayRadius.medium,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: ClaySpacing.lg,
+                      vertical: ClaySpacing.md,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(icon, color: fg, size: 20),
+                        const SizedBox(width: ClaySpacing.sm),
+                        Flexible(
+                          child: Text(
+                            widget.entry.message,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(color: fg),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ));
   }
 }

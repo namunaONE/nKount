@@ -6,6 +6,7 @@ import '../../../core/models/transaction_model.dart';
 import '../../../core/repositories/transaction_repository.dart';
 import '../../../core/utils/dates.dart';
 import '../../../core/utils/money.dart';
+import '../../../core/utils/tax_rates.dart';
 import '../../../packages/design-system/design_system.dart';
 
 /// Configuration covering everything that differs between the
@@ -675,8 +676,12 @@ class _AddSimpleFlowFormState extends ConsumerState<_AddSimpleFlowForm> {
   void initState() {
     super.initState();
     _source = 'General';
-    _vatRate = widget.config.defaultVatRate;
     _isVatIncluded = widget.config.defaultVatIncluded;
+    // Income stays VAT-free by design; everything else follows the live
+    // default VAT record instead of a hardcoded 13.0.
+    _vatRate = widget.config.type == AppConstants.transactionIncome
+        ? widget.config.defaultVatRate
+        : defaultVatRate(ref.read(hiveServiceProvider).taxRatesBox);
   }
 
   @override
@@ -757,8 +762,9 @@ class _AddSimpleFlowFormState extends ConsumerState<_AddSimpleFlowForm> {
                       label: 'VAT Rate %',
                       hintText: widget.config.formVatHint,
                       value: _vatRate.toString(),
-                      onChanged: (value) => _vatRate = double.tryParse(value) ??
-                          widget.config.defaultVatRate,
+                      onChanged: (value) => setState(
+                        () => _vatRate = double.tryParse(value) ?? _vatRate,
+                      ),
                       keyboardType: TextInputType.number,
                     ),
                   ),

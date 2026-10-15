@@ -6,10 +6,37 @@ import 'package:nepali_utils/nepali_utils.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/database/hive_service.dart';
 import '../../../core/models/transaction_model.dart';
-import '../../../core/providers/theme_provider.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/utils/dates.dart';
 import '../../../packages/design-system/design_system.dart';
+
+/// Small logo mark: navy container with first letter or icon.
+/// Replace with your SVG/PNG asset when available.
+class _LogoMark extends StatelessWidget {
+  const _LogoMark();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: 28,
+      height: 28,
+      decoration: BoxDecoration(
+        color: scheme.primary,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        'nK',
+        style: TextStyle(
+          color: scheme.onPrimary,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
 
 /// Dashboard Screen: answers "how is my business today" at a glance.
 class DashboardScreen extends ConsumerWidget {
@@ -18,19 +45,16 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) => ClayScaffold(
         appBar: ClayAppBar(
-          title: const Text(AppConstants.appName),
-          subtitle: const Text('Nepali Accounting Software'),
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const _LogoMark(),
+              const SizedBox(width: 8),
+              const Text(AppConstants.appName),
+            ],
+          ),
           actions: [
             const Center(child: _FiscalChip()),
-            Consumer(builder: (context, ref, _) {
-              final dark = ref.watch(themeModeProvider) == ThemeMode.dark;
-              return ClayIconButton(
-                icon: dark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                onPressed: () => ref.read(themeModeProvider.notifier).state =
-                    dark ? ThemeMode.light : ThemeMode.dark,
-                tooltip: 'Toggle dark mode',
-              );
-            }),
             const ClayCommandSearch(),
           ],
         ),
@@ -81,8 +105,8 @@ class _FiscalChip extends StatelessWidget {
   }
 }
 
-/// Greeting header with BS long date + FY context, personalized with the
-/// registered business name and owner when onboarding is complete.
+/// Minimal greeting header: business name + BS date + FY chip.
+/// No gradient card — just typography on the scaffold background.
 class _Header extends ConsumerWidget {
   const _Header();
 
@@ -109,42 +133,37 @@ class _Header extends ConsumerWidget {
       company?.district,
       company?.province,
     ].where((e) => e != null && e.isNotEmpty).join(', ');
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [scheme.primary, scheme.tertiary],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          company == null ? greeting : '$greeting, ${company.name}',
+          style: text.displaySmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: scheme.onSurface,
+          ),
         ),
-        borderRadius: ClayRadius.large,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            company == null ? greeting : '$greeting, ${company.name}',
-            style: text.displaySmall?.copyWith(color: scheme.onPrimary),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '$bsLong • FY $fy',
-            style: text.bodyMedium?.copyWith(
-              color: scheme.onPrimary.withValues(alpha: 0.8),
-            ),
-          ),
-          if (owner != null && owner.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                place.isEmpty ? owner : '$owner • $place',
-                style: text.bodyMedium?.copyWith(
-                  color: scheme.onPrimary.withValues(alpha: 0.8),
-                ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Text(
+              '$bsLong • FY $fy',
+              style: text.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
               ),
             ),
-        ],
-      ),
+            if (owner != null && owner.isNotEmpty) ...[
+              const SizedBox(width: 12),
+              Text(
+                place.isEmpty ? owner : '$owner • $place',
+                style: text.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ],
     );
   }
 }

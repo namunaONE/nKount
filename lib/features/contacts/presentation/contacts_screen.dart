@@ -45,49 +45,53 @@ class _ContactsScreenState extends ConsumerState<ContactsScreen> {
     }
   }
 
-  /// Detail pane reusing the dialog's rows and callbacks (Edit stub + Delete).
+  /// Detail pane reusing the dialog's rows and callbacks (Edit + Delete).
   Widget _buildDetailPane(ContactModel? contact) {
     if (contact == null) {
-      return const ClayCard(
-        child: ClayEmptyState(
-          title: 'Select a contact',
-          icon: ClayIcons.contacts,
+      return ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: ClayCard(
+          child: ClayEmptyState(
+            title: 'Select a contact',
+            icon: ClayIcons.contacts,
+          ),
         ),
       );
     }
     final c = contact;
-    return ClayCard(
-      title: ClaySectionTitle(c.name),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ..._contactDetailRows(c),
-            const SizedBox(height: 16),
-            Row(
+    return ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: ClayCard(
+          title: ClaySectionTitle(c.name),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  // Same stub as the mobile detail dialog's Edit action.
-                  child: ClayButton(
-                    onPressed: () {},
-                    child: const Text('Edit'),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ClayButton.text(
-                    onPressed: () => _confirmDeleteContact(context, ref, c),
-                    child: const Text('Delete'),
-                  ),
+                ..._contactDetailRows(c),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ClayButton(
+                        onPressed: () => _AddContactForm.showEdit(context, c),
+                        child: const Text('Edit'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ClayButton.text(
+                        onPressed: () => _confirmDeleteContact(context, ref, c),
+                        child: const Text('Delete'),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
+          ),
+        ));
   }
 
   @override
@@ -623,7 +627,10 @@ class _ContactItem extends StatelessWidget {
             child: const Text('Close'),
           ),
           ClayButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.pop(context);
+              _AddContactForm.showEdit(context, contact);
+            },
             child: const Text('Edit'),
           ),
         ],
@@ -632,9 +639,11 @@ class _ContactItem extends StatelessWidget {
   }
 }
 
-/// Add Contact Form
+/// Add/Edit Contact Form: pre-fills from [existing] when editing and
+/// preserves identity plus running balances on save.
 class _AddContactForm extends ConsumerStatefulWidget {
-  const _AddContactForm({super.key});
+  const _AddContactForm({super.key, this.existing});
+  final ContactModel? existing;
 
   /// Shows the add-contact dialog. The form owns validation + saving and
   /// reports success; this pops the dialog and confirms on the caller's
@@ -662,6 +671,30 @@ class _AddContactForm extends ConsumerStatefulWidget {
     );
   }
 
+  /// Shows the edit-contact dialog for [contact].
+  static Future<void> showEdit(BuildContext context, ContactModel contact) {
+    final key = GlobalKey<_AddContactFormState>();
+    return showDialog(
+      context: context,
+      builder: (dialogContext) {
+        final navigator = Navigator.of(dialogContext);
+        final messenger = ScaffoldMessenger.of(context);
+        return ClayFormDialog(
+          title: const Text('Edit Contact'),
+          onSave: () async {
+            if (await key.currentState?.save() ?? false) {
+              navigator.pop();
+              messenger.showSnackBar(
+                const SnackBar(content: Text('Contact updated successfully')),
+              );
+            }
+          },
+          child: _AddContactForm(key: key, existing: contact),
+        );
+      },
+    );
+  }
+
   @override
   ConsumerState<_AddContactForm> createState() => _AddContactFormState();
 }
@@ -682,26 +715,69 @@ class _AddContactFormState extends ConsumerState<_AddContactForm> {
   bool _isActive = true;
   String _remarks = '';
 
+  @override
+  void initState() {
+    super.initState();
+    final existing = widget.existing;
+    if (existing == null) return;
+    _name = existing.name;
+    _phone = existing.phone ?? '';
+    _mobile = existing.mobile ?? '';
+    _email = existing.email ?? '';
+    _address = existing.address ?? '';
+    _city = existing.city ?? '';
+    _district = existing.district ?? '';
+    _vatNumber = existing.vatNumber ?? '';
+    _panNumber = existing.panNumber ?? '';
+    _type = existing.type;
+    _openingBalance = existing.openingBalance;
+    _isActive = existing.isActive;
+    _remarks = existing.remarks ?? '';
+  }
+
   Future<bool> save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return false;
     final hive = ref.read(hiveServiceProvider);
-    await ContactRepository(hive.contactsBox).saveContact(
-      ContactModel.create(
-        name: _name.trim(),
-        phone: _phone.trim().isEmpty ? null : _phone.trim(),
-        mobile: _mobile.trim().isEmpty ? null : _mobile.trim(),
-        email: _email.trim().isEmpty ? null : _email.trim(),
-        address: _address.trim().isEmpty ? null : _address.trim(),
-        city: _city.trim().isEmpty ? null : _city.trim(),
-        district: _district.trim().isEmpty ? null : _district.trim(),
-        vatNumber: _vatNumber.trim().isEmpty ? null : _vatNumber.trim(),
-        panNumber: _panNumber.trim().isEmpty ? null : _panNumber.trim(),
-        type: _type,
-        openingBalance: _openingBalance,
-        isActive: _isActive,
-        remarks: _remarks.trim().isEmpty ? null : _remarks.trim(),
-      ),
-    );
+    final existing = widget.existing;
+    if (existing == null) {
+      await ContactRepository(hive.contactsBox).saveContact(
+        ContactModel.create(
+          name: _name.trim(),
+          phone: _phone.trim().isEmpty ? null : _phone.trim(),
+          mobile: _mobile.trim().isEmpty ? null : _mobile.trim(),
+          email: _email.trim().isEmpty ? null : _email.trim(),
+          address: _address.trim().isEmpty ? null : _address.trim(),
+          city: _city.trim().isEmpty ? null : _city.trim(),
+          district: _district.trim().isEmpty ? null : _district.trim(),
+          vatNumber: _vatNumber.trim().isEmpty ? null : _vatNumber.trim(),
+          panNumber: _panNumber.trim().isEmpty ? null : _panNumber.trim(),
+          type: _type,
+          openingBalance: _openingBalance,
+          isActive: _isActive,
+          remarks: _remarks.trim().isEmpty ? null : _remarks.trim(),
+        ),
+      );
+    } else {
+      // Identity and running balances carry over; only the edited
+      // profile fields change.
+      await ContactRepository(hive.contactsBox).updateContact(
+        existing.copyWith(
+          name: _name.trim(),
+          phone: _phone.trim().isEmpty ? null : _phone.trim(),
+          mobile: _mobile.trim().isEmpty ? null : _mobile.trim(),
+          email: _email.trim().isEmpty ? null : _email.trim(),
+          address: _address.trim().isEmpty ? null : _address.trim(),
+          city: _city.trim().isEmpty ? null : _city.trim(),
+          district: _district.trim().isEmpty ? null : _district.trim(),
+          vatNumber: _vatNumber.trim().isEmpty ? null : _vatNumber.trim(),
+          panNumber: _panNumber.trim().isEmpty ? null : _panNumber.trim(),
+          type: _type,
+          openingBalance: _openingBalance,
+          isActive: _isActive,
+          remarks: _remarks.trim().isEmpty ? null : _remarks.trim(),
+        ),
+      );
+    }
     ref.invalidate(contactsProvider);
     return true;
   }

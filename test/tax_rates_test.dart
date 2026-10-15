@@ -3,11 +3,10 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nkount/core/database/hive_service.dart';
 import 'package:nkount/core/models/tax_rate_model.dart';
-import 'package:nkount/features/settings/presentation/settings_screen.dart'
-    show defaultVatRate;
+import 'package:nkount/core/utils/tax_rates.dart';
 
 /// Tax rate catalog logic as plain tests (no widgets): the multi-write
-/// flows — set-default batching, add/delete round-trips — run in the real
+/// flows â€” set-default batching, add/delete round-trips â€” run in the real
 /// zone here, where repeated Hive writes are safe.
 void main() {
   setUpAll(() async {
@@ -39,7 +38,7 @@ void main() {
 
   test('seeded default VAT rate is 13%', () {
     expect(hiveService.taxRatesBox.length, 4);
-    expect(defaultVatRate(), 13.0);
+    expect(defaultVatRate(hiveService.taxRatesBox), 13.0);
   });
 
   test('set-default batches to exactly one default (single putAll)', () async {
@@ -50,7 +49,7 @@ void main() {
         r.id: r.copyWith(isDefault: r.id == vatZero.id),
     });
 
-    expect(defaultVatRate(), 0.0);
+    expect(defaultVatRate(hiveService.taxRatesBox), 0.0);
     expect(
       hiveService.taxRatesBox.values.where((r) => r.isVat && r.isDefault),
       hasLength(1),
@@ -63,7 +62,7 @@ void main() {
       for (final r in hiveService.taxRatesBox.values.where((r) => r.isVat))
         r.id: r.copyWith(isDefault: r.id == vat.id),
     });
-    expect(defaultVatRate(), 13.0);
+    expect(defaultVatRate(hiveService.taxRatesBox), 13.0);
   });
 
   test('deactivated default falls back to the standard', () async {
@@ -74,13 +73,13 @@ void main() {
       vat.copyWith(isActive: false),
     );
     // No active default left: falls back across inactive, then standard.
-    expect(defaultVatRate(), 13.0);
+    expect(defaultVatRate(hiveService.taxRatesBox), 13.0);
 
     await hiveService.taxRatesBox.put(
       vat.id,
       vat.copyWith(isActive: true),
     );
-    expect(defaultVatRate(), 13.0);
+    expect(defaultVatRate(hiveService.taxRatesBox), 13.0);
   });
 
   test('add and delete round-trip', () async {

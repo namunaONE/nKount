@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/database/hive_service.dart';
+import '../../core/models/contact_model.dart';
 import '../../core/models/payment_model.dart';
+import '../../core/models/transaction_model.dart';
+import '../../core/repositories/contact_repository.dart';
 import '../../core/repositories/payment_repository.dart';
+import '../../core/repositories/transaction_repository.dart';
+import '../../core/services/pdf_service.dart';
 import '../../core/utils/dates.dart';
 import '../../core/utils/money.dart';
 import '../../packages/design-system/design_system.dart';
@@ -354,20 +359,20 @@ class _MoneyFlowList extends ConsumerWidget {
 }
 
 /// Money-flow item
-class _MoneyFlowItem extends StatelessWidget {
+class _MoneyFlowItem extends ConsumerWidget {
   const _MoneyFlowItem({required this.config, required this.item});
   final MoneyFlowConfig config;
   final PaymentModel item;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     final status = item.isClearedPayment ? 'Cleared' : 'Pending';
     final accent = config.fixedItemColor ?? _typeColor(item.type);
     final icon = config.fixedItemIcon ?? _typeIcon(item.type);
     return ClayCard(
-      onTap: () => _showDetailDialog(context, item),
+      onTap: () => _showDetailDialog(context, ref, item),
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
@@ -451,7 +456,8 @@ class _MoneyFlowItem extends StatelessWidget {
     );
   }
 
-  void _showDetailDialog(BuildContext context, PaymentModel item) {
+  void _showDetailDialog(
+      BuildContext context, WidgetRef ref, PaymentModel item) {
     showDialog(
       context: context,
       builder: (context) => ClayDialog(
@@ -538,12 +544,15 @@ class _MoneyFlowItem extends StatelessWidget {
             child: const Text('Close'),
           ),
           ClayButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.pop(context);
+              _MoneyFlowForm.showEdit(context, config, item);
+            },
             child: const Text('Edit'),
           ),
           if (config.showDeleteAction)
             ClayButton(
-              onPressed: () {},
+              onPressed: () => _confirmDeletePayment(context, ref, item),
               style: ClayButtonStyle(
                 backgroundColor: ClayColors.error.withValues(alpha: 0.1),
                 foregroundColor: ClayColors.error,
@@ -552,7 +561,7 @@ class _MoneyFlowItem extends StatelessWidget {
             ),
           if (config.showPrintAction)
             ClayButton(
-              onPressed: () => _showPrintOptions(context, item),
+              onPressed: () => _showPrintOptions(context, ref, item),
               icon: ClayIcons.print,
               child: const Text('Print'),
             ),
@@ -561,7 +570,50 @@ class _MoneyFlowItem extends StatelessWidget {
     );
   }
 
-  void _showPrintOptions(BuildContext context, PaymentModel item) {
+  /// Deletes a payment and reverses its effects: the linked transaction's
+  /// paid/due move back and the contact balance is restored through the
+  /// negated record direction (the record math is linear in amount).
+  Future<void> _confirmDeletePayment(
+    BuildContext context,
+    WidgetRef ref,
+    PaymentModel item,
+  ) async {
+    if (!await showClayConfirmDialog(
+      context,
+      title: 'Delete Payment?',
+      message: 'Delete this ${item.type} of ${formatCurrency(item.amount)}? '
+          'Balances will be restored. This cannot be undone.',
+      confirmLabel: 'Delete',
+    )) {
+      return;
+    }
+    final hive = ref.read(hiveServiceProvider);
+    final transaction = hive.transactionsBox.get(item.transactionId);
+    if (transaction != null) {
+      await TransactionRepository(hive.transactionsBox).updateTransaction(
+        _shiftTransactionPaid(transaction, -item.amount),
+      );
+    }
+    final contact = hive.contactsBox.get(item.contactId);
+    if (contact != null) {
+      await ContactRepository(hive.contactsBox).updateContact(
+        contact.copyWithTransaction(
+          transactionType: item.type,
+          amount: -item.amount,
+        ),
+      );
+    }
+    await PaymentRepository(hive.paymentsBox).deletePayment(item.id);
+    ref.invalidate(moneyFlowProvider(item.type));
+    if (!context.mounted) return;
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Payment deleted successfully')),
+    );
+  }
+
+  void _showPrintOptions(
+      BuildContext context, WidgetRef ref, PaymentModel item) {
     showDialog(
       context: context,
       builder: (context) => ClayDialog(
@@ -572,7 +624,7 @@ class _MoneyFlowItem extends StatelessWidget {
             ClayButton(
               onPressed: () {
                 Navigator.pop(context);
-                // TODO: Implement print
+                _printReceipt(ref, context, item, share: false);
               },
               child: const Text('Print Receipt'),
             ),
@@ -580,7 +632,7 @@ class _MoneyFlowItem extends StatelessWidget {
             ClayButton.outlined(
               onPressed: () {
                 Navigator.pop(context);
-                // TODO: Implement PDF
+                _printReceipt(ref, context, item, share: true);
               },
               child: const Text('Save as PDF'),
             ),
@@ -588,7 +640,7 @@ class _MoneyFlowItem extends StatelessWidget {
             ClayButton.outlined(
               onPressed: () {
                 Navigator.pop(context);
-                // TODO: Implement share
+                _printReceipt(ref, context, item, share: true);
               },
               child: const Text('Share'),
             ),
@@ -596,6 +648,56 @@ class _MoneyFlowItem extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Builds the payment receipt PDF and either sends it to the printer
+  /// or the platform share sheet (which saves on desktop).
+  Future<void> _printReceipt(
+    WidgetRef ref,
+    BuildContext context,
+    PaymentModel item, {
+    required bool share,
+  }) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final hive = ref.read(hiveServiceProvider);
+      final companies = hive.companiesBox.values.toList();
+      if (companies.isEmpty) {
+        messenger.showSnackBar(
+          const SnackBar(
+              content: Text('Add your company profile in Settings first')),
+        );
+        return;
+      }
+      final contact = hive.contactsBox.get(item.contactId) ??
+          ContactModel.create(name: 'Walk-in Customer');
+      final transaction = hive.transactionsBox.get(item.transactionId);
+      if (transaction == null) {
+        messenger.showSnackBar(
+          const SnackBar(
+              content: Text('Linked transaction not found for this payment')),
+        );
+        return;
+      }
+      final pdfBytes = await pdfService.generateReceiptPdf(
+        transaction: transaction,
+        company: companies.first,
+        contact: contact,
+        amount: item.amount,
+        paymentMethod: item.method,
+        referenceNumber: item.referenceNumber ?? item.invoiceNumber ?? item.id,
+      );
+      if (share) {
+        await pdfService.sharePdf(
+          pdfBytes,
+          fileName: 'receipt-${item.id.substring(0, 8)}.pdf',
+        );
+      } else {
+        await pdfService.printPdf(pdfBytes, jobName: 'Payment Receipt');
+      }
+    } on Exception catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Print failed: $e')));
+    }
   }
 }
 
@@ -639,22 +741,85 @@ Color _statusColor(BuildContext context, String status) {
   }
 }
 
-/// Add money-flow form
+/// Shifts a transaction's paid/due by [delta] (negative reverses),
+/// recomputing the status with the same thresholds recording uses.
+TransactionModel _shiftTransactionPaid(
+    TransactionModel transaction, double delta) {
+  final paid = transaction.paidAmount + delta;
+  final due = transaction.total - paid;
+  final status = due <= 0
+      ? AppConstants.paymentStatusPaid
+      : (due < transaction.total
+          ? AppConstants.paymentStatusPartial
+          : AppConstants.paymentStatusPending);
+  return transaction.copyWith(
+    paidAmount: paid,
+    dueAmount: due,
+    paymentStatus: status,
+    updatedAt: DateTime.now(),
+  );
+}
+
+/// Add/Edit money-flow form: pre-fills from [existing] when editing.
+/// Amount edits re-apply the balance delta in the record direction
+/// (README rule), so contact balances and transaction paid/due stay exact.
 class _MoneyFlowForm extends ConsumerStatefulWidget {
-  const _MoneyFlowForm({required this.config, super.key});
+  const _MoneyFlowForm({required this.config, super.key, this.existing});
 
   final MoneyFlowConfig config;
+  final PaymentModel? existing;
 
-  /// Shows the add dialog (form owns validation + save).
+  /// Shows the add dialog. The form owns validation + saving and reports
+  /// success; this pops the dialog and confirms on the caller's context.
   static Future<void> show(BuildContext context, MoneyFlowConfig config) {
     final key = GlobalKey<_MoneyFlowFormState>();
     return showDialog(
       context: context,
-      builder: (_) => ClayFormDialog(
-        title: Text(config.formTitle),
-        onSave: () => key.currentState?._save(),
-        child: _MoneyFlowForm(key: key, config: config),
-      ),
+      builder: (dialogContext) {
+        final navigator = Navigator.of(dialogContext);
+        final messenger = ScaffoldMessenger.of(context);
+        return ClayFormDialog(
+          title: Text(config.formTitle),
+          onSave: () async {
+            if (await key.currentState?.save() ?? false) {
+              navigator.pop();
+              messenger.showSnackBar(
+                const SnackBar(content: Text('Payment saved successfully')),
+              );
+            }
+          },
+          child: _MoneyFlowForm(key: key, config: config),
+        );
+      },
+    );
+  }
+
+  /// Shows the edit dialog for [payment]. The record type is immutable —
+  /// only amount, method, references, dates and notes change.
+  static Future<void> showEdit(
+    BuildContext context,
+    MoneyFlowConfig config,
+    PaymentModel payment,
+  ) {
+    final key = GlobalKey<_MoneyFlowFormState>();
+    return showDialog(
+      context: context,
+      builder: (dialogContext) {
+        final navigator = Navigator.of(dialogContext);
+        final messenger = ScaffoldMessenger.of(context);
+        return ClayFormDialog(
+          title: const Text('Edit Payment'),
+          onSave: () async {
+            if (await key.currentState?.save() ?? false) {
+              navigator.pop();
+              messenger.showSnackBar(
+                const SnackBar(content: Text('Payment updated successfully')),
+              );
+            }
+          },
+          child: _MoneyFlowForm(key: key, config: config, existing: payment),
+        );
+      },
     );
   }
 
@@ -677,34 +842,91 @@ class _MoneyFlowFormState extends ConsumerState<_MoneyFlowForm> {
   DateTime? _date;
   String _notes = '';
 
-  Future<void> _save() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+  @override
+  void initState() {
+    super.initState();
+    final existing = widget.existing;
+    if (existing == null) return;
+    _type = existing.type;
+    _transactionId = existing.transactionId;
+    _invoiceNumber = existing.invoiceNumber ?? '';
+    _contactId = existing.contactId;
+    _amount = existing.amount;
+    _method = existing.method;
+    _referenceNumber = existing.referenceNumber ?? '';
+    _bankName = existing.bankName ?? '';
+    _chequeNumber = existing.chequeNumber ?? '';
+    _chequeDate = existing.chequeDate;
+    _date = existing.date;
+    _notes = existing.notes ?? '';
+  }
+
+  Future<bool> save() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return false;
     final hive = ref.read(hiveServiceProvider);
-    await PaymentRepository(hive.paymentsBox).savePayment(
-      PaymentModel.create(
-        type: _type,
-        transactionId: _transactionId.trim(),
-        invoiceNumber:
-            _invoiceNumber.trim().isEmpty ? null : _invoiceNumber.trim(),
-        contactId: _contactId.trim(),
+    final existing = widget.existing;
+    if (existing == null) {
+      await PaymentRepository(hive.paymentsBox).savePayment(
+        PaymentModel.create(
+          type: _type,
+          transactionId: _transactionId.trim(),
+          invoiceNumber:
+              _invoiceNumber.trim().isEmpty ? null : _invoiceNumber.trim(),
+          contactId: _contactId.trim(),
+          amount: _amount,
+          method: _method,
+          referenceNumber:
+              _referenceNumber.trim().isEmpty ? null : _referenceNumber.trim(),
+          bankName: _bankName.trim().isEmpty ? null : _bankName.trim(),
+          chequeNumber:
+              _chequeNumber.trim().isEmpty ? null : _chequeNumber.trim(),
+          chequeDate: _chequeDate,
+          date: _date ?? DateTime.now(),
+          notes: _notes.trim().isEmpty ? null : _notes.trim(),
+        ),
+      );
+      ref.invalidate(moneyFlowProvider(_type));
+      return true;
+    }
+    await PaymentRepository(hive.paymentsBox).updatePayment(
+      existing.copyWith(
         amount: _amount,
         method: _method,
+        invoiceNumber:
+            _invoiceNumber.trim().isEmpty ? null : _invoiceNumber.trim(),
         referenceNumber:
             _referenceNumber.trim().isEmpty ? null : _referenceNumber.trim(),
         bankName: _bankName.trim().isEmpty ? null : _bankName.trim(),
         chequeNumber:
             _chequeNumber.trim().isEmpty ? null : _chequeNumber.trim(),
         chequeDate: _chequeDate,
-        date: _date ?? DateTime.now(),
+        date: _date ?? existing.date,
         notes: _notes.trim().isEmpty ? null : _notes.trim(),
       ),
     );
-    ref.invalidate(moneyFlowProvider(_type));
-    if (!mounted) return;
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Payment saved successfully')),
-    );
+    // Re-apply the amount delta through the same chain recording uses:
+    // transaction paid/due plus the contact balance in record direction.
+    // Linear in amount, so a negative delta reverses cleanly.
+    final delta = _amount - existing.amount;
+    if (delta != 0) {
+      final transaction = hive.transactionsBox.get(existing.transactionId);
+      if (transaction != null) {
+        await TransactionRepository(hive.transactionsBox).updateTransaction(
+          _shiftTransactionPaid(transaction, delta),
+        );
+      }
+      final contact = hive.contactsBox.get(existing.contactId);
+      if (contact != null) {
+        await ContactRepository(hive.contactsBox).updateContact(
+          contact.copyWithTransaction(
+            transactionType: existing.type,
+            amount: delta,
+          ),
+        );
+      }
+    }
+    ref.invalidate(moneyFlowProvider(existing.type));
+    return true;
   }
 
   @override

@@ -187,35 +187,40 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                         Expanded(
                           flex: 1,
                           child: SingleChildScrollView(
-                            child: selected == null
-                                ? const ClayCard(
-                                    child: ClayEmptyState(
-                                      title: 'Select a product',
-                                      icon: ClayIcons.products,
-                                    ),
-                                  )
-                                : ClayCard(
-                                    title: ClaySectionTitle(selected.name),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          ..._productDetailRows(selected),
-                                          const SizedBox(height: 16),
-                                          Wrap(
-                                            spacing: 8,
-                                            children: _productDetailActions(
-                                              context,
-                                              onClose: () => setState(
-                                                  () => _selectedId = null),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 420),
+                              child: selected == null
+                                  ? const ClayCard(
+                                      child: ClayEmptyState(
+                                        title: 'Select a product',
+                                        icon: ClayIcons.products,
+                                      ),
+                                    )
+                                  : ClayCard(
+                                      title: ClaySectionTitle(selected.name),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            ..._productDetailRows(selected),
+                                            const SizedBox(height: 16),
+                                            Wrap(
+                                              spacing: 8,
+                                              children: _productDetailActions(
+                                                context,
+                                                selected,
+                                                onClose: () => setState(
+                                                    () => _selectedId = null),
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
+                            ),
                           ),
                         ),
                       ],
@@ -511,7 +516,7 @@ List<Widget> _productDetailRows(ProductModel product) => [
 /// Shared product detail actions used by the detail dialog and the
 /// wide-window detail pane (same callbacks in both places). The pane
 /// passes an [onClose] that deselects instead of popping the screen.
-List<Widget> _productDetailActions(BuildContext context,
+List<Widget> _productDetailActions(BuildContext context, ProductModel product,
         {VoidCallback? onClose}) =>
     [
       ClayButton.text(
@@ -519,7 +524,14 @@ List<Widget> _productDetailActions(BuildContext context,
         child: const Text('Close'),
       ),
       ClayButton(
-        onPressed: () {},
+        onPressed: () {
+          if (onClose != null) {
+            _AddProductForm.showEdit(context, product);
+          } else {
+            Navigator.pop(context);
+            _AddProductForm.showEdit(context, product);
+          }
+        },
         child: const Text('Edit'),
       ),
     ];
@@ -535,7 +547,7 @@ void _showProductDetailDialog(BuildContext context, ProductModel product) {
           children: _productDetailRows(product),
         ),
       ),
-      actions: _productDetailActions(context),
+      actions: _productDetailActions(context, product),
     ),
   );
 }
@@ -731,20 +743,59 @@ class _ProductItem extends StatelessWidget {
   }
 }
 
-/// Add Product Form
+/// Add/Edit Product Form: pre-fills from [existing] when editing and
+/// preserves identity plus stock levels on save.
 class _AddProductForm extends ConsumerStatefulWidget {
-  const _AddProductForm({super.key});
+  const _AddProductForm({super.key, this.existing});
+  final ProductModel? existing;
 
-  /// Shows the add-product dialog (form owns validation + save).
+  /// Shows the add-product dialog. The form owns validation + saving and
+  /// reports success; this pops the dialog and confirms on the caller's
+  /// context (the screen underneath, which outlives the dialog).
   static Future<void> show(BuildContext context) {
     final key = GlobalKey<_AddProductFormState>();
     return showDialog(
       context: context,
-      builder: (_) => ClayFormDialog(
-        title: const Text('Add New Product'),
-        onSave: () => key.currentState?._save(),
-        child: _AddProductForm(key: key),
-      ),
+      builder: (dialogContext) {
+        final navigator = Navigator.of(dialogContext);
+        final messenger = ScaffoldMessenger.of(context);
+        return ClayFormDialog(
+          title: const Text('Add New Product'),
+          onSave: () async {
+            if (await key.currentState?.save() ?? false) {
+              navigator.pop();
+              messenger.showSnackBar(
+                const SnackBar(content: Text('Product saved successfully')),
+              );
+            }
+          },
+          child: _AddProductForm(key: key),
+        );
+      },
+    );
+  }
+
+  /// Shows the edit-product dialog for [product].
+  static Future<void> showEdit(BuildContext context, ProductModel product) {
+    final key = GlobalKey<_AddProductFormState>();
+    return showDialog(
+      context: context,
+      builder: (dialogContext) {
+        final navigator = Navigator.of(dialogContext);
+        final messenger = ScaffoldMessenger.of(context);
+        return ClayFormDialog(
+          title: const Text('Edit Product'),
+          onSave: () async {
+            if (await key.currentState?.save() ?? false) {
+              navigator.pop();
+              messenger.showSnackBar(
+                const SnackBar(content: Text('Product updated successfully')),
+              );
+            }
+          },
+          child: _AddProductForm(key: key, existing: product),
+        );
+      },
     );
   }
 
@@ -770,34 +821,77 @@ class _AddProductFormState extends ConsumerState<_AddProductForm> {
   String _description = '';
   bool _isActive = true;
 
-  Future<void> _save() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+  @override
+  void initState() {
+    super.initState();
+    final existing = widget.existing;
+    if (existing == null) return;
+    _name = existing.name;
+    _code = existing.code ?? '';
+    _barcode = existing.barcode ?? '';
+    _category = existing.category ?? '';
+    _brand = existing.brand ?? '';
+    _unit = existing.unit ?? 'Unit';
+    _purchasePrice = existing.purchasePrice;
+    _salePrice = existing.salePrice;
+    _costPrice = existing.costPrice;
+    _quantity = existing.quantity;
+    _minQuantity = existing.minQuantity;
+    _isTaxable = existing.isTaxable;
+    _taxRate = existing.taxRate;
+    _description = existing.description ?? '';
+    _isActive = existing.isActive;
+  }
+
+  Future<bool> save() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return false;
     final hive = ref.read(hiveServiceProvider);
-    await ProductRepository(hive.productsBox).saveProduct(
-      ProductModel.create(
-        name: _name.trim(),
-        code: _code.trim().isEmpty ? null : _code.trim(),
-        barcode: _barcode.trim().isEmpty ? null : _barcode.trim(),
-        category: _category.trim().isEmpty ? null : _category.trim(),
-        brand: _brand.trim().isEmpty ? null : _brand.trim(),
-        unit: _unit.trim().isEmpty ? 'Unit' : _unit.trim(),
-        purchasePrice: _purchasePrice,
-        salePrice: _salePrice,
-        costPrice: _costPrice,
-        quantity: _quantity,
-        minQuantity: _minQuantity,
-        isTaxable: _isTaxable,
-        taxRate: _taxRate,
-        description: _description.trim().isEmpty ? null : _description.trim(),
-        isActive: _isActive,
-      ),
-    );
+    final existing = widget.existing;
+    if (existing == null) {
+      await ProductRepository(hive.productsBox).saveProduct(
+        ProductModel.create(
+          name: _name.trim(),
+          code: _code.trim().isEmpty ? null : _code.trim(),
+          barcode: _barcode.trim().isEmpty ? null : _barcode.trim(),
+          category: _category.trim().isEmpty ? null : _category.trim(),
+          brand: _brand.trim().isEmpty ? null : _brand.trim(),
+          unit: _unit.trim().isEmpty ? 'Unit' : _unit.trim(),
+          purchasePrice: _purchasePrice,
+          salePrice: _salePrice,
+          costPrice: _costPrice,
+          quantity: _quantity,
+          minQuantity: _minQuantity,
+          isTaxable: _isTaxable,
+          taxRate: _taxRate,
+          description: _description.trim().isEmpty ? null : _description.trim(),
+          isActive: _isActive,
+        ),
+      );
+    } else {
+      // Identity and stock levels carry over; only the edited catalog
+      // fields change.
+      await ProductRepository(hive.productsBox).updateProduct(
+        existing.copyWith(
+          name: _name.trim(),
+          code: _code.trim().isEmpty ? null : _code.trim(),
+          barcode: _barcode.trim().isEmpty ? null : _barcode.trim(),
+          category: _category.trim().isEmpty ? null : _category.trim(),
+          brand: _brand.trim().isEmpty ? null : _brand.trim(),
+          unit: _unit.trim().isEmpty ? 'Unit' : _unit.trim(),
+          purchasePrice: _purchasePrice,
+          salePrice: _salePrice,
+          costPrice: _costPrice,
+          quantity: _quantity,
+          minQuantity: _minQuantity,
+          isTaxable: _isTaxable,
+          taxRate: _taxRate,
+          description: _description.trim().isEmpty ? null : _description.trim(),
+          isActive: _isActive,
+        ),
+      );
+    }
     ref.invalidate(productsProvider);
-    if (!mounted) return;
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Product saved successfully')),
-    );
+    return true;
   }
 
   @override

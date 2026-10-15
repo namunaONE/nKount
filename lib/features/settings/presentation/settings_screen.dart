@@ -9,6 +9,7 @@ import '../../../core/database/database_initializer.dart';
 import '../../../core/database/hive_service.dart';
 import '../../../core/models/company_model.dart';
 import '../../../core/models/tax_rate_model.dart';
+import '../../../core/utils/tax_rates.dart';
 import '../../../core/utils/company_validation.dart';
 import '../../../core/utils/web_file.dart';
 import '../../../packages/design-system/design_system.dart';
@@ -245,27 +246,6 @@ class _GeneralSettingsSection extends StatelessWidget {
       );
 }
 
-/// Default VAT rate lookup (single source of truth for the "Default VAT
-/// Rate" row and anywhere else the effective rate is needed).
-///
-/// Prefers the active default VAT record, then any default VAT record,
-/// then the first active VAT record, then the 13% Nepal standard.
-/// Top-level for unit-test coverage.
-double defaultVatRate() {
-  final rates = hiveService.taxRatesBox.values.toList();
-  for (final fallback in [
-    rates.where((r) => r.isVat && r.isDefault && r.isActive),
-    rates.where((r) => r.isVat && r.isDefault),
-    rates.where((r) => r.isVat && r.isActive),
-  ]) {
-    if (fallback.isNotEmpty) return fallback.first.rate;
-  }
-  return AppConstants.defaultVatRate;
-}
-
-/// Formats a percentage without a trailing `.0` (`13.0` → `13%`).
-String _pct(double rate) => rate % 1 == 0 ? '${rate.toInt()}%' : '$rate%';
-
 /// Tax Settings Section: live default VAT record, company tax preferences
 /// (reactive toggles persisted to the registered profile), and the rate
 /// catalog manager. No hardcoded rates or numbers.
@@ -298,7 +278,7 @@ class _TaxSettingsSection extends StatelessWidget {
                     _SettingItem(
                       icon: Icons.percent,
                       label: 'Default VAT Rate',
-                      value: _pct(defaultVatRate()),
+                      value: pct(defaultVatRate(hiveService.taxRatesBox)),
                     ),
                     const Divider(),
                     _SettingItem(
@@ -816,7 +796,7 @@ void _showManageTaxRates(BuildContext context) {
                 final rate = rates[index];
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('${rate.name} · ${_pct(rate.rate)}'),
+                  title: Text('${rate.name} · ${pct(rate.rate)}'),
                   subtitle: Text(
                     '${rate.code} • ${rate.isActive ? 'Active' : 'Inactive'}'
                     '${rate.isVat && rate.isDefault ? ' • Default VAT' : ''}',
