@@ -8,6 +8,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/database/database_initializer.dart';
 import '../../../core/database/hive_service.dart';
 import '../../../core/models/company_model.dart';
+import '../../../core/models/tax_rate_model.dart';
 import '../../../core/utils/company_validation.dart';
 import '../../../core/utils/web_file.dart';
 import '../../../packages/design-system/design_system.dart';
@@ -244,49 +245,119 @@ class _GeneralSettingsSection extends StatelessWidget {
       );
 }
 
-/// Tax Settings Section
+/// Default VAT rate lookup (single source of truth for the "Default VAT
+/// Rate" row and anywhere else the effective rate is needed).
+///
+/// Prefers the active default VAT record, then any default VAT record,
+/// then the first active VAT record, then the 13% Nepal standard.
+/// Top-level for unit-test coverage.
+double defaultVatRate() {
+  final rates = hiveService.taxRatesBox.values.toList();
+  for (final fallback in [
+    rates.where((r) => r.isVat && r.isDefault && r.isActive),
+    rates.where((r) => r.isVat && r.isDefault),
+    rates.where((r) => r.isVat && r.isActive),
+  ]) {
+    if (fallback.isNotEmpty) return fallback.first.rate;
+  }
+  return AppConstants.defaultVatRate;
+}
+
+/// Formats a percentage without a trailing `.0` (`13.0` → `13%`).
+String _pct(double rate) => rate % 1 == 0 ? '${rate.toInt()}%' : '$rate%';
+
+/// Tax Settings Section: live default VAT record, company tax preferences
+/// (reactive toggles persisted to the registered profile), and the rate
+/// catalog manager. No hardcoded rates or numbers.
 class _TaxSettingsSection extends StatelessWidget {
   const _TaxSettingsSection();
 
+  static Future<void> _updateCompany(
+    CompanyModel Function(CompanyModel) update,
+  ) async {
+    final companies = hiveService.companiesBox.values.toList();
+    if (companies.isEmpty) return;
+    final updated = update(companies.first);
+    await hiveService.companiesBox.put(updated.id, updated);
+  }
+
   @override
-  Widget build(BuildContext context) => ClayCard(
-        title: const ClaySectionTitle('Tax Settings'),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              const _SettingItem(
-                icon: Icons.percent,
-                label: 'Default VAT Rate',
-                value: '13%',
+  Widget build(BuildContext context) => ValueListenableBuilder<Box>(
+        valueListenable: hiveService.companiesBox.listenable(),
+        builder: (context, _, __) => ValueListenableBuilder<Box>(
+          valueListenable: hiveService.taxRatesBox.listenable(),
+          builder: (context, _, __) {
+            final companies = hiveService.companiesBox.values.toList();
+            final company = companies.isEmpty ? null : companies.first;
+            return ClayCard(
+              title: const ClaySectionTitle('Tax Settings'),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _SettingItem(
+                      icon: Icons.percent,
+                      label: 'Default VAT Rate',
+                      value: _pct(defaultVatRate()),
+                    ),
+                    const Divider(),
+                    _SettingItem(
+                      icon: Icons.visibility,
+                      label: 'Show VAT on Invoice',
+                      value: '',
+                      trailing: ClaySwitch(
+                        value: company?.showTaxOnInvoice ?? true,
+                        onChanged: company == null
+                            ? null
+                            : (v) async => _updateCompany(
+                                  (c) => c.copyWith(showTaxOnInvoice: v),
+                                ),
+                      ),
+                    ),
+                    const Divider(),
+                    _SettingItem(
+                      icon: Icons.numbers,
+                      label: 'VAT Number',
+                      value: company?.vatNumber ?? '—',
+                    ),
+                    const Divider(),
+                    _SettingItem(
+                      icon: Icons.visibility,
+                      label: 'Show VAT Number on Invoice',
+                      value: '',
+                      trailing: ClaySwitch(
+                        value: company?.showVatNumber ?? true,
+                        onChanged: company == null
+                            ? null
+                            : (v) async => _updateCompany(
+                                  (c) => c.copyWith(showVatNumber: v),
+                                ),
+                      ),
+                    ),
+                    const Divider(),
+                    _SettingItem(
+                      icon: Icons.verified,
+                      label: 'IRD Registered',
+                      value: '',
+                      trailing: ClaySwitch(
+                        value: company?.isIRDRegistered ?? false,
+                        onChanged: company == null
+                            ? null
+                            : (v) async => _updateCompany(
+                                  (c) => c.copyWith(isIRDRegistered: v),
+                                ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ClayButton.text(
+                      onPressed: () => _showManageTaxRates(context),
+                      child: const Text('Manage Tax Rates'),
+                    ),
+                  ],
+                ),
               ),
-              const Divider(),
-              const _SettingItem(
-                icon: Icons.visibility,
-                label: 'Show VAT on Invoice',
-                value: '',
-                trailing: ClaySwitch(value: true, onChanged: null),
-              ),
-              const Divider(),
-              const _SettingItem(
-                icon: Icons.numbers,
-                label: 'VAT Number',
-                value: '600000000',
-              ),
-              const Divider(),
-              const _SettingItem(
-                icon: Icons.visibility,
-                label: 'Show VAT Number on Invoice',
-                value: '',
-                trailing: ClaySwitch(value: true, onChanged: null),
-              ),
-              const SizedBox(height: 12),
-              ClayButton.text(
-                onPressed: () {},
-                child: const Text('Manage Tax Rates'),
-              ),
-            ],
-          ),
+            );
+          },
         ),
       );
 }
@@ -717,6 +788,210 @@ class _EditCompanyForm extends StatefulWidget {
 
   @override
   State<_EditCompanyForm> createState() => _EditCompanyFormState();
+}
+
+/// Tax rate catalog manager: live list with active toggles, default-VAT
+/// selection, add, and guarded delete. All writes go through keyed
+/// `put`/`putAll`/`delete` so the section rows update reactively.
+void _showManageTaxRates(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (dialogContext) => ClayDialog(
+      title: const Text('Manage Tax Rates'),
+      content: SizedBox(
+        width: 520,
+        child: ValueListenableBuilder<Box>(
+          valueListenable: hiveService.taxRatesBox.listenable(),
+          builder: (context, _, __) {
+            final rates = hiveService.taxRatesBox.values.toList()
+              ..sort((a, b) => a.name.compareTo(b.name));
+            if (rates.isEmpty) {
+              return const Text('No tax rates yet. Add one to begin.');
+            }
+            return ListView.separated(
+              shrinkWrap: true,
+              itemCount: rates.length,
+              separatorBuilder: (_, __) => const Divider(),
+              itemBuilder: (context, index) {
+                final rate = rates[index];
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text('${rate.name} · ${_pct(rate.rate)}'),
+                  subtitle: Text(
+                    '${rate.code} • ${rate.isActive ? 'Active' : 'Inactive'}'
+                    '${rate.isVat && rate.isDefault ? ' • Default VAT' : ''}',
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (rate.isVat)
+                        IconButton(
+                          icon: Icon(
+                            rate.isDefault ? Icons.star : Icons.star_border,
+                            color: rate.isDefault
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                          ),
+                          tooltip: rate.isDefault
+                              ? 'Default VAT rate'
+                              : 'Set as default VAT rate',
+                          onPressed: rate.isDefault
+                              ? null
+                              : () async {
+                                  // One batched write: exactly one default.
+                                  final updates = {
+                                    for (final r in hiveService
+                                        .taxRatesBox.values
+                                        .where((r) => r.isVat))
+                                      r.id: r.copyWith(
+                                          isDefault: r.id == rate.id),
+                                  };
+                                  await hiveService.taxRatesBox.putAll(updates);
+                                },
+                        ),
+                      ClaySwitch(
+                        value: rate.isActive,
+                        onChanged: (v) async => hiveService.taxRatesBox.put(
+                          rate.id,
+                          rate.copyWith(isActive: v),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(ClayIcons.delete),
+                        tooltip: rate.isDefault
+                            ? 'The default rate cannot be deleted'
+                            : 'Delete rate',
+                        onPressed: rate.isDefault
+                            ? null
+                            : () async {
+                                if (await showClayConfirmDialog(
+                                  dialogContext,
+                                  title: 'Delete Rate?',
+                                  message:
+                                      'Delete ${rate.name}? This cannot be undone.',
+                                  confirmLabel: 'Delete',
+                                )) {
+                                  await hiveService.taxRatesBox.delete(rate.id);
+                                }
+                              },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ),
+      actions: [
+        ClayButton.text(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: const Text('Close'),
+        ),
+        ClayButton(
+          onPressed: () => _AddTaxRateForm.show(dialogContext),
+          child: const Text('Add Rate'),
+        ),
+      ],
+    ),
+  );
+}
+
+/// Add-tax-rate form: validated name/code/rate plus the VAT flag.
+/// Caller pops and confirms (add-form pattern).
+class _AddTaxRateForm extends StatefulWidget {
+  const _AddTaxRateForm({super.key});
+
+  static Future<void> show(BuildContext context) {
+    final key = GlobalKey<_AddTaxRateFormState>();
+    return showDialog(
+      context: context,
+      builder: (dialogContext) {
+        final navigator = Navigator.of(dialogContext);
+        final messenger = ScaffoldMessenger.of(context);
+        return ClayFormDialog(
+          title: const Text('Add Tax Rate'),
+          onSave: () async {
+            if (await key.currentState?.save() ?? false) {
+              navigator.pop();
+              messenger.showSnackBar(
+                const SnackBar(content: Text('Tax rate added')),
+              );
+            }
+          },
+          child: _AddTaxRateForm(key: key),
+        );
+      },
+    );
+  }
+
+  @override
+  State<_AddTaxRateForm> createState() => _AddTaxRateFormState();
+}
+
+class _AddTaxRateFormState extends State<_AddTaxRateForm> {
+  final _formKey = GlobalKey<FormState>();
+  String _name = '';
+  String _code = '';
+  String _rate = '';
+  bool _isVat = false;
+
+  Future<bool> save() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return false;
+    final rate = TaxRateModel.create(
+      name: _name.trim(),
+      code: _code.trim(),
+      rate: double.parse(_rate.trim()),
+      isVat: _isVat,
+    );
+    await hiveService.taxRatesBox.put(rate.id, rate);
+    return true;
+  }
+
+  @override
+  Widget build(BuildContext context) => Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClayInputWithLabel(
+              label: 'Name',
+              hintText: 'e.g. Luxury Tax',
+              textInputAction: TextInputAction.next,
+              isRequired: true,
+              validator: (v) => CompanyValidators.required(v, 'Name'),
+              onChanged: (v) => _name = v,
+            ),
+            const SizedBox(height: ClaySpacing.lg),
+            ClayInputWithLabel(
+              label: 'Code',
+              hintText: 'e.g. LUX',
+              textInputAction: TextInputAction.next,
+              isRequired: true,
+              validator: (v) => CompanyValidators.required(v, 'Code'),
+              onChanged: (v) => _code = v,
+            ),
+            const SizedBox(height: ClaySpacing.lg),
+            ClayInputWithLabel(
+              label: 'Rate (%)',
+              hintText: 'e.g. 5',
+              keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.done,
+              isRequired: true,
+              validator: (v) => CompanyValidators.percentage(v, 'Rate'),
+              onChanged: (v) => _rate = v,
+            ),
+            const SizedBox(height: ClaySpacing.lg),
+            ClaySwitchInput(
+              label: 'VAT rate',
+              value: _isVat,
+              onChanged: (v) => setState(() => _isVat = v),
+            ),
+          ],
+        ),
+      );
 }
 
 class _EditCompanyFormState extends State<_EditCompanyForm> {

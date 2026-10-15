@@ -42,4 +42,16 @@ abstract final class CompanyValidators {
     }
     return null;
   }
+
+  /// Percentage rate between 0 and 100.
+  static String? percentage(String? value, String label) {
+    if (value == null || value.trim().isEmpty) {
+      return '$label is required';
+    }
+    final parsed = double.tryParse(value.trim());
+    if (parsed == null || parsed < 0 || parsed > 100) {
+      return 'Enter a $label between 0 and 100';
+    }
+    return null;
+  }
 }

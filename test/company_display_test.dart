@@ -87,7 +87,7 @@ void main() {
     expect(find.text('Shree Traders'), findsWidgets);
     expect(find.text('Ram Bahadur'), findsOneWidget);
     expect(find.text('123456789'), findsOneWidget);
-    // Twice: live company row + the still-static Tax Settings section.
+    // Twice: the live company row plus the live tax row.
     expect(find.text('600000000'), findsWidgets);
     expect(find.text('My Company'), findsNothing);
     expect(find.text('info@mycompany.com.np'), findsNothing);

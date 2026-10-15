@@ -485,6 +485,8 @@ Future<void> _printInvoice(BuildContext context, TransactionModel t) async {
       company: companies.first,
       contact: contact,
       products: products,
+      showTax: companies.first.showTaxOnInvoice,
+      showVatNumber: companies.first.showVatNumber,
     );
     await pdfService.sharePdf(
       pdfBytes,
