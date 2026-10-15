@@ -93,6 +93,28 @@ void main() {
     await pick('nepal-palika', 'Bharatpur');
   }
 
+  testWidgets('wide window lays the form out without errors', (tester) async {
+    tester.view.physicalSize = const Size(1400, 2000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: ClayTheme.lightTheme,
+          home: const OnboardingScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+
+    expect(find.text('Business name'), findsOneWidget);
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    expect(find.text('Business name is required'), findsOneWidget);
+    expect(hiveService.companiesBox.isEmpty, isTrue);
+  });
+
   testWidgets('full registration saves and enters the app', (tester) async {
     // Tall viewport: the contact step holds six fields; no scrolling
     // needed to reach every input and action.

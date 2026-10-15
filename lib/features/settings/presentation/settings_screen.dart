@@ -2,9 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
+import 'package:nepal_admin_api/nepal_admin_api.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/database/database_initializer.dart';
 import '../../../core/database/hive_service.dart';
+import '../../../core/models/company_model.dart';
+import '../../../core/utils/company_validation.dart';
 import '../../../core/utils/web_file.dart';
 import '../../../packages/design-system/design_system.dart';
 
@@ -88,60 +92,104 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-/// Company Settings Section
+/// Company Settings Section: live values from the registered business
+/// profile (reactive via the box listenable, so edits apply instantly).
+/// Empty when the database was reset and onboarding hasn't run again.
 class _CompanySettingsSection extends StatelessWidget {
   const _CompanySettingsSection();
 
   @override
-  Widget build(BuildContext context) => ClayCard(
-        title: const ClaySectionTitle('Company Settings'),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              const _SettingItem(
-                icon: Icons.business,
-                label: 'Company Name',
-                value: 'My Company',
-              ),
-              const Divider(),
-              const _SettingItem(
-                icon: Icons.location_on,
-                label: 'Address',
-                value: 'Kathmandu, Nepal',
-              ),
-              const Divider(),
-              const _SettingItem(
-                icon: Icons.phone,
-                label: 'Phone',
-                value: '+977 1 4444444',
-              ),
-              const Divider(),
-              const _SettingItem(
-                icon: Icons.email,
-                label: 'Email',
-                value: 'info@mycompany.com.np',
-              ),
-              const Divider(),
-              const _SettingItem(
-                icon: Icons.numbers,
-                label: 'VAT Number',
-                value: '600000000',
-              ),
-              const Divider(),
-              const _SettingItem(
-                icon: Icons.numbers,
-                label: 'PAN Number',
-                value: '123456789',
-              ),
-              const SizedBox(height: 12),
-              ClayButton.text(
-                onPressed: () {},
-                child: const Text('Edit Company Info'),
-              ),
-            ],
-          ),
-        ),
+  Widget build(BuildContext context) => ValueListenableBuilder<Box>(
+        valueListenable: hiveService.companiesBox.listenable(),
+        builder: (context, box, _) {
+          final companies = hiveService.companiesBox.values.toList();
+          final company = companies.isEmpty ? null : companies.first;
+          return ClayCard(
+            title: const ClaySectionTitle('Company Settings'),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: company == null
+                  ? Column(
+                      children: [
+                        const _SettingItem(
+                          icon: Icons.business,
+                          label: 'Company Name',
+                          value: 'Not registered yet',
+                        ),
+                        const SizedBox(height: 12),
+                        ClayButton.text(
+                          onPressed: () {},
+                          child: const Text('Edit Company Info'),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      children: [
+                        _SettingItem(
+                          icon: Icons.business,
+                          label: 'Company Name',
+                          value: company.name,
+                        ),
+                        if (company.ownerName != null &&
+                            company.ownerName!.isNotEmpty) ...[
+                          const Divider(),
+                          _SettingItem(
+                            icon: Icons.person,
+                            label: 'Owner',
+                            value: company.ownerName!,
+                          ),
+                        ],
+                        const Divider(),
+                        _SettingItem(
+                          icon: Icons.location_on,
+                          label: 'Address',
+                          value: company.fullAddress.isEmpty
+                              ? '—'
+                              : company.fullAddress,
+                        ),
+                        const Divider(),
+                        _SettingItem(
+                          icon: Icons.map,
+                          label: 'Palika · District · Province',
+                          value: company.localityLine.isEmpty
+                              ? '—'
+                              : company.localityLine,
+                        ),
+                        const Divider(),
+                        _SettingItem(
+                          icon: Icons.phone,
+                          label: 'Phone',
+                          value: company.phone ?? '—',
+                        ),
+                        const Divider(),
+                        _SettingItem(
+                          icon: Icons.email,
+                          label: 'Email',
+                          value: company.email ?? '—',
+                        ),
+                        const Divider(),
+                        _SettingItem(
+                          icon: Icons.numbers,
+                          label: 'VAT Number',
+                          value: company.vatNumber ?? '—',
+                        ),
+                        const Divider(),
+                        _SettingItem(
+                          icon: Icons.numbers,
+                          label: 'PAN Number',
+                          value: company.panNumber ?? '—',
+                        ),
+                        const SizedBox(height: 12),
+                        ClayButton.text(
+                          onPressed: () =>
+                              _EditCompanyForm.show(context, company),
+                          child: const Text('Edit Company Info'),
+                        ),
+                      ],
+                    ),
+            ),
+          );
+        },
       );
 }
 
@@ -540,13 +588,13 @@ class _AboutSection extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               AppConstants.companyName,
-              style: text.titleSmall?.copyWith(color: ClayColors.primary),
+              style: text.titleSmall?.copyWith(color: scheme.primary),
             ),
             const SizedBox(height: 4),
             Text(
               AppConstants.companyWebsite,
               style: text.bodyMedium?.copyWith(
-                color: ClayColors.primary,
+                color: scheme.primary,
                 decoration: TextDecoration.underline,
               ),
             ),
@@ -558,12 +606,12 @@ class _AboutSection extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               AppConstants.maintainerTeam,
-              style: text.titleSmall?.copyWith(color: ClayColors.primary),
+              style: text.titleSmall?.copyWith(color: scheme.primary),
             ),
             const SizedBox(height: 16),
             Text(
               'IRD Compliant',
-              style: text.titleSmall?.copyWith(color: ClayColors.success),
+              style: text.titleSmall?.copyWith(color: scheme.secondary),
             ),
             const SizedBox(height: 4),
             Text(
@@ -633,3 +681,219 @@ final databaseStatsProvider = Provider<Map<String, dynamic>>((ref) {
     'is_initialized': databaseInitializer.isInitialized,
   };
 });
+
+/// Edit Company Info form. Edits the single registered profile in place
+/// (the onboarding gate guarantees exactly one), reusing the shared
+/// [CompanyValidators] and the Nepal location picker so rules can't drift
+/// from registration. Follows the add-form pattern: the form validates +
+/// saves and reports success; the caller pops and confirms.
+class _EditCompanyForm extends StatefulWidget {
+  const _EditCompanyForm({required this.company, super.key});
+  final CompanyModel company;
+
+  static Future<void> show(BuildContext context, CompanyModel company) {
+    final key = GlobalKey<_EditCompanyFormState>();
+    return showDialog(
+      context: context,
+      builder: (dialogContext) {
+        final navigator = Navigator.of(dialogContext);
+        final messenger = ScaffoldMessenger.of(context);
+        return ClayFormDialog(
+          title: const Text('Edit Company Info'),
+          onSave: () async {
+            if (await key.currentState?.save() ?? false) {
+              navigator.pop();
+              messenger.showSnackBar(
+                const SnackBar(
+                    content: Text('Company info updated successfully')),
+              );
+            }
+          },
+          child: _EditCompanyForm(key: key, company: company),
+        );
+      },
+    );
+  }
+
+  @override
+  State<_EditCompanyForm> createState() => _EditCompanyFormState();
+}
+
+class _EditCompanyFormState extends State<_EditCompanyForm> {
+  final _formKey = GlobalKey<FormState>();
+
+  late String _name = widget.company.name;
+  late String _owner = widget.company.ownerName ?? '';
+  late String _regNo = widget.company.registrationNumber ?? '';
+  late String _address = widget.company.address ?? '';
+  late String _city = widget.company.city ?? '';
+  late String _provinceId = _provinceIdFor(widget.company.province);
+  late String _district = widget.company.district ?? '';
+  late String _palika = widget.company.palika ?? '';
+  late String _phone = widget.company.phone ?? '';
+  late String _mobile = widget.company.mobile ?? '';
+  late String _email = widget.company.email ?? '';
+  late String _website = widget.company.website ?? '';
+  late String _pan = widget.company.panNumber ?? '';
+  late String _vat = widget.company.vatNumber ?? '';
+
+  static String _provinceIdFor(String? name) {
+    if (name == null || name.isEmpty) return '';
+    for (final province in NepalAdminApi.getAllProvinces()) {
+      if (province.name == name) return province.id;
+    }
+    return '';
+  }
+
+  Future<bool> save() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return false;
+    final updated = widget.company.copyWith(
+      name: _name.trim(),
+      ownerName: _owner.trim(),
+      registrationNumber: _regNo.trim(),
+      address: _address.trim(),
+      city: _city.trim().isEmpty ? null : _city.trim(),
+      province: _provinceId.isEmpty
+          ? null
+          : NepalAdminApi.getProvinceById(_provinceId)?.name,
+      district: _district.trim().isEmpty ? null : _district.trim(),
+      palika: _palika.trim().isEmpty ? null : _palika.trim(),
+      phone: _phone.trim(),
+      mobile: _mobile.trim().isEmpty ? null : _mobile.trim(),
+      email: _email.trim(),
+      website: _website.trim().isEmpty ? null : _website.trim(),
+      panNumber: _pan.trim(),
+      vatNumber: _vat.trim(),
+      updatedAt: DateTime.now(),
+    );
+    await hiveService.companiesBox.put(updated.id, updated);
+    return true;
+  }
+
+  @override
+  Widget build(BuildContext context) => Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClayInputWithLabel(
+              label: 'Business name',
+              value: _name,
+              textInputAction: TextInputAction.next,
+              isRequired: true,
+              validator: (v) => CompanyValidators.required(v, 'Business name'),
+              onChanged: (v) => _name = v,
+            ),
+            const SizedBox(height: ClaySpacing.lg),
+            ClayInputWithLabel(
+              label: 'Owner name',
+              value: _owner,
+              textInputAction: TextInputAction.next,
+              isRequired: true,
+              validator: (v) => CompanyValidators.required(v, 'Owner name'),
+              onChanged: (v) => _owner = v,
+            ),
+            const SizedBox(height: ClaySpacing.lg),
+            ClayInputWithLabel(
+              label: 'Registration number',
+              value: _regNo,
+              textInputAction: TextInputAction.next,
+              isRequired: true,
+              validator: (v) =>
+                  CompanyValidators.required(v, 'Registration number'),
+              onChanged: (v) => _regNo = v,
+            ),
+            const SizedBox(height: ClaySpacing.lg),
+            ClayInputWithLabel(
+              label: 'Address',
+              value: _address,
+              textInputAction: TextInputAction.next,
+              isRequired: true,
+              validator: (v) => CompanyValidators.required(v, 'Address'),
+              onChanged: (v) => _address = v,
+            ),
+            const SizedBox(height: ClaySpacing.lg),
+            ClayInputWithLabel(
+              label: 'City',
+              value: _city,
+              textInputAction: TextInputAction.next,
+              onChanged: (v) => _city = v,
+            ),
+            const SizedBox(height: ClaySpacing.lg),
+            ClayNepalLocationPicker(
+              provinceId: _provinceId.isEmpty ? null : _provinceId,
+              districtName: _district.isEmpty ? null : _district,
+              palikaName: _palika.isEmpty ? null : _palika,
+              onProvinceChanged: (v) => setState(() {
+                _provinceId = v ?? '';
+                _district = '';
+                _palika = '';
+              }),
+              onDistrictChanged: (v) => setState(() {
+                _district = v ?? '';
+                _palika = '';
+              }),
+              onPalikaChanged: (v) => setState(() => _palika = v ?? ''),
+              isRequired: true,
+            ),
+            const SizedBox(height: ClaySpacing.lg),
+            ClayInputWithLabel(
+              label: 'Phone',
+              value: _phone,
+              keyboardType: TextInputType.phone,
+              textInputAction: TextInputAction.next,
+              isRequired: true,
+              validator: (v) => CompanyValidators.phone(v, required: true),
+              onChanged: (v) => _phone = v,
+            ),
+            const SizedBox(height: ClaySpacing.lg),
+            ClayInputWithLabel(
+              label: 'Mobile',
+              value: _mobile,
+              keyboardType: TextInputType.phone,
+              textInputAction: TextInputAction.next,
+              validator: (v) => CompanyValidators.phone(v, required: false),
+              onChanged: (v) => _mobile = v,
+            ),
+            const SizedBox(height: ClaySpacing.lg),
+            ClayInputWithLabel(
+              label: 'Email',
+              value: _email,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              isRequired: true,
+              validator: CompanyValidators.email,
+              onChanged: (v) => _email = v,
+            ),
+            const SizedBox(height: ClaySpacing.lg),
+            ClayInputWithLabel(
+              label: 'Website',
+              value: _website,
+              keyboardType: TextInputType.url,
+              textInputAction: TextInputAction.next,
+              onChanged: (v) => _website = v,
+            ),
+            const SizedBox(height: ClaySpacing.lg),
+            ClayInputWithLabel(
+              label: 'PAN',
+              value: _pan,
+              keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.next,
+              isRequired: true,
+              validator: (v) => CompanyValidators.taxId(v, 'PAN'),
+              onChanged: (v) => _pan = v,
+            ),
+            const SizedBox(height: ClaySpacing.lg),
+            ClayInputWithLabel(
+              label: 'VAT',
+              value: _vat,
+              keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.done,
+              isRequired: true,
+              validator: (v) => CompanyValidators.taxId(v, 'VAT'),
+              onChanged: (v) => _vat = v,
+            ),
+          ],
+        ),
+      );
+}

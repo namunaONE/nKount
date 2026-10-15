@@ -81,14 +81,18 @@ class _FiscalChip extends StatelessWidget {
   }
 }
 
-/// Greeting header with BS long date + FY context.
-class _Header extends StatelessWidget {
+/// Greeting header with BS long date + FY context, personalized with the
+/// registered business name and owner when onboarding is complete.
+class _Header extends ConsumerWidget {
   const _Header();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+    final companies =
+        ref.watch(hiveServiceProvider).companiesBox.values.toList();
+    final company = companies.isEmpty ? null : companies.first;
     final hour = DateTime.now().hour;
     final greeting = hour < 12
         ? 'Good morning'
@@ -100,6 +104,11 @@ class _Header extends StatelessWidget {
     final fy = '$startYear/${(startYear + 1).toString().substring(2)}';
     final bsLong =
         '${ClayBsDate.months[bsNow.month - 1]} ${bsNow.day}, ${bsNow.year} BS';
+    final owner = company?.ownerName;
+    final place = [
+      company?.district,
+      company?.province,
+    ].where((e) => e != null && e.isNotEmpty).join(', ');
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -114,9 +123,8 @@ class _Header extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            greeting,
-            style: text.displaySmall
-                ?.copyWith(color: scheme.onPrimary),
+            company == null ? greeting : '$greeting, ${company.name}',
+            style: text.displaySmall?.copyWith(color: scheme.onPrimary),
           ),
           const SizedBox(height: 4),
           Text(
@@ -125,6 +133,16 @@ class _Header extends StatelessWidget {
               color: scheme.onPrimary.withValues(alpha: 0.8),
             ),
           ),
+          if (owner != null && owner.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                place.isEmpty ? owner : '$owner • $place',
+                style: text.bodyMedium?.copyWith(
+                  color: scheme.onPrimary.withValues(alpha: 0.8),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -346,8 +364,7 @@ class _CashflowChart extends ConsumerWidget {
     }
 
     final text = Theme.of(context).textTheme;
-    final dark =
-        Theme.of(context).brightness == Brightness.dark;
+    final dark = Theme.of(context).brightness == Brightness.dark;
     final salesColor = dark ? ClayColors.chartUpDark : ClayColors.success;
     final purchColor = dark ? ClayColors.chartDownDark : ClayColors.error;
 

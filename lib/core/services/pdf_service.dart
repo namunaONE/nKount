@@ -131,7 +131,7 @@ class PdfService {
                       ),
                     ),
                     pw.Text(
-                      '${company.city ?? ''}, ${company.district ?? ''}',
+                      company.localityLine,
                       style: pw.TextStyle(
                         font: regularFont,
                         fontSize: 12,
@@ -611,10 +611,8 @@ class PdfService {
                         fontSize: 20,
                       ),
                     ),
-                    pw.Text(
-                      company.address ?? '',
-                      style: pw.TextStyle(font: regularFont, fontSize: 12),
-                    ),
+                    pw.Text(company.address ?? ''),
+                    pw.Text(company.localityLine),
                   ],
                 ),
                 pw.Text(
@@ -746,7 +744,7 @@ class PdfService {
                       ),
                     ),
                     pw.Text(company.address ?? ''),
-                    pw.Text('${company.city ?? ''}, ${company.district ?? ''}'),
+                    pw.Text(company.localityLine),
                   ],
                 ),
                 pw.Text(
@@ -954,6 +952,7 @@ class PdfService {
                       ),
                     ),
                     pw.Text(company.address ?? ''),
+                    pw.Text(company.localityLine),
                   ],
                 ),
                 pw.Text(

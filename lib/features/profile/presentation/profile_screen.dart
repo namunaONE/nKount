@@ -6,8 +6,7 @@ import '../../../core/database/hive_service.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../packages/design-system/design_system.dart';
 
-/// Profile: identity + appearance (theme) + settings entry + about.
-/// Settings and the theme toggle live here instead of scattered gears.
+/// Profile: registered business identity + appearance + settings + about.
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
@@ -16,9 +15,8 @@ class ProfileScreen extends ConsumerWidget {
     final hive = ref.watch(hiveServiceProvider);
     final themeMode = ref.watch(themeModeProvider);
     final companies = hive.companiesBox.values.toList();
-    final companyName =
-        companies.isEmpty ? AppConstants.appName : companies.first.name;
-    final companyEmail = companies.isEmpty ? null : companies.first.email;
+    final company = companies.isEmpty ? null : companies.first;
+    final companyName = company == null ? AppConstants.appName : company.name;
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
 
@@ -62,14 +60,25 @@ class ProfileScreen extends ConsumerWidget {
                             companyName,
                             style: text.titleLarge,
                           ),
-                          if (companyEmail != null && companyEmail.isNotEmpty)
+                          if (company?.ownerName case final owner?
+                              when owner.isNotEmpty)
                             Text(
-                              companyEmail,
+                              owner,
+                              style: text.bodyMedium?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          if (company?.email case final email?
+                              when email.isNotEmpty)
+                            Text(
+                              email,
                               style: text.bodySmall
                                   ?.copyWith(color: scheme.onSurfaceVariant),
                             ),
                           Text(
-                            'Business account',
+                            company == null
+                                ? 'Business account'
+                                : 'Registered business',
                             style: text.bodySmall
                                 ?.copyWith(color: scheme.onSurfaceVariant),
                           ),
@@ -80,6 +89,87 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               ),
             ),
+            if (company != null) ...[
+              const SizedBox(height: 16),
+              ClayCard(
+                title: const ClaySectionTitle('Business address'),
+                child: Column(
+                  children: [
+                    if (company.fullAddress.isNotEmpty)
+                      _ProfileRow(
+                        icon: Icons.location_on,
+                        label: 'Address',
+                        value: company.fullAddress,
+                      ),
+                    if ([company.palika, company.district, company.province]
+                        .any((e) => e != null && e.isNotEmpty)) ...[
+                      const Divider(),
+                      _ProfileRow(
+                        icon: Icons.map,
+                        label: 'Palika · District · Province',
+                        value: company.localityLine,
+                      ),
+                    ],
+                    if (company.phone != null && company.phone!.isNotEmpty) ...[
+                      const Divider(),
+                      _ProfileRow(
+                        icon: Icons.phone,
+                        label: 'Phone',
+                        value: [
+                          company.phone!,
+                          if (company.mobile != null &&
+                              company.mobile!.isNotEmpty)
+                            company.mobile!,
+                        ].join(' • '),
+                      ),
+                    ],
+                    if (company.website != null &&
+                        company.website!.isNotEmpty) ...[
+                      const Divider(),
+                      _ProfileRow(
+                        icon: Icons.language,
+                        label: 'Website',
+                        value: company.website!,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              ClayCard(
+                title: const ClaySectionTitle('Registration & tax'),
+                child: Column(
+                  children: [
+                    if (company.registrationNumber != null &&
+                        company.registrationNumber!.isNotEmpty) ...[
+                      _ProfileRow(
+                        icon: Icons.badge,
+                        label: 'Registration no.',
+                        value: company.registrationNumber!,
+                      ),
+                    ],
+                    if (company.panNumber != null &&
+                        company.panNumber!.isNotEmpty) ...[
+                      const Divider(),
+                      _ProfileRow(
+                        icon: Icons.numbers,
+                        label: 'PAN',
+                        value: company.panNumber!,
+                      ),
+                    ],
+                    if (company.vatNumber != null &&
+                        company.vatNumber!.isNotEmpty) ...[
+                      const Divider(),
+                      _ProfileRow(
+                        icon: Icons.numbers,
+                        label: 'VAT',
+                        value: company.vatNumber!,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             ClayCard(
               title: const ClaySectionTitle('Appearance'),
@@ -145,8 +235,7 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                     Text(
                       AppConstants.maintainerTeam,
-                      style:
-                          text.labelLarge?.copyWith(color: ClayColors.primary),
+                      style: text.labelLarge?.copyWith(color: scheme.primary),
                     ),
                   ],
                 ),
@@ -156,6 +245,47 @@ class ProfileScreen extends ConsumerWidget {
         ),
       ),
       bottomNavigationBar: mainNavBar(context, 5),
+    );
+  }
+}
+
+/// Label + value row for the business detail cards. Empty values are
+/// never built — callers guard with `isNotEmpty` checks.
+class _ProfileRow extends StatelessWidget {
+  const _ProfileRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          Icon(icon, size: ClayIconSize.md, color: scheme.primary),
+          const SizedBox(width: ClaySpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style:
+                      text.labelSmall?.copyWith(color: scheme.onSurfaceVariant),
+                ),
+                Text(value, style: text.bodyLarge),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

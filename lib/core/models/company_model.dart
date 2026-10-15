@@ -127,4 +127,20 @@ class CompanyModel with _$CompanyModel {
     ].where((element) => element != null && element.isNotEmpty);
     return parts.join(', ');
   }
+
+  /// Locality line for invoice headers: palika → district → province,
+  /// falling back to the legacy city/district pair when the picker data
+  /// predates the location fields.
+  String get localityLine {
+    final parts = [
+      palika,
+      district,
+      province,
+    ].where((element) => element != null && element.isNotEmpty);
+    if (parts.isNotEmpty) return parts.join(', ');
+    return [
+      city,
+      district,
+    ].where((element) => element != null && element.isNotEmpty).join(', ');
+  }
 }
