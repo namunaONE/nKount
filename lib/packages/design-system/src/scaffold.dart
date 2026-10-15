@@ -14,7 +14,12 @@ class ClayThemeBuilder extends StatelessWidget {
       );
 }
 
-/// Sidebar navigation for expanded windows, built from bottom-nav items.
+/// Expanded sidebar navigation (264px), built from bottom-nav items.
+///
+/// Deprecated: wide windows now use the same compact [NavigationRail] as
+/// medium windows on every platform, so [ClayScaffold] no longer builds
+/// this. Kept for API compatibility.
+@Deprecated('Expanded sidebar removed; wide windows use the compact rail.')
 class ClaySidebar extends ConsumerWidget {
   const ClaySidebar({
     required this.items,
@@ -88,8 +93,7 @@ class ClaySidebar extends ConsumerWidget {
                                 ),
                               ),
                             ),
-                            if (i < badges.length &&
-                                badges[i] != null)
+                            if (i < badges.length && badges[i] != null)
                               _CountPill(count: badges[i]!),
                           ],
                         ),
@@ -106,7 +110,7 @@ class ClaySidebar extends ConsumerWidget {
 }
 
 /// Scaffold passthrough.
-class ClayScaffold extends StatelessWidget {
+class ClayScaffold extends ConsumerWidget {
   const ClayScaffold({
     super.key,
     this.appBar,
@@ -121,8 +125,10 @@ class ClayScaffold extends StatelessWidget {
   final Widget? bottomNavigationBar;
   final Widget? floatingActionButton;
 
-  /// Custom sidebar for expanded windows. When null and [bottomNavigationBar]
-  /// is a [ClayBottomNavigation], one is built from its items.
+  /// Deprecated escape hatch: wide windows now use the same compact rail
+  /// on every platform. When set, this replaces the rail; otherwise the
+  /// rail is built from the bottom navigation items.
+  @Deprecated('Wide windows use the compact rail; sidebar no longer default.')
   final Widget? sidebar;
   final double maxContentWidth;
 
@@ -150,13 +156,13 @@ class ClayScaffold extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => CallbackShortcuts(
+  Widget build(BuildContext context, WidgetRef ref) => CallbackShortcuts(
         bindings: {
           const SingleActivator(LogicalKeyboardKey.keyK, control: true): () =>
               _openPalette(context),
           // Ctrl+/ as an alternative where Ctrl+K is awkward.
-          const SingleActivator(LogicalKeyboardKey.slash, control: true):
-              () => _openPalette(context),
+          const SingleActivator(LogicalKeyboardKey.slash, control: true): () =>
+              _openPalette(context),
         },
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -164,8 +170,12 @@ class ClayScaffold extends StatelessWidget {
             final nav = _nav;
             final content = _constrained(body);
 
-            // Expanded: sidebar + centered content, no bottom bar.
-            if (ClayBreakpoints.isExpanded(width) && nav != null) {
+            // Medium and expanded: the same compact navigation rail on
+            // every platform (no expanded sidebar), + centered content,
+            // no bottom bar. Compact windows keep the bottom bar below.
+            if (width >= ClayBreakpoints.compactMax && nav != null) {
+              // ignore: deprecated_member_use_from_same_package
+              final side = sidebar;
               return Scaffold(
                 appBar: appBar,
                 floatingActionButton: floatingActionButton,
@@ -174,41 +184,7 @@ class ClayScaffold extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      sidebar ??
-                          ClaySidebar(
-                            items: nav.items,
-                            currentIndex: nav.currentIndex,
-                            onTap: nav.onTap,
-                          ),
-                      const VerticalDivider(width: 1),
-                      Expanded(child: content),
-                    ],
-                  ),
-                ),
-              );
-            }
-
-            // Medium: navigation rail + centered content, no bottom bar.
-            if (ClayBreakpoints.isMedium(width) && nav != null) {
-              return Scaffold(
-                appBar: appBar,
-                floatingActionButton: floatingActionButton,
-                body: SafeArea(
-                  top: false,
-                  child: Row(
-                    children: [
-                      NavigationRail(
-                        selectedIndex: nav.currentIndex,
-                        onDestinationSelected: nav.onTap,
-                        labelType: NavigationRailLabelType.all,
-                        destinations: [
-                          for (final item in nav.items)
-                            NavigationRailDestination(
-                              icon: Icon(item.icon),
-                              label: Text(item.label),
-                            ),
-                        ],
-                      ),
+                      side ?? _compactRail(ref, nav),
                       const VerticalDivider(width: 1),
                       Expanded(child: content),
                     ],
@@ -228,6 +204,29 @@ class ClayScaffold extends StatelessWidget {
           },
         ),
       );
+
+  /// Compact rail shared by medium + expanded windows, with the same
+  /// attention badges as the bottom bar (low stock, overdue invoices).
+  Widget _compactRail(WidgetRef ref, ClayBottomNavigation nav) {
+    final badges = _navBadgeCounts(ref);
+    return NavigationRail(
+      selectedIndex: nav.currentIndex,
+      onDestinationSelected: nav.onTap,
+      labelType: NavigationRailLabelType.all,
+      destinations: [
+        for (var i = 0; i < nav.items.length; i++)
+          NavigationRailDestination(
+            icon: i < badges.length && badges[i] != null
+                ? Badge(
+                    label: Text(_badgeLabel(badges[i]!)),
+                    child: Icon(nav.items[i].icon),
+                  )
+                : Icon(nav.items[i].icon),
+            label: Text(nav.items[i].label),
+          ),
+      ],
+    );
+  }
 }
 
 /// App bar with optional subtitle. Title uses `titleLarge`,
@@ -583,8 +582,8 @@ class ClayCommandSearch extends StatelessWidget {
                 title: Text(cmd.title),
                 trailing: Text(
                   cmd.hint,
-                  style: text.labelSmall
-                      ?.copyWith(color: scheme.onSurfaceVariant),
+                  style:
+                      text.labelSmall?.copyWith(color: scheme.onSurfaceVariant),
                 ),
                 onTap: () {
                   controller.closeView(controller.text);
@@ -620,9 +619,9 @@ class _ClayEntranceState extends State<ClayEntrance>
   );
   late final Animation<double> _opacity = Tween<double>(begin: 0, end: 1)
       .animate(CurvedAnimation(parent: _controller, curve: ClayMotion.easing));
-  late final Animation<Offset> _offset =
-      Tween<Offset>(begin: const Offset(0, 0.12), end: Offset.zero).animate(
-          CurvedAnimation(parent: _controller, curve: ClayMotion.easing));
+  late final Animation<Offset> _offset = Tween<Offset>(
+          begin: const Offset(0, 0.12), end: Offset.zero)
+      .animate(CurvedAnimation(parent: _controller, curve: ClayMotion.easing));
 
   @override
   void initState() {

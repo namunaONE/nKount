@@ -153,8 +153,7 @@ class ClayTableCard extends StatelessWidget {
                       child: PaginatedDataTable(
                         header: Text(
                           tableTitle,
-                          style:
-                              Theme.of(context).textTheme.labelLarge,
+                          style: Theme.of(context).textTheme.labelLarge,
                         ),
                         rowsPerPage: rowsPerPage,
                         availableRowsPerPage: availableRowsPerPage,
@@ -554,7 +553,9 @@ class ClayStatusBadge extends StatelessWidget {
 }
 
 /// Destructive confirmation dialog. Returns true when confirmed.
-/// Cupertino style on iOS/macOS, Material elsewhere.
+/// Cupertino style on iOS/macOS, Material elsewhere. Cancel stays
+/// neutral; only the confirm (Delete/Discard) action uses the error-red
+/// roles, with [ColorScheme.onError] text for contrast.
 Future<bool> showClayConfirmDialog(
   BuildContext context, {
   required String title,
@@ -586,20 +587,30 @@ Future<bool> showClayConfirmDialog(
   }
   final confirmed = await showDialog<bool>(
     context: context,
-    builder: (context) => AlertDialog(
-      title: Text(title),
-      content: Text(message),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.pop(context, true),
-          child: Text(confirmLabel),
-        ),
-      ],
-    ),
+    builder: (context) {
+      final scheme = Theme.of(context).colorScheme;
+      return AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            style: TextButton.styleFrom(
+              foregroundColor: scheme.onSurfaceVariant,
+            ),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: scheme.error,
+              foregroundColor: scheme.onError,
+            ),
+            child: Text(confirmLabel),
+          ),
+        ],
+      );
+    },
   );
   return confirmed ?? false;
 }

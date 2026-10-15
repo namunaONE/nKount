@@ -19,11 +19,13 @@ class ClayDialog extends StatelessWidget {
 /// Form dialog wrapper: centered 520px dialog on medium+ windows,
 /// edge-to-edge fullscreen sheet on compact (phones).
 ///
-/// [onSave] renders a primary Save action (sticky in the compact sheet,
-/// bottom-right in the desktop dialog). Callers own validation: the
-/// form's `GlobalKey<FormState>` lives with the form widget, so pass a
-/// callback that reaches it (see the `static show()` helpers on the
-/// add-forms, which use file-scoped privacy for that).
+/// Renders a neutral Cancel action plus a brand-primary Save action
+/// (sticky in the compact sheet, bottom-right in the desktop dialog).
+/// Only destructive Delete/Discard confirmations use the error-red roles
+/// (see [showClayConfirmDialog]); plain Cancel stays neutral. Callers own
+/// validation: the form's `GlobalKey<FormState>` lives with the form
+/// widget, so pass a callback that reaches it (see the `static show()`
+/// helpers on the add-forms, which use file-scoped privacy for that).
 class ClayFormDialog extends StatelessWidget {
   const ClayFormDialog({
     super.key,
@@ -32,6 +34,9 @@ class ClayFormDialog extends StatelessWidget {
     this.actions,
     this.onSave,
     this.saveLabel = 'Save',
+    this.onCancel,
+    this.cancelLabel = 'Cancel',
+    this.showCancel = true,
   });
   final Widget? title;
   final Widget? child;
@@ -39,15 +44,30 @@ class ClayFormDialog extends StatelessWidget {
   final VoidCallback? onSave;
   final String saveLabel;
 
+  /// Defaults to popping the dialog. Pass a callback to confirm or
+  /// discard unsaved input first.
+  final VoidCallback? onCancel;
+  final String cancelLabel;
+  final bool showCancel;
+
   @override
   Widget build(BuildContext context) {
     final compact =
         MediaQuery.sizeOf(context).width < ClayBreakpoints.compactMax;
+    final scheme = Theme.of(context).colorScheme;
     final save = onSave;
     final actionsList = actions;
     final composed = <Widget>[
-      if (save != null) ClayButton(onPressed: save, child: Text(saveLabel)),
+      if (showCancel)
+        TextButton(
+          onPressed: onCancel ?? () => Navigator.of(context).pop(),
+          style: TextButton.styleFrom(
+            foregroundColor: scheme.onSurfaceVariant,
+          ),
+          child: Text(cancelLabel),
+        ),
       ...?actionsList,
+      if (save != null) ClayButton(onPressed: save, child: Text(saveLabel)),
     ];
 
     if (!compact) {

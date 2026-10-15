@@ -82,9 +82,15 @@ abstract final class ClayTypography {
 
 /// App themes: M3 fidelity scheme from the navy seed (keeps brand
 /// identity — tonalSpot would wash it to steel blue), with the secondary
-/// roles pinned to the green tonal palette. All roles meet M3 contrast.
+/// roles pinned to the growth-green tonal palette for the #4FD166 seed.
+/// All roles meet M3 contrast; text always pairs with its `on*` role.
 abstract final class ClayTheme {
   static const Color seedPrimary = Color(0xFF002C6D);
+
+  /// Growth-green secondary seed. `fromSeed` only seeds from the primary,
+  /// so the green roles below are its M3 tonal equivalents, pinned to
+  /// keep the brand hue in both modes.
+  static const Color seedSecondary = Color(0xFF4FD166);
 
   static ColorScheme _scheme(Brightness brightness) {
     final base = ColorScheme.fromSeed(

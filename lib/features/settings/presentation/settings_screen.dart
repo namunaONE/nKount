@@ -502,10 +502,14 @@ class _AboutSection extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 40,
-              backgroundColor: ClayColors.primary,
-              child: Icon(ClayIcons.profit, size: 40, color: Colors.white),
+              backgroundColor: scheme.primaryContainer,
+              child: Icon(
+                ClayIcons.profit,
+                size: 40,
+                color: scheme.onPrimaryContainer,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
@@ -515,7 +519,7 @@ class _AboutSection extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               'by ${AppConstants.companyName}',
-              style: text.titleSmall?.copyWith(color: ClayColors.primary),
+              style: text.titleSmall?.copyWith(color: scheme.primary),
             ),
             const SizedBox(height: 4),
             Text(

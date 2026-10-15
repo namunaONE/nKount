@@ -39,21 +39,17 @@ class ProfileScreen extends ConsumerWidget {
                       height: 64,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [ClayColors.primary, ClayColors.secondary],
-                        ),
+                        color: scheme.primaryContainer,
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         companyName.isEmpty
                             ? 'n'
                             : companyName[0].toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: scheme.onPrimaryContainer,
                         ),
                       ),
                     ),
