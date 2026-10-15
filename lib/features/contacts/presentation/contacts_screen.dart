@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/database/hive_service.dart';
 import '../../../core/models/contact_model.dart';
+import '../../../core/repositories/contact_repository.dart';
 import '../../../core/utils/money.dart';
 import '../../../packages/design-system/design_system.dart';
 
@@ -132,7 +132,7 @@ class _ContactsScreenState extends ConsumerState<ContactsScreen> {
                       title: 'No Contacts Found',
                       subtitle: 'Add your first contact to get started',
                       action: ClayButton(
-                        onPressed: () => context.push('/contacts'),
+                        onPressed: () => _AddContactForm.show(context),
                         child: const Text('Add Contact'),
                       ),
                     ),
@@ -160,7 +160,7 @@ class _ContactsScreenState extends ConsumerState<ContactsScreen> {
                     title: 'No Contacts Found',
                     subtitle: 'Add your first contact to get started',
                     action: ClayButton(
-                      onPressed: () => context.push('/contacts'),
+                      onPressed: () => _AddContactForm.show(context),
                       child: const Text('Add Contact'),
                     ),
                   ),
@@ -341,15 +341,8 @@ class _ContactsScreenState extends ConsumerState<ContactsScreen> {
     );
   }
 
-  void _showAddContactDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => const ClayFormDialog(
-        title: Text('Add New Contact'),
-        child: _AddContactForm(),
-      ),
-    );
-  }
+  void _showAddContactDialog(BuildContext context) =>
+      _AddContactForm.show(context);
 }
 
 /// Table data source for contacts.
@@ -641,7 +634,33 @@ class _ContactItem extends StatelessWidget {
 
 /// Add Contact Form
 class _AddContactForm extends ConsumerStatefulWidget {
-  const _AddContactForm();
+  const _AddContactForm({super.key});
+
+  /// Shows the add-contact dialog. The form owns validation + saving and
+  /// reports success; this pops the dialog and confirms on the caller's
+  /// context (the screen underneath, which outlives the dialog).
+  static Future<void> show(BuildContext context) {
+    final key = GlobalKey<_AddContactFormState>();
+    return showDialog(
+      context: context,
+      builder: (dialogContext) {
+        final navigator = Navigator.of(dialogContext);
+        final messenger = ScaffoldMessenger.of(context);
+        return ClayFormDialog(
+          title: const Text('Add New Contact'),
+          onSave: () async {
+            if (await key.currentState?.save() ?? false) {
+              navigator.pop();
+              messenger.showSnackBar(
+                const SnackBar(content: Text('Contact saved successfully')),
+              );
+            }
+          },
+          child: _AddContactForm(key: key),
+        );
+      },
+    );
+  }
 
   @override
   ConsumerState<_AddContactForm> createState() => _AddContactFormState();
@@ -662,6 +681,30 @@ class _AddContactFormState extends ConsumerState<_AddContactForm> {
   double? _openingBalance;
   bool _isActive = true;
   String _remarks = '';
+
+  Future<bool> save() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return false;
+    final hive = ref.read(hiveServiceProvider);
+    await ContactRepository(hive.contactsBox).saveContact(
+      ContactModel.create(
+        name: _name.trim(),
+        phone: _phone.trim().isEmpty ? null : _phone.trim(),
+        mobile: _mobile.trim().isEmpty ? null : _mobile.trim(),
+        email: _email.trim().isEmpty ? null : _email.trim(),
+        address: _address.trim().isEmpty ? null : _address.trim(),
+        city: _city.trim().isEmpty ? null : _city.trim(),
+        district: _district.trim().isEmpty ? null : _district.trim(),
+        vatNumber: _vatNumber.trim().isEmpty ? null : _vatNumber.trim(),
+        panNumber: _panNumber.trim().isEmpty ? null : _panNumber.trim(),
+        type: _type,
+        openingBalance: _openingBalance,
+        isActive: _isActive,
+        remarks: _remarks.trim().isEmpty ? null : _remarks.trim(),
+      ),
+    );
+    ref.invalidate(contactsProvider);
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) => Form(

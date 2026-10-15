@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/database/hive_service.dart';
 import '../../../core/models/transaction_model.dart';
+import '../../../core/repositories/transaction_repository.dart';
 import '../../../core/utils/dates.dart';
 import '../../../core/utils/money.dart';
 import '../../../packages/design-system/design_system.dart';
@@ -306,7 +306,7 @@ class SimpleFlowScreenState extends ConsumerState<SimpleFlowScreen> {
                 title: config.emptyTitle,
                 subtitle: config.emptySubtitle,
                 action: ClayButton(
-                  onPressed: () => context.push(config.emptyCtaRoute),
+                  onPressed: () => _AddSimpleFlowForm.show(context, config),
                   child: Text(config.emptyCtaLabel),
                 ),
               ),
@@ -399,15 +399,8 @@ class SimpleFlowScreenState extends ConsumerState<SimpleFlowScreen> {
     );
   }
 
-  void _showAddDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => ClayFormDialog(
-        title: Text(config.addTitle),
-        child: _AddSimpleFlowForm(config: config),
-      ),
-    );
-  }
+  void _showAddDialog(BuildContext context) =>
+      _AddSimpleFlowForm.show(context, config);
 }
 
 /// Shared list.
@@ -615,9 +608,22 @@ class _SimpleFlowItem extends StatelessWidget {
 
 /// Shared add form.
 class _AddSimpleFlowForm extends ConsumerStatefulWidget {
-  const _AddSimpleFlowForm({required this.config});
+  const _AddSimpleFlowForm({required this.config, super.key});
 
   final SimpleFlowConfig config;
+
+  /// Shows the add dialog (form owns validation + save).
+  static Future<void> show(BuildContext context, SimpleFlowConfig config) {
+    final key = GlobalKey<_AddSimpleFlowFormState>();
+    return showDialog(
+      context: context,
+      builder: (_) => ClayFormDialog(
+        title: Text(config.addTitle),
+        onSave: () => key.currentState?._save(),
+        child: _AddSimpleFlowForm(key: key, config: config),
+      ),
+    );
+  }
 
   @override
   ConsumerState<_AddSimpleFlowForm> createState() => _AddSimpleFlowFormState();
@@ -635,6 +641,35 @@ class _AddSimpleFlowFormState extends ConsumerState<_AddSimpleFlowForm> {
   late bool _isVatIncluded;
   DateTime? _date;
   String _referenceNumber = '';
+
+  Future<void> _save() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final config = widget.config;
+    final hive = ref.read(hiveServiceProvider);
+    await TransactionRepository(hive.transactionsBox).saveTransaction(
+      TransactionModel.create(
+        type: config.type,
+        contactId: _contactId.trim(),
+        invoiceNumber:
+            _invoiceNumber.trim().isEmpty ? null : _invoiceNumber.trim(),
+        subtotal: _amount,
+        tax: _vatRate > 0 ? _amount * _vatRate / 100 : 0,
+        paymentMethod: _paymentMethod,
+        referenceNumber:
+            _referenceNumber.trim().isEmpty ? null : _referenceNumber.trim(),
+        date: _date,
+        notes: _description.trim().isEmpty ? null : _description.trim(),
+        isVatIncluded: _isVatIncluded,
+        vatRate: _vatRate,
+      ),
+    );
+    ref.invalidate(simpleFlowProvider(config.type));
+    if (!mounted) return;
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Saved successfully')),
+    );
+  }
 
   @override
   void initState() {

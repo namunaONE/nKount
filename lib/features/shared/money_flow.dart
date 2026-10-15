@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/database/hive_service.dart';
 import '../../core/models/payment_model.dart';
+import '../../core/repositories/payment_repository.dart';
 import '../../core/utils/dates.dart';
 import '../../core/utils/money.dart';
 import '../../packages/design-system/design_system.dart';
@@ -260,7 +260,7 @@ class MoneyFlowScreenState extends ConsumerState<MoneyFlowScreen> {
                 title: config.emptyTitle,
                 subtitle: config.emptySubtitle,
                 action: ClayButton(
-                  onPressed: () => context.push(config.emptyCtaRoute),
+                  onPressed: () => _MoneyFlowForm.show(context, config),
                   child: Text(config.emptyCtaLabel),
                 ),
               ),
@@ -330,15 +330,8 @@ class MoneyFlowScreenState extends ConsumerState<MoneyFlowScreen> {
     );
   }
 
-  void _showAddDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => ClayFormDialog(
-        title: Text(config.formTitle),
-        child: _MoneyFlowForm(config: config),
-      ),
-    );
-  }
+  void _showAddDialog(BuildContext context) =>
+      _MoneyFlowForm.show(context, config);
 }
 
 /// Money-flow list
@@ -648,9 +641,22 @@ Color _statusColor(BuildContext context, String status) {
 
 /// Add money-flow form
 class _MoneyFlowForm extends ConsumerStatefulWidget {
-  const _MoneyFlowForm({required this.config});
+  const _MoneyFlowForm({required this.config, super.key});
 
   final MoneyFlowConfig config;
+
+  /// Shows the add dialog (form owns validation + save).
+  static Future<void> show(BuildContext context, MoneyFlowConfig config) {
+    final key = GlobalKey<_MoneyFlowFormState>();
+    return showDialog(
+      context: context,
+      builder: (_) => ClayFormDialog(
+        title: Text(config.formTitle),
+        onSave: () => key.currentState?._save(),
+        child: _MoneyFlowForm(key: key, config: config),
+      ),
+    );
+  }
 
   @override
   ConsumerState<_MoneyFlowForm> createState() => _MoneyFlowFormState();
@@ -670,6 +676,36 @@ class _MoneyFlowFormState extends ConsumerState<_MoneyFlowForm> {
   DateTime? _chequeDate;
   DateTime? _date;
   String _notes = '';
+
+  Future<void> _save() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final hive = ref.read(hiveServiceProvider);
+    await PaymentRepository(hive.paymentsBox).savePayment(
+      PaymentModel.create(
+        type: _type,
+        transactionId: _transactionId.trim(),
+        invoiceNumber:
+            _invoiceNumber.trim().isEmpty ? null : _invoiceNumber.trim(),
+        contactId: _contactId.trim(),
+        amount: _amount,
+        method: _method,
+        referenceNumber:
+            _referenceNumber.trim().isEmpty ? null : _referenceNumber.trim(),
+        bankName: _bankName.trim().isEmpty ? null : _bankName.trim(),
+        chequeNumber:
+            _chequeNumber.trim().isEmpty ? null : _chequeNumber.trim(),
+        chequeDate: _chequeDate,
+        date: _date ?? DateTime.now(),
+        notes: _notes.trim().isEmpty ? null : _notes.trim(),
+      ),
+    );
+    ref.invalidate(moneyFlowProvider(_type));
+    if (!mounted) return;
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Payment saved successfully')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

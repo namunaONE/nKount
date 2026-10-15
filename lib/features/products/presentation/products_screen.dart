@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/database/hive_service.dart';
 import '../../../core/models/product_model.dart';
+import '../../../core/repositories/product_repository.dart';
 import '../../../core/utils/money.dart';
 import '../../../packages/design-system/design_system.dart';
 
@@ -63,7 +63,7 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                       title: 'No Products Found',
                       subtitle: 'Add your first product to get started',
                       action: ClayButton(
-                        onPressed: () => context.push('/products'),
+                        onPressed: () => _AddProductForm.show(context),
                         child: const Text('Add Product'),
                       ),
                     ),
@@ -91,7 +91,7 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                     title: 'No Products Found',
                     subtitle: 'Add your first product to get started',
                     action: ClayButton(
-                      onPressed: () => context.push('/products'),
+                      onPressed: () => _AddProductForm.show(context),
                       child: const Text('Add Product'),
                     ),
                   ),
@@ -195,8 +195,7 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
                                     ),
                                   )
                                 : ClayCard(
-                                    title:
-                                        ClaySectionTitle(selected.name),
+                                    title: ClaySectionTitle(selected.name),
                                     child: Padding(
                                       padding: const EdgeInsets.all(16),
                                       child: Column(
@@ -342,15 +341,8 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
     );
   }
 
-  void _showAddProductDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => const ClayFormDialog(
-        title: Text('Add New Product'),
-        child: _AddProductForm(),
-      ),
-    );
-  }
+  void _showAddProductDialog(BuildContext context) =>
+      _AddProductForm.show(context);
 }
 
 /// Table data source for products.
@@ -494,8 +486,7 @@ List<Widget> _productDetailRows(ProductModel product) => [
       ClayDetailRow(
         icon: Icons.inventory,
         label: 'Stock Quantity',
-        value:
-            '${product.quantity.toStringAsFixed(2)} ${product.unit ?? ''}',
+        value: '${product.quantity.toStringAsFixed(2)} ${product.unit ?? ''}',
       ),
       const Divider(),
       ClayDetailRow(
@@ -742,7 +733,20 @@ class _ProductItem extends StatelessWidget {
 
 /// Add Product Form
 class _AddProductForm extends ConsumerStatefulWidget {
-  const _AddProductForm();
+  const _AddProductForm({super.key});
+
+  /// Shows the add-product dialog (form owns validation + save).
+  static Future<void> show(BuildContext context) {
+    final key = GlobalKey<_AddProductFormState>();
+    return showDialog(
+      context: context,
+      builder: (_) => ClayFormDialog(
+        title: const Text('Add New Product'),
+        onSave: () => key.currentState?._save(),
+        child: _AddProductForm(key: key),
+      ),
+    );
+  }
 
   @override
   ConsumerState<_AddProductForm> createState() => _AddProductFormState();
@@ -765,6 +769,36 @@ class _AddProductFormState extends ConsumerState<_AddProductForm> {
   double _taxRate = 13.0;
   String _description = '';
   bool _isActive = true;
+
+  Future<void> _save() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final hive = ref.read(hiveServiceProvider);
+    await ProductRepository(hive.productsBox).saveProduct(
+      ProductModel.create(
+        name: _name.trim(),
+        code: _code.trim().isEmpty ? null : _code.trim(),
+        barcode: _barcode.trim().isEmpty ? null : _barcode.trim(),
+        category: _category.trim().isEmpty ? null : _category.trim(),
+        brand: _brand.trim().isEmpty ? null : _brand.trim(),
+        unit: _unit.trim().isEmpty ? 'Unit' : _unit.trim(),
+        purchasePrice: _purchasePrice,
+        salePrice: _salePrice,
+        costPrice: _costPrice,
+        quantity: _quantity,
+        minQuantity: _minQuantity,
+        isTaxable: _isTaxable,
+        taxRate: _taxRate,
+        description: _description.trim().isEmpty ? null : _description.trim(),
+        isActive: _isActive,
+      ),
+    );
+    ref.invalidate(productsProvider);
+    if (!mounted) return;
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Product saved successfully')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) => Form(

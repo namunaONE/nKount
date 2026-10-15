@@ -255,20 +255,18 @@ class DatabaseInitializer {
   /// Check if database is initialized
   bool get isInitialized => _isInitialized;
 
-  /// Reset database (clear all data and recreate defaults)
+  /// Reset database (clear all data and recreate defaults).
+  ///
+  /// Boxes must stay OPEN while clearing: the web backend rejects
+  /// clear-after-close, and closing first would leave the app with no
+  /// usable boxes until a reload.
   Future<void> resetDatabase() async {
     try {
       _logger.i('Resetting database...');
 
-      // Close existing boxes
-      await hiveService.close();
-
-      // Clear all data
+      // Clear while boxes are open, then re-seed the defaults.
       await hiveService.clearAllData();
-
-      // Reinitialize
-      _isInitialized = false;
-      await initialize();
+      await _createDefaultData();
 
       _logger.i('Database reset completed');
     } catch (e) {

@@ -18,16 +18,38 @@ class ClayDialog extends StatelessWidget {
 
 /// Form dialog wrapper: centered 520px dialog on medium+ windows,
 /// edge-to-edge fullscreen sheet on compact (phones).
+///
+/// [onSave] renders a primary Save action (sticky in the compact sheet,
+/// bottom-right in the desktop dialog). Callers own validation: the
+/// form's `GlobalKey<FormState>` lives with the form widget, so pass a
+/// callback that reaches it (see the `static show()` helpers on the
+/// add-forms, which use file-scoped privacy for that).
 class ClayFormDialog extends StatelessWidget {
-  const ClayFormDialog({super.key, this.title, this.child, this.actions});
+  const ClayFormDialog({
+    super.key,
+    this.title,
+    this.child,
+    this.actions,
+    this.onSave,
+    this.saveLabel = 'Save',
+  });
   final Widget? title;
   final Widget? child;
   final List<Widget>? actions;
+  final VoidCallback? onSave;
+  final String saveLabel;
 
   @override
   Widget build(BuildContext context) {
     final compact =
         MediaQuery.sizeOf(context).width < ClayBreakpoints.compactMax;
+    final save = onSave;
+    final actionsList = actions;
+    final composed = <Widget>[
+      if (save != null) ClayButton(onPressed: save, child: Text(saveLabel)),
+      ...?actionsList,
+    ];
+
     if (!compact) {
       return AlertDialog(
         title: title,
@@ -35,10 +57,9 @@ class ClayFormDialog extends StatelessWidget {
           width: 520,
           child: SingleChildScrollView(child: child),
         ),
-        actions: actions,
+        actions: composed.isEmpty ? null : composed,
       );
     }
-    final actionsList = actions;
     return Dialog.fullscreen(
       child: SafeArea(
         child: Column(
@@ -66,16 +87,16 @@ class ClayFormDialog extends StatelessWidget {
                 child: child ?? const SizedBox.shrink(),
               ),
             ),
-            if (actionsList != null) ...[
+            if (composed.isNotEmpty) ...[
               const Divider(height: 1),
               Padding(
                 padding: ClaySpacing.cardMedium,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    for (var i = 0; i < actionsList.length; i++) ...[
+                    for (var i = 0; i < composed.length; i++) ...[
                       if (i > 0) const SizedBox(width: ClaySpacing.sm),
-                      Flexible(child: actionsList[i]),
+                      Flexible(child: composed[i]),
                     ],
                   ],
                 ),

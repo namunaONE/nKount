@@ -1029,6 +1029,19 @@ class TransactionFlowScreenState extends ConsumerState<TransactionFlowScreen> {
               await TransactionRepository(
                 hive.transactionsBox,
               ).updateTransaction(updatedTransaction);
+
+              // Update contact balance (README rules: recording a receipt
+              // increases a customer's balance, a payment decreases a
+              // supplier's).
+              final paidContact = hive.contactsBox.get(transaction.contactId);
+              if (paidContact != null) {
+                await ContactRepository(hive.contactsBox).updateContact(
+                  paidContact.copyWithTransaction(
+                    transactionType: _config.paymentRecordType,
+                    amount: amount,
+                  ),
+                );
+              }
               if (mounted) setState(() {});
 
               if (!context.mounted) return;

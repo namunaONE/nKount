@@ -1,14 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/database/hive_service.dart';
 import '../../../core/models/transaction_model.dart';
 import '../../../core/models/contact_model.dart';
+import '../../../core/repositories/transaction_repository.dart';
 import '../../../core/services/pdf_service.dart';
 import '../../../core/utils/money.dart';
 import '../../../core/utils/dates.dart';
 import '../../../packages/design-system/design_system.dart';
+
+/// Detail rows shared by the desktop detail pane and the compact dialog.
+List<Widget> _transactionDetailRows(TransactionModel t) => [
+      ClayDetailRow(label: 'Invoice', value: t.invoiceNumber ?? 'N/A'),
+      ClayDetailRow(
+          label: 'Date', value: t.date == null ? 'N/A' : formatDate(t.date)),
+      ClayDetailRow(label: 'Type', value: t.typeDisplayName),
+      ClayDetailRow(label: 'Contact', value: t.contactId),
+      ClayDetailRow(label: 'Subtotal', value: formatCurrency(t.subtotal)),
+      ClayDetailRow(label: 'Discount', value: formatCurrency(t.discount)),
+      ClayDetailRow(label: 'Tax (${t.vatRate}%)', value: formatCurrency(t.tax)),
+      ClayDetailRow(
+          label: 'Total', value: formatCurrency(t.total), isBold: true),
+      ClayDetailRow(label: 'Paid', value: formatCurrency(t.paidAmount)),
+      ClayDetailRow(
+          label: 'Due',
+          value: formatCurrency(t.dueAmount),
+          isBold: t.dueAmount > 0),
+      ClayDetailRow(label: 'Status', value: t.paymentStatus),
+      if (t.notes != null && t.notes!.isNotEmpty)
+        ClayDetailRow(label: 'Notes', value: t.notes!),
+    ];
 
 /// Transactions Screen: dense, sortable, filterable table (desktop) + cards (mobile)
 class TransactionsScreen extends ConsumerStatefulWidget {
@@ -37,28 +59,6 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     }
     return sorted.first;
   }
-
-  List<Widget> _transactionDetailRows(TransactionModel t) => [
-        ClayDetailRow(label: 'Invoice', value: t.invoiceNumber ?? 'N/A'),
-        ClayDetailRow(
-            label: 'Date', value: t.date == null ? 'N/A' : formatDate(t.date)),
-        ClayDetailRow(label: 'Type', value: t.typeDisplayName),
-        ClayDetailRow(label: 'Contact', value: t.contactId),
-        ClayDetailRow(label: 'Subtotal', value: formatCurrency(t.subtotal)),
-        ClayDetailRow(label: 'Discount', value: formatCurrency(t.discount)),
-        ClayDetailRow(
-            label: 'Tax (${t.vatRate}%)', value: formatCurrency(t.tax)),
-        ClayDetailRow(
-            label: 'Total', value: formatCurrency(t.total), isBold: true),
-        ClayDetailRow(label: 'Paid', value: formatCurrency(t.paidAmount)),
-        ClayDetailRow(
-            label: 'Due',
-            value: formatCurrency(t.dueAmount),
-            isBold: t.dueAmount > 0),
-        ClayDetailRow(label: 'Status', value: t.paymentStatus),
-        if (t.notes != null && t.notes!.isNotEmpty)
-          ClayDetailRow(label: 'Notes', value: t.notes!),
-      ];
 
   Widget _buildDetailPane(BuildContext context, TransactionModel? selected) {
     if (selected == null) {
@@ -95,7 +95,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                   child: const Text('Edit'),
                 ),
                 ClayButton.text(
-                  onPressed: () => _confirmDelete(context, t),
+                  onPressed: () => _confirmDelete(context, t, ref),
                   child: const Text('Delete'),
                 ),
               ],
@@ -149,114 +149,115 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
               return LayoutBuilder(
                 builder: (context, constraints) {
                   final tableCard = ClayTableCard(
-                title: 'Transactions',
-                tableTitle: 'All transactions',
-                searchHint: 'Search...',
-                onSearchChanged: (v) => setState(() => _searchQuery = v),
-                columns: [
-                  DataColumn(
-                    label: Text('Invoice',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelLarge
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    onSort: (col, asc) => setState(() {
-                      _sortColumnIndex = 0;
-                      _sortAscending = asc;
-                    }),
-                  ),
-                  DataColumn(
-                    label: Text('Date',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelLarge
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    onSort: (col, asc) => setState(() {
-                      _sortColumnIndex = 1;
-                      _sortAscending = asc;
-                    }),
-                  ),
-                  DataColumn(
-                    label: Text('Type',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelLarge
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    onSort: (col, asc) => setState(() {
-                      _sortColumnIndex = 2;
-                      _sortAscending = asc;
-                    }),
-                  ),
-                  DataColumn(
-                    label: Text('Contact',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelLarge
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    onSort: (col, asc) => setState(() {
-                      _sortColumnIndex = 3;
-                      _sortAscending = asc;
-                    }),
-                  ),
-                  DataColumn(
-                    label: Text('Total',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelLarge
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    numeric: true,
-                    onSort: (col, asc) => setState(() {
-                      _sortColumnIndex = 4;
-                      _sortAscending = asc;
-                    }),
-                  ),
-                  DataColumn(
-                    label: Text('Status',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelLarge
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    onSort: (col, asc) => setState(() {
-                      _sortColumnIndex = 5;
-                      _sortAscending = asc;
-                    }),
-                  ),
-                  DataColumn(
-                    label: Text('Due',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelLarge
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    onSort: (col, asc) => setState(() {
-                      _sortColumnIndex = 6;
-                      _sortAscending = asc;
-                    }),
-                  ),
-                  DataColumn(
-                    label: Text('Actions',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelLarge
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                  ),
-                ],
-                source: _TransactionDataSource(
-                  transactions: sorted,
-                  onView: (t) {
-                    if (MediaQuery.sizeOf(context).width >=
-                        ClayBreakpoints.twoColumnMin) {
-                      setState(() => _selectedId = t.id);
-                    } else {
-                      _showDetailDialog(context, t);
-                    }
-                  },
-                  onEdit: (t) => _showEditDialog(context, t),
-                  onDelete: (t) => _confirmDelete(context, t),
-                ),
-                rowsPerPage: _rowsPerPage,
-                onRowsPerPageChanged: (v) => setState(() => _rowsPerPage = v!),
-                sortColumnIndex: _sortColumnIndex,
-                sortAscending: _sortAscending,
+                    title: 'Transactions',
+                    tableTitle: 'All transactions',
+                    searchHint: 'Search...',
+                    onSearchChanged: (v) => setState(() => _searchQuery = v),
+                    columns: [
+                      DataColumn(
+                        label: Text('Invoice',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.copyWith(fontWeight: FontWeight.bold)),
+                        onSort: (col, asc) => setState(() {
+                          _sortColumnIndex = 0;
+                          _sortAscending = asc;
+                        }),
+                      ),
+                      DataColumn(
+                        label: Text('Date',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.copyWith(fontWeight: FontWeight.bold)),
+                        onSort: (col, asc) => setState(() {
+                          _sortColumnIndex = 1;
+                          _sortAscending = asc;
+                        }),
+                      ),
+                      DataColumn(
+                        label: Text('Type',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.copyWith(fontWeight: FontWeight.bold)),
+                        onSort: (col, asc) => setState(() {
+                          _sortColumnIndex = 2;
+                          _sortAscending = asc;
+                        }),
+                      ),
+                      DataColumn(
+                        label: Text('Contact',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.copyWith(fontWeight: FontWeight.bold)),
+                        onSort: (col, asc) => setState(() {
+                          _sortColumnIndex = 3;
+                          _sortAscending = asc;
+                        }),
+                      ),
+                      DataColumn(
+                        label: Text('Total',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.copyWith(fontWeight: FontWeight.bold)),
+                        numeric: true,
+                        onSort: (col, asc) => setState(() {
+                          _sortColumnIndex = 4;
+                          _sortAscending = asc;
+                        }),
+                      ),
+                      DataColumn(
+                        label: Text('Status',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.copyWith(fontWeight: FontWeight.bold)),
+                        onSort: (col, asc) => setState(() {
+                          _sortColumnIndex = 5;
+                          _sortAscending = asc;
+                        }),
+                      ),
+                      DataColumn(
+                        label: Text('Due',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.copyWith(fontWeight: FontWeight.bold)),
+                        onSort: (col, asc) => setState(() {
+                          _sortColumnIndex = 6;
+                          _sortAscending = asc;
+                        }),
+                      ),
+                      DataColumn(
+                        label: Text('Actions',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.copyWith(fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                    source: _TransactionDataSource(
+                      transactions: sorted,
+                      onView: (t) {
+                        if (MediaQuery.sizeOf(context).width >=
+                            ClayBreakpoints.twoColumnMin) {
+                          setState(() => _selectedId = t.id);
+                        } else {
+                          _showDetailDialog(context, t);
+                        }
+                      },
+                      onEdit: (t) => _showEditDialog(context, t),
+                      onDelete: (t) => _confirmDelete(context, t, ref),
+                    ),
+                    rowsPerPage: _rowsPerPage,
+                    onRowsPerPageChanged: (v) =>
+                        setState(() => _rowsPerPage = v!),
+                    sortColumnIndex: _sortColumnIndex,
+                    sortAscending: _sortAscending,
                   );
                   if (constraints.maxWidth >= ClayBreakpoints.twoColumnMin) {
                     return Row(
@@ -412,89 +413,100 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     );
   }
 
-  void _showAddTransactionDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => const ClayFormDialog(
-        title: Text('Add New Transaction'),
-        child: _AddTransactionForm(),
-      ),
-    );
-  }
+  void _showAddTransactionDialog(BuildContext context) =>
+      _AddTransactionForm.show(context);
 
   void _showDetailDialog(BuildContext context, TransactionModel t) =>
-      showDialog(
-          context: context,
-          builder: (c) => ClayDialog(
-                title:
-                    Text('${t.typeDisplayName} - ${t.invoiceNumber ?? 'N/A'}'),
-                content: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 500),
-                    child: SingleChildScrollView(
-                        child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: _transactionDetailRows(t)))),
-                actions: [
-                  ClayButton.text(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Close')),
-                  ClayButton(
-                    onPressed: () => _printInvoice(context, t),
-                    child: const Text('Print / PDF'),
-                  ),
-                ],
-              ));
+      _showTransactionDetailDialog(context, t);
 
   void _showEditDialog(BuildContext context, TransactionModel t) {
     // TODO: Implement edit dialog
   }
+}
 
-  /// Generates the invoice PDF and opens the platform print/share sheet.
-  Future<void> _printInvoice(BuildContext context, TransactionModel t) async {
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      final companies = hiveService.companiesBox.values.toList();
-      if (companies.isEmpty) {
-        messenger.showSnackBar(
-          const SnackBar(
-              content: Text('Add your company profile in Settings first')),
-        );
-        return;
-      }
-      final contact = hiveService.contactsBox.get(t.contactId) ??
-          ContactModel.create(name: 'Walk-in Customer');
-      final productsById = {
-        for (final p in hiveService.productsBox.values) p.id: p,
-      };
-      final products = [
-        for (final item in t.items ?? <TransactionItem>[])
-          if (productsById.containsKey(item.productId))
-            productsById[item.productId]!,
-      ];
-      final pdfBytes = await pdfService.generateInvoicePdf(
-        transaction: t,
-        company: companies.first,
-        contact: contact,
-        products: products,
+/// Transaction detail dialog (top-level so both the screen and the
+/// compact card can open it). Rows come from [_transactionDetailRows].
+void _showTransactionDetailDialog(BuildContext context, TransactionModel t) {
+  final scheme = Theme.of(context).colorScheme;
+  showDialog(
+    context: context,
+    builder: (c) => ClayDialog(
+      title: Text('${t.typeDisplayName} - ${t.invoiceNumber ?? 'N/A'}'),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 500),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: _transactionDetailRows(t),
+          ),
+        ),
+      ),
+      actions: [
+        ClayButton.text(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            'Close',
+            style: TextStyle(color: scheme.onSurfaceVariant),
+          ),
+        ),
+        ClayButton(
+          onPressed: () => _printInvoice(context, t),
+          child: const Text('Print / PDF'),
+        ),
+      ],
+    ),
+  );
+}
+
+/// Generates the invoice PDF and opens the platform print/share sheet.
+Future<void> _printInvoice(BuildContext context, TransactionModel t) async {
+  final messenger = ScaffoldMessenger.of(context);
+  try {
+    final companies = hiveService.companiesBox.values.toList();
+    if (companies.isEmpty) {
+      messenger.showSnackBar(
+        const SnackBar(
+            content: Text('Add your company profile in Settings first')),
       );
-      await pdfService.sharePdf(
-        pdfBytes,
-        fileName: '${t.invoiceNumber ?? 'invoice'}.pdf',
-      );
-    } on Exception catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Print failed: $e')));
+      return;
     }
+    final contact = hiveService.contactsBox.get(t.contactId) ??
+        ContactModel.create(name: 'Walk-in Customer');
+    final productsById = {
+      for (final p in hiveService.productsBox.values) p.id: p,
+    };
+    final products = [
+      for (final item in t.items ?? <TransactionItem>[])
+        if (productsById.containsKey(item.productId))
+          productsById[item.productId]!,
+    ];
+    final pdfBytes = await pdfService.generateInvoicePdf(
+      transaction: t,
+      company: companies.first,
+      contact: contact,
+      products: products,
+    );
+    await pdfService.sharePdf(
+      pdfBytes,
+      fileName: '${t.invoiceNumber ?? 'invoice'}.pdf',
+    );
+  } on Exception catch (e) {
+    messenger.showSnackBar(SnackBar(content: Text('Print failed: $e')));
   }
+}
 
-  Future<void> _confirmDelete(BuildContext context, TransactionModel t) async {
-    if (await showClayConfirmDialog(
-      context,
-      title: 'Delete Transaction?',
-      message: 'Delete ${t.invoiceNumber}? This cannot be undone.',
-    )) {
-      await hiveService.transactionsBox.delete(t.id);
-      ref.invalidate(transactionsProvider);
-    }
+Future<void> _confirmDelete(
+  BuildContext context,
+  TransactionModel t,
+  WidgetRef ref,
+) async {
+  if (await showClayConfirmDialog(
+    context,
+    title: 'Delete Transaction?',
+    message: 'Delete ${t.invoiceNumber}? This cannot be undone.',
+  )) {
+    await hiveService.transactionsBox.delete(t.id);
+    ref.invalidate(transactionsProvider);
   }
 }
 
@@ -507,7 +519,7 @@ class _TransactionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isSale = transaction.type == AppConstants.transactionSale;
     return ClayCard(
-      onTap: () => context.push('/transactions'),
+      onTap: () => _showTransactionDetailDialog(context, transaction),
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
@@ -573,7 +585,7 @@ class _MobileCardList extends ConsumerWidget {
           title: 'No Transactions Found',
           subtitle: 'Add your first transaction to get started',
           action: ClayButton(
-            onPressed: () => context.push('/transactions'),
+            onPressed: () => _AddTransactionForm.show(context),
             child: const Text('Add Transaction'),
           ),
         ),
@@ -710,7 +722,33 @@ String _statusLabel(String status) {
 /// Transactions List
 /// Add Transaction Form
 class _AddTransactionForm extends ConsumerStatefulWidget {
-  const _AddTransactionForm();
+  const _AddTransactionForm({super.key});
+
+  /// Shows the add-transaction dialog. The form owns validation + saving
+  /// and reports success; this pops the dialog and confirms on the caller's
+  /// context (the screen underneath, which outlives the dialog).
+  static Future<void> show(BuildContext context) {
+    final key = GlobalKey<_AddTransactionFormState>();
+    return showDialog(
+      context: context,
+      builder: (dialogContext) {
+        final navigator = Navigator.of(dialogContext);
+        final messenger = ScaffoldMessenger.of(context);
+        return ClayFormDialog(
+          title: const Text('Add New Transaction'),
+          onSave: () async {
+            if (await key.currentState?.save() ?? false) {
+              navigator.pop();
+              messenger.showSnackBar(
+                const SnackBar(content: Text('Transaction saved successfully')),
+              );
+            }
+          },
+          child: _AddTransactionForm(key: key),
+        );
+      },
+    );
+  }
 
   @override
   ConsumerState<_AddTransactionForm> createState() =>
@@ -735,6 +773,35 @@ class _AddTransactionFormState extends ConsumerState<_AddTransactionForm> {
   String _notes = '';
   bool _isVatIncluded = true;
   double _vatRate = 13.0;
+
+  Future<bool> save() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return false;
+    final hive = ref.read(hiveServiceProvider);
+    await TransactionRepository(hive.transactionsBox).saveTransaction(
+      TransactionModel.create(
+        type: _type,
+        contactId: _contactId.trim(),
+        invoiceNumber:
+            _invoiceNumber.trim().isEmpty ? null : _invoiceNumber.trim(),
+        subtotal: _subtotal,
+        discount: _discount,
+        tax: _tax,
+        total: _total,
+        paidAmount: _paidAmount,
+        paymentStatus: _paymentStatus,
+        paymentMethod: _paymentMethod,
+        referenceNumber:
+            _referenceNumber.trim().isEmpty ? null : _referenceNumber.trim(),
+        date: _date,
+        dueDate: _dueDate,
+        notes: _notes.trim().isEmpty ? null : _notes.trim(),
+        isVatIncluded: _isVatIncluded,
+        vatRate: _vatRate,
+      ),
+    );
+    ref.invalidate(transactionsProvider);
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) => Form(
